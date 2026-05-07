@@ -1,0 +1,193 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Jay Goga Kirana Store - Freshness Delivered</title>
+    <!-- Bootstrap 5 CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <!-- Bootstrap Icons -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.css">
+    <!-- Google Fonts: Inter -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700;800&display=swap" rel="stylesheet">
+    <!-- Main Style -->
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/colors.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/landing.css') }}">
+</head>
+
+<body>
+    <!-- Standalone Simple Header -->
+    <nav class="stand-nav sticky-top">
+        <div class="container d-flex justify-content-between align-items-center">
+            <a class="navbar-brand fw-bold text-white fs-4" href="/">
+                <i class="bi bi-basket2-fill text-ss-secondary me-2"></i>Jay Goga<span class="text-ss-secondary"> Kirana
+                    Store</span>
+            </a>
+            <div class="d-flex align-items-center gap-3">
+                {% if not current_user.is_authenticated %}
+                <div class="user-logo-dropdown">
+                    <div class="user-logo-icon">
+                        <i class="bi bi-person-circle text-white fs-3"></i>
+                    </div>
+                    <div class="user-dropdown-menu glass-panel shadow-lg">
+                        <a href="{{ url_for('auth.customer_login') }}"><i class="bi bi-box-arrow-in-right"></i> Login</a>
+                        <a href="{{ url_for('auth.customer_register') }}"><i class="bi bi-person-plus"></i> Sign Up</a>
+                    </div>
+                </div>
+                {% elif current_user.role == 'admin' %}
+                <a href="{{ url_for('admin.dashboard') }}" class="btn btn-ss-primary btn-sm px-4">
+                    <i class="bi bi-speedometer2 me-1"></i>Admin Dashboard
+                </a>
+                <a href="{{ url_for('auth.logout') }}"
+                    class="btn btn-ss-outline border-white text-white btn-sm px-4">Sign Out</a>
+                {% else %}
+                <div class="user-logo-dropdown">
+                    <div class="user-logo-icon">
+                        <i class="bi bi-person-circle text-white fs-3"></i>
+                    </div>
+                    <div class="user-dropdown-menu glass-panel shadow-lg">
+                        <a href="{{ url_for('customer.my_orders') }}"><i class="bi bi-box-seam"></i> My Orders</a>
+                        <a href="{{ url_for('customer.profile') }}"><i class="bi bi-person"></i> Profile</a>
+                        <hr class="dropdown-divider opacity-10 m-0">
+                        <a href="{{ url_for('auth.logout') }}" class="text-danger"><i class="bi bi-box-arrow-right"></i> Sign Out</a>
+                    </div>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+    </nav>
+
+    <!-- Hero Section -->
+    <section class="lp-hero-gradient overflow-hidden">
+        <div class="ss-hero-blob"></div>
+        <div class="container position-relative z-1">
+            <div class="row align-items-center g-5 py-5">
+                <div class="col-lg-7 text-center text-lg-start page-transition">
+                    <span class="badge bg-ss-secondary text-dark fw-bold mb-4 px-3 py-2 rounded-pill shadow-sm">FRESH &
+                        LOCAL SINCE 1995</span>
+                    <h1 class="lp-hero-title">Fresh Groceries, <br><span class="lp-hero-accent">Best Prices.</span></h1>
+                    <p class="lead mb-5 text-white-50 fs-4">Experience the heartbeat of your local market online.
+                        Discover fresh farm-picked vegetables and daily essentials delivered to your door.</p>
+                    <div class="d-flex flex-wrap gap-3 justify-content-center justify-content-lg-start">
+                        <a href="{{ url_for('customer.shop') }}" class="btn btn-ss-primary btn-lg px-5 py-3">
+                            <i class="bi bi-cart4 me-2"></i> START SHOPPING
+                        </a>
+                    </div>
+                </div>
+                <div class="col-lg-5 d-none d-lg-block page-transition delay-2">
+                    <div class="store-image-container p-3 glass-panel rounded-4">
+                        <img src="{{ url_for('static', filename='images/storefront.jpg') }}" alt="Storefront"
+                            class="img-fluid rounded-3 shadow-lg">
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Stats Box -->
+    <div class="container">
+        <div class="lp-stats-container">
+            <div class="row g-4 text-center">
+                <div class="col-md-4">
+                    <div class="p-3">
+                        <h2 class="h1 fw-900 gradient-text mb-1">1000+</h2>
+                        <span class="text-muted small text-uppercase fw-bold tracking-wider">Quality Products</span>
+                    </div>
+                </div>
+                <div class="col-md-4">
+                    <div class="p-3">
+                        <h2 class="h1 fw-900 gradient-text mb-1">2 Hours</h2>
+                        <span class="text-muted small text-uppercase fw-bold tracking-wider">Fast Local Delivery</span>
+                    </div>
+                </div>
+                <div class="col-md-4">
+                    <div class="p-3">
+                        <h2 class="h1 fw-900 gradient-text mb-1">100%</h2>
+                        <span class="text-muted small text-uppercase fw-bold tracking-wider">Freshness Guaranteed</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Features -->
+    <section class="py-5 mt-5">
+        <div class="container py-5">
+            <div class="text-center mb-5 page-transition">
+                <h2 class="display-5 fw-900 mb-3">Freshness & Trust</h2>
+                <p class="text-muted fs-5">Bringing you the finest selection with local warmth</p>
+                <div class="lp-section-divider"></div>
+            </div>
+            <div class="row g-4">
+                <div class="col-md-4">
+                    <div class="ss-feature-card page-transition delay-1">
+                        <div class="ss-feature-icon"><i class="bi bi-egg-fried"></i></div>
+                        <h3 class="h4 fw-bold mb-3">Daily Fresh</h3>
+                        <p class="text-muted mb-0">Direct from local farms. Every morning we restock to ensure you get
+                            only the best produce for your family.</p>
+                    </div>
+                </div>
+                <div class="col-md-4">
+                    <div class="ss-feature-card page-transition delay-2">
+                        <div class="ss-feature-icon"><i class="bi bi-shield-check"></i></div>
+                        <h3 class="h4 fw-bold mb-3">Pure Quality</h3>
+                        <p class="text-muted mb-0">Handpicked grains and spices. We never compromise on the quality of
+                            ingredients that enter your kitchen.</p>
+                    </div>
+                </div>
+                <div class="col-md-4">
+                    <div class="ss-feature-card page-transition delay-3">
+                        <div class="ss-feature-icon"><i class="bi bi-lightning-charge"></i></div>
+                        <h3 class="h4 fw-bold mb-3">Express Pickup</h3>
+                        <p class="text-muted mb-0">Order online and pick up in 15 minutes, or enjoy lightning-fast local
+                            delivery to your doorstep.</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Call to Action -->
+    <section class="py-5 bg-white">
+        <div class="container py-5">
+            <div class="lp-cta-gradient p-5 text-center text-white shadow-lg page-transition">
+                <div class="row justify-content-center">
+                    <div class="col-lg-8">
+                        <h2 class="display-6 fw-bold mb-3">Ready to Stock Your Kitchen?</h2>
+                        <p class="lead mb-5 opacity-75">Join thousands of happy customers who trust Jay Goga for their
+                            daily essentials. Get fresh, get local!</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <footer class="footer-stand text-center">
+        <div class="container">
+            <div class="row mb-5 g-4">
+                <div class="col-md-4">
+                    <p class="mb-0 small"><i class="bi bi-geo-alt text-ss-secondary me-2"></i> Pali Unjha Mehsana
+                        Gujarat 384260</p>
+                </div>
+                <div class="col-md-4">
+                    <p class="mb-0 small"><i class="bi bi-envelope text-ss-secondary me-2"></i> jaygoga@store.com</p>
+                </div>
+                <div class="col-md-4">
+                    <p class="mb-0 small"><i class="bi bi-telephone text-ss-secondary me-2"></i> +91 9313840278</p>
+                </div>
+            </div>
+            <div class="border-top border-white border-opacity-10 pt-4">
+                <p class="mb-0 small text-white-50">© 2026 Jay Goga Kirana Store. All rights reserved.</p>
+                <div class="mt-2 small opacity-25">
+                    <a href="{{ url_for('auth.login') }}" class="text-white text-decoration-none">Owner Portal</a>
+                </div>
+            </div>
+        </div>
+    </footer>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+
+</html>

@@ -1,0 +1,133 @@
+{% extends 'admin/admin_base.html' %}
+
+{% block title %}Customers & Credit - Jay Goga Kirana Store{% endblock %}
+
+{% block content %}
+<div class="container px-4 py-4">
+    <div class="row mb-5 align-items-center">
+        <div class="col-md-8 mb-3 mb-md-0">
+            <h1 class="h2 fw-bold text-ss-primary mb-1">
+                <i class="bi bi-people me-2"></i>Customer Directory & Credit (Udhar)
+            </h1>
+            <p class="text-muted mb-0">View all registered customers and manage their outstanding store credit balances.</p>
+        </div>
+    </div>
+
+    <div class="glass-panel border-0 shadow-xl p-0 overflow-hidden rounded-4">
+        <div class="table-responsive">
+            <table class="table table-hover align-middle mb-0">
+                <thead class="bg-light bg-opacity-50">
+                    <tr class="smallest text-uppercase fw-900 text-muted">
+                        <th class="ps-4 py-3">Customer Profile</th>
+                        <th class="py-3">Contact Details</th>
+                        <th class="py-3">Membership</th>
+                        <th class="py-3 text-end">Credit Balance</th>
+                        <th class="pe-4 py-3 text-end">Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for customer in customers %}
+                    <tr class="page-transition">
+                        <td class="ps-4">
+                            <div class="d-flex align-items-center">
+                                <div class="ss-feature-icon bg-ss-primary bg-opacity-10 text-ss-primary fw-900 me-3 shadow-sm d-flex justify-content-center align-items-center rounded-circle" style="width:45px; height:45px; border: 2px solid var(--border-subtle) !important;">
+                                    {{ (customer.full_name or customer.username)[0]|upper }}
+                                </div>
+                                <div>
+                                    <h6 class="mb-0 fw-800 text-dark">{{ customer.full_name or customer.username }}</h6>
+                                    <div class="smallest text-muted text-uppercase fw-bold opacity-75">ID: #{{ customer.id }}</div>
+                                </div>
+                            </div>
+                        </td>
+                        <td>
+                            <div class="smallest">
+                                {% if customer.phone %}
+                                <div class="text-dark fw-bold mb-1"><i class="bi bi-telephone-fill text-ss-primary me-2 opacity-50"></i>{{ customer.phone }}</div>
+                                {% endif %}
+                                {% if customer.email %}
+                                <div class="text-muted fw-bold"><i class="bi bi-envelope-at-fill me-2 opacity-50"></i>{{ customer.email }}</div>
+                                {% endif %}
+                                {% if not customer.phone and not customer.email %}
+                                <span class="text-muted fst-italic opacity-50">NO CONTACT INFO</span>
+                                {% endif %}
+                            </div>
+                        </td>
+                        <td>
+                            <div class="smallest fw-900 text-ss-primary text-uppercase">{{ customer.created_at.strftime('%b %d, %Y') }}</div>
+                        </td>
+                        <td class="text-end">
+                            {% if customer.credit > 0 %}
+                            <div class="text-danger fw-900 fs-5 mb-0">₹{{ '{:,.2f}'.format(customer.credit) }}</div>
+                            <div class="smallest text-danger fw-bold opacity-75 text-uppercase">OUTSTANDING</div>
+                            {% else %}
+                            <span class="ss-tag-success smallest py-1 px-3"><i class="bi bi-check-lg me-1"></i>SETTLED</span>
+                            {% endif %}
+                        </td>
+                        <td class="text-end pe-4">
+                            {% if customer.credit > 0 %}
+                            <button type="button" class="btn btn-ss-primary btn-sm rounded-pill fw-900 px-4 py-2 shadow-sm" 
+                                data-bs-toggle="modal" data-bs-target="#clearCreditModal{{ customer.id }}">
+                                <i class="bi bi-wallet2 me-2"></i>SETTLE CREDIT
+                            </button>
+                            
+                            <!-- Settle Credit Modal -->
+                            <div class="modal fade" id="clearCreditModal{{ customer.id }}" tabindex="-1" aria-hidden="true">
+                                <div class="modal-dialog modal-dialog-centered">
+                                    <div class="modal-content border-0 shadow-lg rounded-4 overflow-hidden">
+                                        <div class="modal-header border-0 bg-ss-primary text-white py-3">
+                                            <h5 class="modal-title fw-900 text-uppercase tracking-wider">Settle Store Credit</h5>
+                                            <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+                                        </div>
+                                        <div class="modal-body p-4 p-md-5">
+                                            <p class="text-muted mb-4 fw-medium">Record a payment from <strong>{{ customer.full_name or customer.username }}</strong> to adjust their outstanding balance.</p>
+                                            
+                                            <div class="d-flex justify-content-between align-items-center p-4 bg-ss-secondary bg-opacity-10 rounded-4 mb-4 border border-ss-secondary border-opacity-20 shadow-inner">
+                                                <span class="text-ss-secondary fw-900 text-uppercase smallest tracking-widest">Balance (Udhar)</span>
+                                                <span class="fs-3 fw-900 text-ss-secondary">₹{{ '{:,.2f}'.format(customer.credit) }}</span>
+                                            </div>
+                                            
+                                            <form action="{{ url_for('admin.clear_credit', user_id=customer.id) }}" method="POST">
+                                                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
+                                                <div class="mb-4">
+                                                    <label class="form-label smallest fw-900 text-ss-primary text-uppercase tracking-wider mb-2">Amount Paid (₹)</label>
+                                                    <div class="input-group glass-panel border-0 p-1">
+                                                        <span class="input-group-text bg-transparent border-0 opacity-50"><i class="bi bi-cash-stack fs-5"></i></span>
+                                                        <input type="number" step="0.01" min="0.01" max="{{ customer.credit }}" 
+                                                            class="form-control bg-transparent border-0 fw-900 fs-5" 
+                                                            name="amount_paid" value="{{ customer.credit }}" required>
+                                                    </div>
+                                                    <div class="form-text smallest fw-bold text-muted mt-2 opacity-75">Record partial or full payment of the outstanding debt.</div>
+                                                </div>
+                                                <div class="d-grid mt-5">
+                                                    <button type="submit" class="btn btn-ss-primary py-3 rounded-pill fw-900 tracking-widest text-uppercase shadow-lg sparkle-hover">
+                                                        <i class="bi bi-shield-check me-2 fs-5"></i>Confirm Settle
+                                                    </button>
+                                                </div>
+                                            </form>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            {% else %}
+                            <div class="smallest text-muted fw-900 opacity-25">NO PENDING DUE</div>
+                            {% endif %}
+                        </td>
+                    </tr>
+                    {% else %}
+                    <tr>
+                        <td colspan="5" class="text-center py-5">
+                            <div class="ss-feature-icon mx-auto mb-4 bg-ss-primary bg-opacity-10 text-ss-primary border-0"
+                                style="width: 80px; height: 80px;">
+                                <i class="bi bi-people h1 mb-0"></i>
+                            </div>
+                            <h5 class="fw-900 text-ss-primary">No Customers Found</h5>
+                            <p class="text-muted">Registered customers will appear here automatically.</p>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+{% endblock %}

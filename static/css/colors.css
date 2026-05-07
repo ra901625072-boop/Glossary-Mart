@@ -1,0 +1,62 @@
+/* Global Color System (Blue & Green Theme) */
+:root {
+    /* Primary Colors & Shimmer Tiers */
+    --primary: #2563EB;
+    --primary-light: #60A5FA;
+    --primary-dark: #1E40AF;
+    --success: #16A34A;
+    --success-light: #4ADE80;
+    --danger: #EF4444;
+    --warning: #F59E0B;
+    
+    /* Background & Semantic Surfaces */
+    --bg-main: #F8FAFC;
+    --sur-low: #FFFFFF;
+    --sur-mid: rgba(255, 255, 255, 0.85);
+    --sur-high: rgba(255, 255, 255, 0.95);
+    
+    --text-main: #0F172A;
+    --text-muted: #64748B;
+    --border-subtle: rgba(226, 232, 240, 0.7);
+
+    /* ========== Legacy Aliases (DO NOT REMOVE) ========== */
+    --ss-primary: var(--primary);
+    --ss-primary-light: var(--primary-light);
+    --ss-secondary: var(--success);
+    --ss-accent: var(--warning);
+    --ss-accent-dark: #D97706;
+
+    --ss-bg: var(--bg-main);
+    --ss-card-bg: var(--sur-low);
+    --ss-text: var(--text-main);
+    --ss-text-muted: var(--text-muted);
+    --ss-border: var(--border-subtle);
+
+    --ss-danger: var(--danger);
+    --ss-success: var(--success);
+
+    /* Fluid Glassmorphism System */
+    --glass-bg: rgba(255, 255, 255, 0.7);
+    --glass-blur: 12px;
+    --glass-border: rgba(255, 255, 255, 0.4);
+    --glass-reflection: linear-gradient(135deg, rgba(255,255,255,0.4) 0%, rgba(255,255,255,0) 50%);
+
+    /* Premium Shadow System (Layered) */
+    --ss-shadow-sm: 0 1px 2px rgba(0,0,0,0.05);
+    --ss-shadow-md: 0 4px 6px -1px rgba(0,0,0,0.1), 0 2px 4px -1px rgba(0,0,0,0.06);
+    --ss-shadow-lg: 0 10px 15px -3px rgba(0,0,0,0.1), 0 4px 6px -2px rgba(0,0,0,0.05);
+    --ss-shadow-xl: 0 20px 25px -5px rgba(0,0,0,0.1), 0 10px 10px -5px rgba(0,0,0,0.04);
+    --ss-shadow-inner: inset 0 2px 4px 0 rgba(0, 0, 0, 0.06);
+
+    /* Gradients */
+    --ss-gradient: linear-gradient(135deg, var(--primary) 0%, var(--primary-dark) 100%);
+    --ss-gradient-accent: linear-gradient(135deg, var(--warning) 0%, #D97706 100%);
+    --ss-gradient-success: linear-gradient(135deg, var(--success) 0%, #15803D 100%);
+
+    /* Radii & Timing */
+    --ss-radius: 12px;
+    --ss-radius-lg: 20px;
+    --ss-radius-xl: 32px;
+    --ss-transition: all 0.5s cubic-bezier(0.23, 1, 0.32, 1);
+}
+

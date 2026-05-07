@@ -1,0 +1,66 @@
+/* ========== Admin Sales Terminal - Modernized ========== */
+
+.sales-terminal-card {
+    border-radius: 24px;
+    overflow: hidden;
+    border: none;
+    box-shadow: 0 4px 25px rgba(0, 0, 0, 0.05);
+}
+
+.ss-select {
+    border: 1px solid #e0e6ed;
+    border-radius: 14px;
+    padding: 0.75rem 1rem;
+    font-weight: 500;
+    background-color: #f8fafc;
+    transition: all 0.3s ease;
+}
+
+.ss-select:focus {
+    border-color: var(--ss-primary);
+    background-color: white;
+    box-shadow: 0 0 0 4px rgba(37, 99, 235, 0.1);
+}
+
+.cart-item-row {
+    padding: 1rem;
+    border-radius: 16px;
+    transition: all 0.3s ease;
+    margin-bottom: 0.5rem;
+}
+
+.cart-item-row:hover {
+    background-color: rgba(37, 99, 235, 0.05);
+}
+
+.product-thumb-preview {
+    width: 55px;
+    height: 55px;
+    object-fit: contain;
+    border-radius: 12px;
+    background: white;
+    padding: 4px;
+    border: 1px solid #e0e6ed;
+}
+
+.total-display-card {
+    background: var(--ss-gradient);
+    color: white;
+    border-radius: 20px;
+    padding: 1.5rem;
+    box-shadow: 0 10px 20px rgba(37, 99, 235, 0.2);
+}
+
+.summary-label {
+    font-size: 0.85rem;
+    color: rgba(255, 255, 255, 0.7);
+    text-transform: uppercase;
+    font-weight: 700;
+    letter-spacing: 1px;
+}
+
+.summary-value {
+    font-size: 1.75rem;
+    font-weight: 850;
+    letter-spacing: -1px;
+}

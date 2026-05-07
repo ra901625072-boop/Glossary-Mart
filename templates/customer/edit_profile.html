@@ -1,0 +1,90 @@
+{% extends 'base.html' %}
+
+{% block title %}Edit Profile - Jay Goga Kirana Store{% endblock %}
+
+{% block content %}
+<div class="container my-5">
+    <div class="row justify-content-center">
+        <div class="col-md-8">
+            <div class="ss-detail-container border-0 shadow-lg p-5 glass-panel">
+                <div class="d-flex align-items-center mb-4">
+                    <a href="{{ url_for('customer.profile') }}" class="btn btn-ss-outline me-3">
+                        <i class="bi bi-arrow-left"></i>
+                    </a>
+                    <h2 class="fw-bold text-ss-primary mb-0">Edit Personal Profile</h2>
+                </div>
+
+                <form method="POST" action="{{ url_for('customer.edit_profile') }}">
+                    {{ form.hidden_tag() }}
+
+                    <div class="row g-4">
+                        <div class="col-md-6">
+                            <label class="form-label small fw-bold text-ss-primary">Username</label>
+                            <input type="text" class="form-control ss-input" value="{{ user.username }}"
+                                readonly disabled>
+                            <div class="form-text">Username cannot be changed.</div>
+                        </div>
+
+                        <div class="col-md-6">
+                            {{ form.full_name.label(class="form-label small fw-bold text-ss-primary") }}
+                            {{ form.full_name(class="form-control ss-input", placeholder="Enter your full name") }}
+                            {% if form.full_name.errors %}
+                                {% for error in form.full_name.errors %}
+                                    <div class="text-danger small">{{ error }}</div>
+                                {% endfor %}
+                            {% endif %}
+                        </div>
+
+                        <div class="col-md-6">
+                            {{ form.email.label(class="form-label small fw-bold text-ss-primary") }}
+                            {{ form.email(class="form-control ss-input", placeholder="example@mail.com") }}
+                            {% if form.email.errors %}
+                                {% for error in form.email.errors %}
+                                    <div class="text-danger small">{{ error }}</div>
+                                {% endfor %}
+                            {% endif %}
+                        </div>
+
+                        <div class="col-md-6">
+                            {{ form.phone.label(class="form-label small fw-bold text-ss-primary") }}
+                            {{ form.phone(class="form-control ss-input", placeholder="+91 0000000000") }}
+                            {% if form.phone.errors %}
+                                {% for error in form.phone.errors %}
+                                    <div class="text-danger small">{{ error }}</div>
+                                {% endfor %}
+                            {% endif %}
+                        </div>
+
+                        <div class="col-12">
+                            {{ form.address.label(class="form-label small fw-bold text-ss-primary") }}
+                            {{ form.address(class="form-control ss-input", rows="4", placeholder="Pali Unjha Mehsana Gujarat 384260") }}
+                            <div class="form-text">This address will be pre-filled during your checkout.</div>
+                            {% if form.address.errors %}
+                                {% for error in form.address.errors %}
+                                    <div class="text-danger small">{{ error }}</div>
+                                {% endfor %}
+                            {% endif %}
+                        </div>
+
+                        <div class="col-12 mt-5">
+                            <div class="d-flex gap-2">
+                                <button type="submit" class="btn btn-ss-primary btn-lg flex-grow-1 shadow-sm">
+                                    <i class="bi bi-check2-circle me-2"></i>Save Profile Changes
+                                </button>
+                                <a href="{{ url_for('customer.profile') }}"
+                                    class="btn btn-ss-outline-secondary btn-lg shadow-sm">
+                                    Cancel
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{{ url_for('static', filename='css/customer/profile.css') }}">
+{% endblock %}

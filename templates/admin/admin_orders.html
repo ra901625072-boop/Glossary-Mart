@@ -1,0 +1,144 @@
+{% extends 'admin/admin_base.html' %}
+
+{% block title %}Mission Directives - Jay Goga Admin{% endblock %}
+
+{% block content %}
+<div class="container-fluid px-4 py-4">
+    <div class="d-flex justify-content-between align-items-center mb-5">
+        <div>
+            <h1 class="h3 fw-900 text-ss-primary mb-1 text-uppercase tracking-wider">
+                <i class="bi bi-box-seam me-2"></i>Store Orders
+            </h1>
+            <p class="text-muted smallest fw-bold text-uppercase tracking-widest opacity-75 mb-0">Track and process verified customer orders</p>
+        </div>
+        <div class="d-flex gap-3">
+            <div class="glass-panel py-2 px-4 rounded-pill border-0 shadow-sm d-flex align-items-center">
+                <div class="bg-ss-accent bg-opacity-10 rounded-circle me-2 d-flex align-items-center justify-content-center" style="width: 24px; height: 24px;">
+                    <i class="bi bi-funnel text-ss-accent smallest"></i>
+                </div>
+                <span class="smallest fw-900 text-ss-primary text-uppercase tracking-widest">Active Filters</span>
+            </div>
+        </div>
+    </div>
+
+    <!-- Global Directive Statistics -->
+    <div class="row g-4 mb-5">
+        <div class="col-md-4">
+            <div class="glass-panel border-0 shadow-xl p-4 d-flex align-items-center border-start border-4 border-ss-primary">
+                <div class="bg-ss-primary bg-opacity-10 text-ss-primary rounded-circle me-4 d-flex align-items-center justify-content-center shadow-inner" style="width: 60px; height: 60px;">
+                    <i class="bi bi-cart-check fs-3"></i>
+                </div>
+                <div>
+                    <h6 class="smallest fw-900 text-muted text-uppercase tracking-widest mb-1">Total Orders</h6>
+                    <h3 class="fw-900 text-ss-primary mb-0 tracking-wider">{{ total_orders }} ORDERS</h3>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="glass-panel border-0 shadow-xl p-4 d-flex align-items-center border-start border-4 border-ss-accent">
+                <div class="bg-ss-accent bg-opacity-10 text-ss-accent rounded-circle me-4 d-flex align-items-center justify-content-center shadow-inner" style="width: 60px; height: 60px;">
+                    <i class="bi bi-clock-history fs-3"></i>
+                </div>
+                <div>
+                    <h6 class="smallest fw-900 text-muted text-uppercase tracking-widest mb-1">Pending Orders</h6>
+                    <h3 class="fw-900 text-ss-accent mb-0 tracking-wider">{{ pending_orders }} PENDING</h3>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="glass-panel border-0 shadow-xl p-4 d-flex align-items-center border-start border-4 border-ss-secondary">
+                <div class="bg-ss-secondary bg-opacity-10 text-ss-secondary rounded-circle me-4 d-flex align-items-center justify-content-center shadow-inner" style="width: 60px; height: 60px;">
+                    <i class="bi bi-cash-stack fs-3"></i>
+                </div>
+                <div>
+                    <h6 class="smallest fw-900 text-muted text-uppercase tracking-widest mb-1">Total Revenue</h6>
+                    <h3 class="fw-900 text-ss-secondary mb-0 tracking-wider">₹{{ "{:,.0f}".format(total_revenue) }}</h3>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Active Orders List -->
+    <div class="glass-panel border-0 shadow-2xl rounded-4 overflow-hidden mb-5">
+        <div class="table-responsive">
+            <table class="table table-hover align-middle mb-0">
+                <thead class="bg-ss-primary bg-opacity-5 border-bottom border-ss-primary border-opacity-10">
+                    <tr>
+                        <th class="ps-5 py-4 smallest fw-900 text-ss-primary text-uppercase tracking-widest">Order ID</th>
+                        <th class="py-4 smallest fw-900 text-ss-primary text-uppercase tracking-widest">Customer Info</th>
+                        <th class="py-4 smallest fw-900 text-ss-primary text-uppercase tracking-widest">Date & Time</th>
+                        <th class="py-4 smallest fw-900 text-ss-primary text-uppercase tracking-widest text-center">Items</th>
+                        <th class="py-4 smallest fw-900 text-ss-primary text-uppercase tracking-widest">Total Amount</th>
+                        <th class="py-4 smallest fw-900 text-ss-primary text-uppercase tracking-widest">Status</th>
+                        <th class="pe-5 py-4 smallest fw-900 text-ss-primary text-uppercase tracking-widest text-end">Actions</th>
+                    </tr>
+                </thead>
+                <tbody class="border-0">
+                    {% if orders %}
+                    {% for order in orders %}
+                    <tr class="transition-all hover-bg-light">
+                        <td class="ps-5">
+                            <span class="smallest fw-900 text-ss-primary text-uppercase tracking-wider">#ORD-{{ order.id }}</span>
+                        </td>
+                        <td>
+                            <div class="fw-900 text-dark text-uppercase tracking-wider">{{ order.user.full_name or order.user.username }}</div>
+                            <div class="smallest fw-bold text-muted opacity-50">{{ order.user.email }}</div>
+                        </td>
+                        <td>
+                            <div class="smallest fw-900 text-muted text-uppercase tracking-widest">{{ order.created_at.strftime('%b %d, %Y') }}</div>
+                            <div class="smallest text-muted opacity-50">{{ order.created_at.strftime('%I:%M %p') }}</div>
+                        </td>
+                        <td class="text-center">
+                            <span class="badge bg-ss-secondary bg-opacity-10 text-ss-secondary rounded-pill smallest fw-900 tracking-widest px-3">
+                                {{ order.order_items|length }} ITEMS
+                            </span>
+                        </td>
+                        <td>
+                            <span class="fw-900 text-ss-primary tracking-wider">₹{{ "{:,.0f}".format(order.total_amount) }}</span>
+                        </td>
+                        <td>
+                            <div class="d-flex flex-column gap-1">
+                                {% set pay_color = 'success' if order.payment_status == 'Paid' else 'warning' %}
+                                <span class="badge bg-{{ pay_color }} bg-opacity-10 text-{{ pay_color }} rounded-pill smallest fw-900 tracking-widest px-3 border-0">
+                                    {{ order.payment_status|upper }}
+                                </span>
+                                {% set status_color = 'success' if order.order_status == 'Delivered' 
+                                    else 'secondary' if order.order_status == 'Processing'
+                                    else 'ss-accent' if order.order_status == 'Pending'
+                                    else 'muted' %}
+                                <span class="badge bg-{{ status_color }} bg-opacity-10 text-{{ status_color }} rounded-pill smallest fw-900 tracking-widest px-3 border-0">
+                                    {{ order.order_status|upper }}
+                                </span>
+                            </div>
+                        </td>
+                        <td class="pe-5 text-end">
+                            <a href="{{ url_for('admin.admin_order_detail', order_id=order.id) }}"
+                                class="btn btn-ss-primary btn-sm rounded-pill px-4 py-2 smallest fw-900 tracking-widest shadow-lg sparkle-hover">
+                                <i class="bi bi-box-seam me-2"></i>Process Order
+                            </a>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                    {% else %}
+                    <tr>
+                        <td colspan="7" class="text-center py-5">
+                            <div class="py-5 text-center">
+                                <div class="bg-ss-primary bg-opacity-10 d-inline-block p-4 rounded-circle mb-4 shadow-sm">
+                                    <i class="bi bi-inbox display-4 text-ss-primary opacity-50"></i>
+                                </div>
+                                <h5 class="fw-900 text-ss-primary text-uppercase tracking-widest mb-2">No Orders Found</h5>
+                                <p class="smallest fw-bold text-muted text-uppercase tracking-widest opacity-75">Start processing your business growth today.</p>
+                            </div>
+                        </td>
+                    </tr>
+                    {% endif %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{{ url_for('static', filename='css/admin/orders.css') }}">
+{% endblock %}

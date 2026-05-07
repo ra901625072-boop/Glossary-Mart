@@ -1,0 +1,99 @@
+/* ========== Admin Login - Modernized ========== */
+.ss-auth-wrapper {
+    background: var(--ss-gradient);
+    position: relative;
+    overflow: hidden;
+    min-height: 100vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.ss-auth-wrapper::before {
+    content: '';
+    position: absolute;
+    width: 300px;
+    height: 300px;
+    background: rgba(245, 158, 11, 0.1);
+    border-radius: 50%;
+    top: -100px;
+    right: -100px;
+    filter: blur(50px);
+}
+
+.ss-auth-card {
+    background: rgba(255, 255, 255, 0.95);
+    backdrop-filter: blur(20px);
+    border: 1px solid rgba(255, 255, 255, 0.5);
+    border-radius: 28px;
+    padding: 3rem;
+    width: 100%;
+    max-width: 450px;
+    box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
+    transform: translateY(0);
+    transition: all 0.4s ease;
+}
+
+.ss-auth-card:hover {
+    transform: translateY(-5px);
+}
+
+.ss-auth-icon {
+    width: 85px;
+    height: 85px;
+    background: linear-gradient(135deg, var(--warning), var(--ss-accent-dark));
+    color: var(--ss-primary);
+    border-radius: 22px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 2.2rem;
+    margin: 0 auto 2rem;
+    box-shadow: 0 10px 20px rgba(245, 158, 11, 0.3);
+}
+
+.ss-auth-title {
+    font-weight: 850;
+    letter-spacing: -1.5px;
+    color: var(--ss-primary);
+    margin-bottom: 0.5rem;
+    text-align: center;
+}
+
+.ss-auth-subtitle {
+    color: #78909c;
+    text-align: center;
+    margin-bottom: 2rem;
+    font-size: 0.9rem;
+}
+
+.form-floating>.form-control {
+    border-radius: 12px;
+    border: 1px solid #e0e6ed;
+    background: #f8fafc;
+}
+
+.form-floating>.form-control:focus {
+    border-color: var(--ss-primary);
+    background: white;
+    box-shadow: 0 0 0 4px rgba(37, 99, 235, 0.1);
+}
+
+.ss-auth-btn {
+    background: var(--ss-gradient);
+    color: white;
+    border: none;
+    padding: 0.8rem;
+    border-radius: 12px;
+    font-weight: 700;
+    width: 100%;
+    margin-top: 1rem;
+    box-shadow: 0 8px 16px rgba(37, 99, 235, 0.2);
+    transition: all 0.3s ease;
+}
+
+.ss-auth-btn:hover {
+    background: var(--ss-gradient-accent);
+    transform: translateY(-2px);
+    box-shadow: 0 12px 20px rgba(37, 99, 235, 0.3);
+}

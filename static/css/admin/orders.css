@@ -1,0 +1,53 @@
+/* ========== Admin Orders - Modernized ========== */
+
+.order-card {
+    border-radius: 20px;
+    border: 1px solid rgba(0, 0, 0, 0.05);
+    background: white;
+    transition: all 0.3s ease;
+}
+
+.order-card:hover {
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.08);
+    transform: translateY(-3px);
+}
+
+.order-badge {
+    padding: 0.5rem 1rem;
+    border-radius: 10px;
+    font-weight: 700;
+    font-size: 0.8rem;
+    text-transform: uppercase;
+}
+
+.status-pending {
+    background: #fff8e1;
+    color: #ff8f00;
+}
+
+.status-paid {
+    background: #e8f5e9;
+    color: var(--primary);
+}
+
+.status-delivered {
+    background: #e3f2fd;
+    color: #1565c0;
+}
+
+.customer-info-box {
+    background: #f8fafc;
+    border-radius: 16px;
+    padding: 1.25rem;
+    border: 1px solid #e0e6ed;
+}
+
+.order-item-img {
+    width: 60px;
+    height: 60px;
+    object-fit: contain;
+    border-radius: 12px;
+    background: white;
+    padding: 5px;
+    border: 1px solid #e0e6ed;
+}

@@ -1,0 +1,238 @@
+{% extends 'base.html' %}
+
+{% block title %}Shop - Premium Curated Collection | Jay Goga Kirana Store{% endblock %}
+
+{% block content %}
+<div class="container my-5 page-transition">
+    <div class="row g-4">
+        <!-- Sidebar Filters -->
+        <div class="col-md-3 d-none d-md-block">
+            <div class="ss-sidebar shadow-lg">
+                <div class="ss-filter-group mb-5">
+                    <h5 class="fw-900 mb-4 gradient-text d-flex align-items-center">
+                        <i class="bi bi-grid-3x3-gap-fill me-2"></i> Categories
+                    </h5>
+                    <div class="list-group list-group-flush gap-1">
+                        <a href="{{ url_for('customer.shop') }}"
+                            class="list-group-item list-group-item-action border-0 shop-cat-filter {% if not selected_category %}active{% endif %}">
+                            All Essentials
+                        </a>
+                        {% for cat in categories %}
+                        <a href="{{ url_for('customer.shop', category=cat.name) }}"
+                            class="list-group-item list-group-item-action border-0 shop-cat-filter {% if cat.name == selected_category %}active{% endif %}">
+                            {{ cat.name }}
+                        </a>
+                        {% endfor %}
+                    </div>
+                </div>
+
+                <div class="ss-filter-group pt-4 border-top border-opacity-10">
+                    <h6 class="text-uppercase small fw-bold text-muted mb-3">Freshness Guarantee</h6>
+                    <p class="small text-muted mb-0">Direct from local farms to your home. Quality checked daily.</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Product Grid -->
+        <div class="col-md-9">
+            <!-- Results Bar -->
+            <div
+                class="d-flex align-items-center justify-content-between mb-5 glass-panel p-3 px-4 rounded-4 shadow-sm">
+                <div class="small fw-500">
+                    Showing <span class="text-ss-primary fw-bold">{{ products|length }}</span> quality products
+                    {% if selected_category %}in <span class="badge bg-ss-secondary text-dark rounded-pill px-3">{{
+                        selected_category }}</span>{% endif %}
+                </div>
+                <button class="btn btn-ss-outline btn-sm d-md-none rounded-pill" type="button" data-bs-toggle="collapse"
+                    data-bs-target="#mobileFilters">
+                    <i class="bi bi-funnel me-1"></i> Filter By Categories
+                </button>
+            </div>
+
+            <!-- Mobile Filters (Collapsed) -->
+            <div class="collapse d-md-none mb-5" id="mobileFilters">
+                <div class="glass-panel rounded-4 p-4 shadow-sm">
+                    <div class="ss-filter-group">
+                        <h6 class="fw-bold mb-3">Categories</h6>
+                        <div class="d-flex flex-wrap gap-2">
+                            <a href="{{ url_for('customer.shop') }}"
+                                class="btn btn-ss-outline btn-sm rounded-pill {% if not selected_category %}active{% endif %}">
+                                All
+                            </a>
+                            {% for cat in categories %}
+                            <a href="{{ url_for('customer.shop', category=cat.name) }}"
+                                class="btn btn-ss-outline btn-sm rounded-pill {% if cat.name == selected_category %}active{% endif %}">
+                                {{ cat.name }}
+                            </a>
+                            {% endfor %}
+                        </div>
+                    </div>
+                </div>
+            </div>
+        <div class="col-lg-9">
+            <!-- Product Grid with Skeletons -->
+            <div class="row g-4" id="productGrid">
+                <!-- Skeleton Placeholders (Visible while loading) -->
+                <div class="skeleton-loader-container w-100 row g-4 m-0 d-none">
+                    {% for i in range(8) %}
+                    <div class="col-6 col-md-4 col-xl-3">
+                        <div class="glass-panel border-0 p-3 h-100">
+                            <div class="skeleton skeleton-img"></div>
+                            <div class="skeleton skeleton-title"></div>
+                            <div class="skeleton skeleton-text"></div>
+                            <div class="skeleton skeleton-btn"></div>
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+
+                <!-- Actual Products -->
+                {% if products %}
+                {% for product in products %}
+                <div class="col-6 col-md-4 col-xl-3 page-transition">
+                    <div class="ss-product-card glass-panel border-0 shadow-sm h-100 d-flex flex-column sparkle-hover">
+                        <!-- Product image and details -->
+                        <div class="ss-img-container mb-3 position-relative">
+                            {% if product.image_path %}
+                            <img src="{{ url_for('static', filename=product.image_path) }}" 
+                                 class="img-fluid rounded-4" 
+                                 alt="{{ product.name }}"
+                                 loading="lazy">
+                            {% else %}
+                            <div class="ss-img-placeholder rounded-4">
+                                <i class="bi bi-box-seam"></i>
+                            </div>
+                            {% endif %}
+                            
+                            <div class="position-absolute top-0 end-0 p-2 d-flex flex-column gap-2">
+                                <span class="ss-tag-primary smallest rounded-pill shadow-sm">
+                                    {{ product.category_rel.name if product.category_rel else 'Essential' }}
+                                </span>
+                            </div>
+                        </div>
+
+                        <div class="px-2 py-1 flex-grow-1 d-flex flex-column">
+                            <h6 class="fw-800 text-ss-primary mb-1 text-truncate">{{ product.name }}</h6>
+                            <div class="d-flex align-items-center gap-2 mb-3">
+                                <span class="fw-900 text-ss-secondary fs-5">₹{{ "{:,.0f}".format(product.selling_price) }}</span>
+                                <span class="text-muted small text-decoration-line-through">₹{{ "{:,.0f}".format(product.selling_price|float * 1.2) }}</span>
+                                <span class="text-ss-success smallest fw-bold ms-2">20% OFF</span>
+                            </div>                            <div class="ss-price-row mt-auto pt-2">
+                                {% if current_user.is_authenticated and current_user.role == 'admin' %}
+                                <a href="{{ url_for('admin.edit_product', product_id=product.id) }}"
+                                    class="btn btn-ss-outline w-100 rounded-pill btn-sm">
+                                    <i class="bi bi-pencil-square me-2"></i> Edit
+                                </a>
+                                {% elif product.stock_quantity > 0 %}
+                                <form method="POST" class="ajax-cart-form"
+                                    action="{{ url_for('customer.add_to_cart', product_id=product.id) }}">
+                                    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                                    <button type="submit"
+                                        class="btn btn-ss-primary w-100 rounded-pill shadow-sm py-2 btn-sm sparkle-hover">
+                                        <i class="bi bi-cart-plus-fill me-2"></i> QUICK ADD
+                                    </button>
+                                </form>
+                                {% else %}
+                                <button class="btn btn-light w-100 border text-muted py-2 btn-sm rounded-pill"
+                                    disabled>Out of Stock</button>
+                                {% endif %}
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                {% endfor %}
+                {% else %}
+                <div class="col-12 text-center py-5">
+                    <div class="mb-4 text-ss-primary opacity-25">
+                        <i class="bi bi-search display-1"></i>
+                    </div>
+                    <h3 class="fw-900 mb-3">No Products Found</h3>
+                    <p class="text-muted mb-5 max-w-md mx-auto">We couldn't find any products matching your current
+                        selection. Try resetting your filters to see all Essentials.</p>
+                    <a href="{{ url_for('customer.shop') }}"
+                        class="btn btn-ss-primary btn-lg px-5 py-3 rounded-pill shadow-lg">
+                        <i class="bi bi-arrow-clockwise me-2 fs-5"></i> View All Products
+                    </a>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        const cartForms = document.querySelectorAll('.ajax-cart-form');
+        
+        cartForms.forEach(form => {
+            form.addEventListener('submit', function(e) {
+                e.preventDefault();
+                const submitBtn = this.querySelector('button[type="submit"]');
+                const originalText = submitBtn.innerHTML;
+                
+                // Visual feedback
+                submitBtn.disabled = true;
+                submitBtn.innerHTML = '<span class="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span>ADDING...';
+                
+                const formData = new FormData(this);
+                
+                fetch(this.action, {
+                    method: 'POST',
+                    body: formData,
+                    headers: {
+                        'X-Requested-With': 'XMLHttpRequest'
+                    }
+                })
+                .then(res => res.json())
+                .then(data => {
+                    if (data.success) {
+                        // Success animation
+                        submitBtn.classList.remove('btn-ss-primary');
+                        submitBtn.classList.add('btn-ss-success');
+                        submitBtn.innerHTML = '<i class="bi bi-check-lg me-2"></i>ADDED';
+                        
+                        // Open cart drawer (defined in base.html)
+                        if (typeof toggleCart === 'function') {
+                            setTimeout(() => toggleCart(), 500);
+                        }
+                        
+                        setTimeout(() => {
+                            submitBtn.disabled = false;
+                            submitBtn.classList.remove('btn-ss-success');
+                            submitBtn.classList.add('btn-ss-primary');
+                            submitBtn.innerHTML = originalText;
+                        }, 2000);
+                    } else {
+                        alert(data.message || 'Error adding to cart');
+                        submitBtn.disabled = false;
+                        submitBtn.innerHTML = originalText;
+                    }
+                })
+                .catch(err => {
+                    console.error(err);
+                    submitBtn.disabled = false;
+                    submitBtn.innerHTML = originalText;
+                });
+            });
+        });
+    });
+</script>
+{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{{ url_for('static', filename='css/customer/shop.css') }}">
+<style>
+    .btn-ss-success {
+        background: var(--ss-gradient-success);
+        color: white;
+    }
+    .shop-cat-filter.active {
+        background: var(--ss-gradient) !important;
+        color: white !important;
+        font-weight: 700;
+        box-shadow: var(--ss-shadow-md);
+    }
+</style>
+{% endblock %}

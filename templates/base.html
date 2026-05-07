@@ -1,0 +1,411 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}Jay Goga Kirana Store{% endblock %}</title>
+
+    <!-- Bootstrap 5 CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+
+    <!-- Bootstrap Icons -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.css">
+
+    <!-- Google Fonts: Inter -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
+
+    <!-- Custom CSS -->
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/colors.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+
+    {% block extra_css %}{% endblock %}
+</head>
+
+<body>
+    <!-- Cart Drawer Overlay -->
+    <div class="cart-drawer-overlay" id="cartOverlay"></div>
+
+    <!-- Mini-Cart Drawer -->
+    <div class="cart-drawer" id="cartDrawer">
+        <div class="cart-drawer-header">
+            <h5 class="fw-800 text-ss-primary mb-0"><i class="bi bi-cart3 me-2"></i>Your Basket</h5>
+            <button class="btn-close shadow-none" id="closeCart"></button>
+        </div>
+        <div class="cart-drawer-body" id="cartDrawerBody">
+            <!-- Cart items will be loaded here via JS -->
+            <div class="text-center py-5 opacity-50">
+                <i class="bi bi-basket display-1 mb-3"></i>
+                <p>Your basket is empty</p>
+            </div>
+        </div>
+        <div class="cart-drawer-footer">
+            <div class="d-flex justify-content-between align-items-center mb-3">
+                <span class="text-muted fw-bold small uppercase">Subtotal</span>
+                <span class="h5 fw-900 text-ss-primary mb-0" id="cartSubtotal">₹0.00</span>
+            </div>
+            <a href="{{ url_for('customer.view_cart') }}" class="btn btn-ss-primary w-100 py-3 rounded-pill mb-2">
+                CHECKOUT SECURELY
+            </a>
+            <button class="btn btn-link w-100 text-muted small text-decoration-none" id="continueShopping">
+                Continue Shopping
+            </button>
+        </div>
+    </div>
+
+    <!-- Navbar -->
+    <nav class="navbar navbar-expand-lg navbar-dark sticky-top" id="mainNavbar">
+        <div class="container">
+            <!-- Brand -->
+            <a class="navbar-brand" href="/">
+                <i class="bi bi-basket2-fill me-2 gradient-text"></i>Jay Goga<span class="text-ss-secondary"> Kirana</span>
+            </a>
+
+            <!-- Toggle Button (Mobile) -->
+            <div class="d-flex align-items-center gap-2 d-lg-none">
+                <button class="btn text-white px-2 ps-0" type="button" id="mobileSearchToggle">
+                    <i class="bi bi-search fs-4"></i>
+                </button>
+                <button class="navbar-toggler border-0 shadow-none ps-0" type="button" data-bs-toggle="collapse"
+                    data-bs-target="#navbarNav">
+                    <i class="bi bi-list fs-2"></i>
+                </button>
+            </div>
+
+            <div class="collapse navbar-collapse" id="navbarNav">
+                <!-- Search Bar (Centered) -->
+                {% if not current_user.is_authenticated or current_user.role != 'admin' %}
+                <div class="nav-search mx-auto w-100 px-lg-4 position-relative">
+                    <form action="{{ url_for('customer.shop') }}" method="GET" class="position-relative">
+                        <div class="input-group glass-panel rounded-pill p-1 border-white border-opacity-10">
+                            <input class="form-control shadow-none bg-transparent border-0 px-4 text-white" type="search" name="search" id="live-search-input"
+                                placeholder="Find fresh groceries..." aria-label="Search" autocomplete="off"
+                                value="{{ request.args.get('search', '') }}">
+                            <button class="btn btn-search rounded-pill" type="submit">
+                                <i class="bi bi-search"></i>
+                            </button>
+                        </div>
+                        <!-- Search Suggestions Dropdown -->
+                        <div id="search-suggestions" class="dropdown-menu w-100 shadow-lg border-0 glass-panel mt-2 p-2 position-absolute" style="max-height: 400px; overflow-y: auto; z-index: 1060;">
+                            <!-- Results will be injected here via JS -->
+                        </div>
+                    </form>
+                </div>
+                {% else %}
+                <div class="nav-search mx-auto"></div>
+                {% endif %}
+
+                <!-- Right Side Tools -->
+                <ul class="navbar-nav align-items-center gap-1">
+                    {% if current_user.is_authenticated %}
+                        {% if current_user.role == 'admin' %}
+                        <li class="nav-item">
+                            <a class="nav-link" href="{{ url_for('admin.dashboard') }}">
+                                <i class="bi bi-speedometer2 me-1"></i> Admin
+                            </a>
+                        </li>
+                        <li class="nav-item ms-2">
+                            <a class="btn btn-ss-outline btn-sm py-1 border-white text-white"
+                                href="{{ url_for('auth.logout') }}">Exit</a>
+                        </li>
+                        {% else %}
+                        <li class="nav-item dropdown">
+                            <div class="user-logo-dropdown mt-1">
+                                <div class="user-logo-icon">
+                                    <i class="bi bi-person-circle text-white fs-4"></i>
+                                </div>
+                                <div class="user-dropdown-menu glass-panel shadow-lg">
+                                    <h6 class="dropdown-header text-uppercase smallest fw-900 text-muted opacity-50 mb-1">Account Control</h6>
+                                    <a href="{{ url_for('customer.profile') }}"><i class="bi bi-person"></i> Profile</a>
+                                    <a href="{{ url_for('customer.my_orders') }}"><i class="bi bi-box-seam"></i> My Orders</a>
+                                    <a href="{{ url_for('customer.view_wishlist') }}"><i class="bi bi-heart"></i> Wishlist</a>
+                                    <hr class="dropdown-divider opacity-10 m-0">
+                                    <a href="{{ url_for('auth.logout') }}" class="text-danger"><i class="bi bi-box-arrow-right"></i> Sign Out</a>
+                                </div>
+                            </div>
+                        </li>
+                        <li class="nav-item">
+                            <button class="nav-link d-flex align-items-center position-relative px-3 border-0 bg-transparent"
+                                id="cartTrigger">
+                                <i class="bi bi-cart3 fs-5"></i>
+                                <span class="position-absolute top-1 start-100 translate-middle badge rounded-pill bg-ss-accent text-dark border border-white border-2 cart-counter">
+                                    {{ cart_count|default(0) }}
+                                </span>
+                            </button>
+                        </li>
+                        {% endif %}
+                    {% else %}
+                        <li class="nav-item dropdown">
+                            <div class="user-logo-dropdown mt-1">
+                                <div class="user-logo-icon">
+                                    <i class="bi bi-person-circle text-white fs-1"></i>
+                                </div>
+                                <div class="user-dropdown-menu glass-panel shadow-lg">
+                                    <a href="{{ url_for('auth.customer_login') }}"><i class="bi bi-box-arrow-in-right"></i> Login</a>
+                                    <a href="{{ url_for('auth.customer_register') }}"><i class="bi bi-person-plus"></i> Sign Up</a>
+                                </div>
+                            </div>
+                        </li>
+                    {% endif %}
+                </ul>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Sub Header (Categories Bar) -->
+    <div class="sub-header glass-panel border-0 border-bottom d-none d-lg-block">
+        <div class="container d-flex overflow-auto text-nowrap py-2 gap-2">
+            <a href="{{ url_for('customer.shop') }}" class="ss-tag ss-tag-primary transition-all rounded-pill"><i class="bi bi-grid-fill me-1"></i> Shop All</a>
+            <a href="{{ url_for('customer.shop', category='Vegetables') }}" class="ss-tag border-0 hover-lift rounded-pill">Vegetables</a>
+            <a href="{{ url_for('customer.shop', category='Fruits') }}" class="ss-tag border-0 hover-lift rounded-pill">Fruits</a>
+            <a href="{{ url_for('customer.shop', category='Dairy') }}" class="ss-tag border-0 hover-lift rounded-pill">Dairy</a>
+            <a href="{{ url_for('customer.shop', category='Spices') }}" class="ss-tag border-0 hover-lift rounded-pill">Spices</a>
+            <a href="{{ url_for('customer.shop', category='Household') }}" class="ss-tag border-0 hover-lift rounded-pill">Household</a>
+        </div>
+    </div>
+
+    <!-- Mobile Bottom Navigation -->
+    <div class="mobile-nav d-lg-none">
+        <a href="/" class="mobile-nav-item {% if request.path == '/' %}active{% endif %}">
+            <i class="bi bi-house-door"></i>
+            <span>Home</span>
+        </a>
+        <a href="{{ url_for('customer.shop') }}" class="mobile-nav-item {% if '/shop' in request.path %}active{% endif %}">
+            <i class="bi bi-grid"></i>
+            <span>Shop</span>
+        </a>
+        <button class="mobile-nav-item border-0 bg-transparent position-relative" id="mobileCartTrigger">
+            <i class="bi bi-cart3"></i>
+            <span class="position-absolute top-0 end-0 translate-middle badge rounded-pill bg-ss-accent text-dark border border-white cart-counter" style="font-size: 0.6rem;">
+                {{ cart_count|default(0) }}
+            </span>
+            <span>Cart</span>
+        </button>
+        <a href="{{ url_for('customer.profile') }}" class="mobile-nav-item {% if '/profile' in request.path %}active{% endif %}">
+            <i class="bi bi-person"></i>
+            <span>Me</span>
+        </a>
+    </div>
+
+    <!-- Flash Messages (Toasts) -->
+    <div class="toast-container position-fixed top-0 end-0 p-4 mt-5 pt-5" style="z-index: 1080;">
+        {% with messages = get_flashed_messages(with_categories=true) %}
+        {% if messages %}
+            {% for category, message in messages %}
+            <div class="toast align-items-center border-0 shadow-lg glass-panel mb-3 {% if category == 'success' %}border-start border-4 border-success{% elif category == 'danger' %}border-start border-4 border-danger{% endif %}" role="alert" aria-live="assertive" aria-atomic="true" data-bs-delay="5000">
+                <div class="d-flex">
+                    <div class="toast-body d-flex align-items-center p-3">
+                        {% if category == 'success' %}<i class="bi bi-check-circle-fill text-success fs-4 me-3"></i>{% endif %}
+                        {% if category == 'danger' or category == 'warning' %}<i class="bi bi-exclamation-triangle-fill text-danger fs-4 me-3"></i>{% endif %}
+                        {% if category == 'info' %}<i class="bi bi-info-circle-fill text-info fs-4 me-3"></i>{% endif %}
+                        <span class="fw-bold text-dark">{{ message }}</span>
+                    </div>
+                    <button type="button" class="btn-close me-3 m-auto" data-bs-dismiss="toast" aria-label="Close"></button>
+                </div>
+            </div>
+            {% endfor %}
+        {% endif %}
+        {% endwith %}
+    </div>
+
+    <!-- Main Content -->
+    <main class="page-transition mb-5 pb-5 d-lg-block pb-lg-0 mb-lg-0">
+        {% block content %}{% endblock %}
+    </main>
+
+    <!-- Footer -->
+    <footer class="mt-5 d-none d-lg-block">
+        <div class="footer-main py-5 glass-panel border-0 border-top mt-0">
+            <div class="container">
+                <div class="row g-5">
+                    <div class="col-lg-4">
+                        <h4 class="text-ss-primary mb-4 fw-900">Jay Goga <span class="text-success">Kirana</span></h4>
+                        <p class="text-muted mb-4 fs-6">Your trusted neighborhood partner for fresh groceries and daily essentials since 1995. Quality and trust delivered to your doorstep.</p>
+                        <div class="d-flex gap-3">
+                            <a href="#" class="btn btn-ss-outline p-0 rounded-circle d-flex align-items-center justify-content-center" style="width: 40px; height: 40px;"><i class="bi bi-facebook fs-5"></i></a>
+                            <a href="#" class="btn btn-ss-outline p-0 rounded-circle d-flex align-items-center justify-content-center" style="width: 40px; height: 40px;"><i class="bi bi-instagram fs-5"></i></a>
+                            <a href="#" class="btn btn-ss-outline p-0 rounded-circle d-flex align-items-center justify-content-center" style="width: 40px; height: 40px;"><i class="bi bi-whatsapp fs-5"></i></a>
+                        </div>
+                    </div>
+                    <div class="col-md-4 col-lg-2">
+                        <h6 class="text-dark fw-800 text-uppercase smallest tracking-widest mb-4">Quick Links</h6>
+                        <ul class="list-unstyled d-flex flex-column gap-2">
+                            <li><a href="{{ url_for('customer.shop') }}" class="text-muted small hover-lift d-inline-block">All Products</a></li>
+                            <li><a href="{{ url_for('customer.my_orders') }}" class="text-muted small hover-lift d-inline-block">Track Order</a></li>
+                            <li><a href="{{ url_for('customer.profile') }}" class="text-muted small hover-lift d-inline-block">My Profile</a></li>
+                        </ul>
+                    </div>
+                    <div class="col-md-4 col-lg-3">
+                        <h6 class="text-dark fw-800 text-uppercase smallest tracking-widest mb-4">Store Hours</h6>
+                        <div class="glass-panel p-3 rounded-4">
+                            <div class="d-flex justify-content-between mb-2 small text-muted"><span>Mon - Sat:</span> <span class="fw-bold text-dark">8AM - 10PM</span></div>
+                            <div class="d-flex justify-content-between small text-muted"><span>Sunday:</span> <span class="fw-bold text-dark">9AM - 8PM</span></div>
+                        </div>
+                    </div>
+                    <div class="col-md-4 col-lg-3">
+                        <h6 class="text-dark fw-800 text-uppercase smallest tracking-widest mb-4">Contact Us</h6>
+                        <p class="text-muted small mb-2"><i class="bi bi-geo-alt me-2 text-ss-secondary"></i> Pali Unjha Mehsana, Gujarat 384260</p>
+                        <p class="text-muted small mb-2"><i class="bi bi-telephone me-2 text-ss-secondary"></i> +91 9313840278</p>
+                        <p class="text-muted small"><i class="bi bi-envelope me-2 text-ss-secondary"></i> jaygoga@store.com</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="footer-bottom py-4 text-center bg-white border-top border-opacity-10">
+            <div class="container text-muted smallest fw-600 text-uppercase tracking-wider">
+                © 2026 Jay Goga Kirana Store. Locally Grown, Locally Trusted.
+            </div>
+        </div>
+    </footer>
+
+    <!-- Bootstrap JS -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            // Toast Initialization
+            var toastElList = [].slice.call(document.querySelectorAll('.toast'))
+            var toastList = toastElList.map(function(toastEl) {
+                return new bootstrap.Toast(toastEl, { autohide: true, delay: 5000 })
+            })
+            toastList.forEach(toast => toast.show())
+
+            // Navbar Scroll Effect
+            const navbar = document.getElementById('mainNavbar');
+            window.addEventListener('scroll', () => {
+                if (window.scrollY > 50) {
+                    navbar.classList.add('scrolled');
+                } else {
+                    navbar.classList.remove('scrolled');
+                }
+            });
+
+            // Cart Drawer Logic
+            const cartDrawer = document.getElementById('cartDrawer');
+            const cartOverlay = document.getElementById('cartOverlay');
+            const cartTriggers = [document.getElementById('cartTrigger'), document.getElementById('mobileCartTrigger')];
+            const cartClose = document.getElementById('closeCart');
+            const continueShopping = document.getElementById('continueShopping');
+
+            function toggleCart() {
+                cartDrawer.classList.toggle('active');
+                cartOverlay.classList.toggle('active');
+                document.body.style.overflow = cartDrawer.classList.contains('active') ? 'hidden' : '';
+                if (cartDrawer.classList.contains('active')) {
+                    fetchCartItems();
+                }
+            }
+
+            cartTriggers.forEach(trigger => {
+                if (trigger) trigger.addEventListener('click', toggleCart);
+            });
+            if (cartClose) cartClose.addEventListener('click', toggleCart);
+            if (cartOverlay) cartOverlay.addEventListener('click', toggleCart);
+            if (continueShopping) continueShopping.addEventListener('click', toggleCart);
+
+            function fetchCartItems() {
+                const cartBody = document.getElementById('cartDrawerBody');
+                cartBody.innerHTML = '<div class="text-center py-5"><div class="spinner-border text-ss-primary" role="status"></div></div>';
+                
+                fetch('/api/cart')
+                    .then(res => res.json())
+                    .then(data => {
+                        if (data.items && data.items.length > 0) {
+                            let html = '';
+                            data.items.forEach(item => {
+                                html += `
+                                    <div class="d-flex align-items-center mb-4 pb-4 border-bottom border-opacity-10">
+                                        <div class="rounded-3 bg-light p-1 me-3" style="width: 70px; height: 70px;">
+                                            <img src="/static/${item.image}" class="img-fluid rounded-2 h-100 w-100 object-fit-cover">
+                                        </div>
+                                        <div class="flex-grow-1">
+                                            <h6 class="fw-bold text-dark mb-1 small">${item.name}</h6>
+                                            <div class="d-flex justify-content-between align-items-center mt-2">
+                                                <div class="fw-900 text-ss-primary">₹${item.price} <span class="text-muted small fw-normal">x ${item.quantity}</span></div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                `;
+                            });
+                            cartBody.innerHTML = html;
+                            document.getElementById('cartSubtotal').innerText = '₹' + data.total.toFixed(2);
+                            // Update counters
+                            document.querySelectorAll('.cart-counter').forEach(el => el.innerText = data.items.length);
+                        } else {
+                            cartBody.innerHTML = `
+                                <div class="text-center py-5 opacity-50">
+                                    <i class="bi bi-basket display-1 mb-3"></i>
+                                    <p class="fw-bold">Your basket is empty</p>
+                                    <a href="/shop" class="btn btn-ss-outline btn-sm rounded-pill mt-3">Browse Products</a>
+                                </div>
+                            `;
+                            document.getElementById('cartSubtotal').innerText = '₹0.00';
+                            document.querySelectorAll('.cart-counter').forEach(el => el.innerText = '0');
+                        }
+                    })
+                    .catch(err => {
+                        console.error(err);
+                        cartBody.innerHTML = '<div class="alert alert-danger mb-0">Failed to load basket. Please try again.</div>';
+                    });
+            }
+
+            // Live Search Suggestions
+            const searchInput = document.getElementById('live-search-input');
+            const searchSuggestions = document.getElementById('search-suggestions');
+            let searchTimeout;
+
+            if (searchInput && searchSuggestions) {
+                searchInput.addEventListener('input', function() {
+                    clearTimeout(searchTimeout);
+                    const query = this.value.trim();
+                    
+                    if (query.length < 2) {
+                        searchSuggestions.classList.remove('show');
+                        return;
+                    }
+
+                    searchTimeout = setTimeout(() => {
+                        fetch(`/api/search?q=${encodeURIComponent(query)}`)
+                            .then(res => res.json())
+                            .then(data => {
+                                searchSuggestions.innerHTML = '';
+                                if (data.length > 0) {
+                                    data.forEach(item => {
+                                        const imgHtml = item.image ? `<img src="${item.image}" class="rounded me-3 shadow-sm" style="width: 45px; height: 45px; object-fit: cover;">` : `<div class="bg-light rounded d-flex align-items-center justify-content-center text-muted me-3 shadow-sm" style="width: 45px; height: 45px;"><i class="bi bi-image"></i></div>`;
+                                        
+                                        const html = `
+                                            <a href="${item.url}" class="dropdown-item d-flex align-items-center py-2 px-3 rounded text-wrap hover-lift mb-1" style="transition: all 0.2s;">
+                                                ${imgHtml}
+                                                <div class="flex-grow-1 min-w-0">
+                                                    <div class="fw-bold text-dark text-truncate small">${item.name}</div>
+                                                    <div class="d-flex justify-content-between align-items-center mt-1">
+                                                        <span class="badge bg-light text-muted fw-normal border" style="font-size: 0.65rem;">${item.category}</span>
+                                                        <span class="fw-bold text-ss-primary small">₹${item.price.toFixed(2)}</span>
+                                                    </div>
+                                                </div>
+                                            </a>
+                                        `;
+                                        searchSuggestions.insertAdjacentHTML('beforeend', html);
+                                    });
+                                    searchSuggestions.classList.add('show');
+                                } else {
+                                    searchSuggestions.innerHTML = '<div class="p-4 text-center text-muted small">No products found for "'+query+'"</div>';
+                                    searchSuggestions.classList.add('show');
+                                }
+                            })
+                            .catch(err => console.error(err));
+                    }, 300);
+                });
+
+                document.addEventListener('click', function(e) {
+                    if (!searchInput.contains(e.target) && !searchSuggestions.contains(e.target)) {
+                        searchSuggestions.classList.remove('show');
+                    }
+                });
+            }
+        });
+    </script>
+    {% block extra_js %}{% endblock %}
+</body>
+
+</html>

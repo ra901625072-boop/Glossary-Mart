@@ -1,0 +1,37 @@
+{% extends "base.html" %}
+{% block title %}My Wishlist{% endblock %}
+
+{% block content %}
+<div class="container py-5">
+    <h2 class="mb-4">My Wishlist</h2>
+    {% if items %}
+        <div class="row">
+            {% for item in items %}
+            <div class="col-md-3 mb-4">
+                <div class="card h-100 shadow-sm">
+                    {% if item.product.image_path %}
+                        <img src="{{ url_for('static', filename=item.product.image_path) }}" class="card-img-top" alt="{{ item.product.name }}">
+                    {% endif %}
+                    <div class="card-body">
+                        <h5 class="card-title">{{ item.product.name }}</h5>
+                        <p class="card-text text-primary fs-5">₹{{ "%.2f"|format(item.product.selling_price) }}</p>
+                        
+                        <form action="{{ url_for('customer.add_to_cart', product_id=item.product.id) }}" method="POST" class="d-inline">
+                            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                            <button type="submit" class="btn btn-sm btn-success w-100 mb-2">Add to Cart</button>
+                        </form>
+                        
+                        <form action="{{ url_for('customer.remove_from_wishlist', id=item.id) }}" method="POST" class="d-inline">
+                            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                            <button type="submit" class="btn btn-sm btn-outline-danger w-100">Remove</button>
+                        </form>
+                    </div>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+    {% else %}
+        <div class="alert alert-info">Your wishlist is empty. Browse the <a href="{{ url_for('customer.shop') }}">shop</a> to add items!</div>
+    {% endif %}
+</div>
+{% endblock %}

@@ -1,0 +1,95 @@
+{% extends 'base.html' %}
+
+{% block title %}Order #{{ order.id }} - Jay Goga Kirana Store{% endblock %}
+
+{% block content %}
+<div class="container my-5">
+    <nav aria-label="breadcrumb">
+        <ol class="breadcrumb">
+            <li class="breadcrumb-item"><a href="{{ url_for('customer.my_orders') }}">My Orders</a></li>
+            <li class="breadcrumb-item active">Order #{{ order.id }}</li>
+        </ol>
+    </nav>
+
+    <div class="row">
+        <div class="col-lg-8">
+            <div class="glass-panel border-0 shadow-sm rounded-4 mb-4">
+                <div class="p-4 border-bottom border-opacity-10 d-flex justify-content-between align-items-center">
+                    <h5 class="fw-bold text-ss-primary mb-0">Order #{{ order.id }}</h5>
+                    <small class="text-muted fw-bold">Placed on {{ order.created_at.strftime('%B %d, %Y at %H:%M') }}</small>
+                </div>
+                <div class="p-4">
+                    <h6 class="mb-4 text-uppercase fw-900 text-muted small tracking-widest">Order Items</h6>
+                    {% for item in order.order_items %}
+                    <div class="d-flex justify-content-between align-items-center mb-3 pb-3 border-bottom">
+                        <div>
+                            <h6 class="mb-1">{{ item.product.name if item.product else 'Product Deleted' }}</h6>
+                            <small class="text-muted">Quantity: {{ item.quantity }} x ₹{{ "{:,.0f}".format(item.price)
+                                }}</small>
+                        </div>
+                        <strong>₹{{ "{:,.0f}".format(item.subtotal) }}</strong>
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+
+            <div class="glass-panel border-0 shadow-sm rounded-4 mt-4">
+                <div class="p-4 border-bottom border-opacity-10">
+                    <h5 class="fw-bold text-ss-primary mb-0">Shipping Address</h5>
+                </div>
+                <div class="p-4 bg-light bg-opacity-50 rounded-bottom-4">
+                    <p class="mb-0 text-muted fw-medium">{{ order.shipping_address }}</p>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-lg-4">
+            <div class="glass-panel border-0 shadow-sm rounded-4 mb-4">
+                <div class="p-4 border-bottom border-opacity-10">
+                    <h5 class="fw-bold text-ss-primary mb-0">Order Summary</h5>
+                </div>
+                <div class="p-4">
+                    <div class="d-flex justify-content-between mb-2">
+                        <span>Items ({{ order.order_items|length }})</span>
+                        <span>₹{{ "{:,.0f}".format(order.total_amount) }}</span>
+                    </div>
+                    <div class="d-flex justify-content-between mb-2">
+                        <span>Delivery</span>
+                        <span class="text-success">FREE</span>
+                    </div>
+                    <hr>
+                    <div class="d-flex justify-content-between mb-3">
+                        <strong>Total</strong>
+                        <strong class="text-primary fs-4">₹{{ "{:,.0f}".format(order.total_amount) }}</strong>
+                    </div>
+                    <div class="mb-2">
+                        <strong>Payment Method:</strong> {{ order.payment_method }}
+                    </div>
+                    <div class="mb-3">
+                        <strong>Payment Status:</strong>
+                        <span class="badge bg-{{ 'success' if order.payment_status == 'Paid' else 'warning' }}">
+                            {{ order.payment_status }}
+                        </span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="glass-panel border-0 shadow-sm rounded-4 mt-4">
+                <div class="p-4 border-bottom border-opacity-10">
+                    <h5 class="fw-bold text-ss-primary mb-0">Order Status</h5>
+                </div>
+                <div class="p-4 text-center">
+                    <span
+                        class="badge bg-{{ 'success' if order.order_status == 'Delivered' else 'warning' if order.order_status == 'Processing' else 'info' }} fs-5">
+                        {{ order.order_status }}
+                    </span>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{{ url_for('static', filename='css/customer/orders.css') }}">
+{% endblock %}

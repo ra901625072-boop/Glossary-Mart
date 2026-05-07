@@ -1,0 +1,134 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sign In - Jay Goga Kirana Store</title>
+    <!-- Bootstrap 5 CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <!-- Bootstrap Icons -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.css">
+    <!-- Main Style -->
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/colors.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/customer/auth.css') }}">
+</head>
+
+<body>
+    <div class="ss-auth-wrapper py-5">
+        <div class="container">
+            <div class="row justify-content-center">
+                <div class="col-md-5">
+                    <div class="text-center mb-4">
+                        <a href="/" class="auth-logo">
+                            <h3 class="fw-bold text-ss-primary mb-0">
+                                <i class="bi bi-shield-check text-ss-secondary me-2"></i>Jay Goga Kirana<span>
+                                    Store</span>
+                            </h3>
+                        </a>
+                    </div>
+                    <div class="ss-detail-container border-0 shadow-lg p-5 glass-panel">
+                        <div class="text-center mb-5">
+                            <div class="ss-auth-icon mx-auto mb-3">
+                                <i class="bi bi-person-lock fs-1 text-ss-secondary"></i>
+                            </div>
+                            <h2 class="fw-bold text-ss-primary">Welcome Back</h2>
+                            <p class="text-muted">Sign in to access your curated shop</p>
+                        </div>
+
+                        <!-- Flash Messages -->
+                        {% with messages = get_flashed_messages(with_categories=true) %}
+                        {% if messages %}
+                        <div class="mb-4">
+                            {% for category, message in messages %}
+                            <div class="alert alert-{{ category }} alert-dismissible fade show border-0 shadow-sm small"
+                                role="alert">
+                                {{ message }}
+                                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                            </div>
+                            {% endfor %}
+                        </div>
+                        {% endif %}
+                        {% endwith %}
+
+                        <form method="POST" action="{{ url_for('auth.customer_login') }}">
+                            {{ form.hidden_tag() }}
+                            <div class="mb-4">
+                                {{ form.email.label(class="form-label small fw-bold text-uppercase text-muted") }}
+                                <div class="input-group">
+                                    <span class="input-group-text bg-light border-0"><i
+                                            class="bi bi-envelope text-muted"></i></span>
+                                    {{ form.email(class="form-control bg-light border-0 py-2", placeholder="Email or Username", autofocus=True) }}
+                                </div>
+                                {% if form.email.errors %}
+                                    {% for error in form.email.errors %}
+                                        <div class="text-danger small">{{ error }}</div>
+                                    {% endfor %}
+                                {% endif %}
+                            </div>
+
+                            <div class="mb-5">
+                                <div class="d-flex justify-content-between">
+                                    {{ form.password.label(class="form-label small fw-bold text-uppercase text-muted") }}
+                                    <a href="#" class="small text-ss-secondary text-decoration-none">Forgot?</a>
+                                </div>
+                                <div class="input-group">
+                                    <span class="input-group-text bg-light border-0"><i
+                                            class="bi bi-key text-muted"></i></span>
+                                    {{ form.password(class="form-control bg-light border-0 py-2", placeholder="••••••••", id="passwordInput") }}
+                                    <button class="btn btn-light border-0" type="button" id="togglePassword">
+                                        <i class="bi bi-eye text-muted" id="eyeIcon"></i>
+                                    </button>
+                                </div>
+                                {% if form.password.errors %}
+                                    {% for error in form.password.errors %}
+                                        <div class="text-danger small">{{ error }}</div>
+                                    {% endfor %}
+                                {% endif %}
+                            </div>
+
+                            <button type="submit" class="btn btn-ss-primary w-100 py-3 mb-4 rounded-4 shadow-lg sparkle-hover">
+                                <i class="bi bi-box-arrow-in-right me-2"></i> SIGN IN
+                            </button>
+                        </form>
+
+                        <div class="text-center border-top pt-4">
+                            <p class="text-muted mb-2">New to Jay Goga Kirana Store?</p>
+                            <a href="{{ url_for('auth.customer_register') }}"
+                                class="fw-bold text-ss-secondary text-decoration-none d-block mb-3">
+                                Create an Account <i class="bi bi-arrow-right ms-1"></i>
+                            </a>
+                            <div class="pt-3 border-top border-opacity-10">
+                                <p class="smallest text-muted mb-1 text-uppercase fw-bold opacity-50">Staff Access</p>
+                                <a href="{{ url_for('auth.login') }}"
+                                    class="text-ss-primary small text-decoration-none">Admin Portal Login</a>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="text-center mt-4">
+                        <a href="/" class="text-muted small text-decoration-none"><i class="bi bi-arrow-left me-1"></i>
+                            Back to Home</a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        const togglePassword = document.querySelector('#togglePassword');
+        const passwordInput = document.querySelector('#passwordInput');
+        const eyeIcon = document.querySelector('#eyeIcon');
+
+        if (togglePassword) {
+            togglePassword.addEventListener('click', function (e) {
+                const type = passwordInput.getAttribute('type') === 'password' ? 'text' : 'password';
+                passwordInput.setAttribute('type', type);
+                eyeIcon.classList.toggle('bi-eye');
+                eyeIcon.classList.toggle('bi-eye-slash');
+            });
+        }
+    </script>
+</body>
+
+</html>

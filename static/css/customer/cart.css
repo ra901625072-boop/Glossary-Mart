@@ -1,0 +1,49 @@
+/* ========== Shopping Cart - Premium Refinement ========== */
+
+.cart-item-img {
+    height: 80px;
+    width: 80px;
+    object-fit: contain;
+    transition: var(--ss-transition);
+}
+
+.cart-image-wrapper {
+    box-shadow: var(--ss-shadow-sm);
+    border: 1px solid var(--ss-border);
+    transition: var(--ss-transition);
+}
+
+.cart-image-wrapper:hover {
+    box-shadow: var(--ss-shadow-md);
+    transform: scale(1.05);
+}
+
+.quantity-control-refined {
+    border: 1px solid var(--ss-border);
+    transition: var(--ss-transition);
+}
+
+.quantity-control-refined:focus-within {
+    border-color: var(--ss-primary-light);
+    background: white !important;
+    box-shadow: 0 0 0 4px rgba(37, 99, 235, 0.1);
+}
+
+.quantity-control-refined input:focus {
+    box-shadow: none;
+}
+
+.hover-pulse:hover i {
+    animation: ss-pulse 0.5s ease-in-out infinite alternate;
+}
+
+@keyframes ss-pulse {
+    from {
+        transform: scale(1);
+    }
+
+    to {
+        transform: scale(1.2);
+    }
+}
+

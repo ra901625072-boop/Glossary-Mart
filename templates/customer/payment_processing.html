@@ -1,0 +1,82 @@
+{% extends 'base.html' %}
+
+{% block title %}Processing Payment - Jay Goga Kirana Store{% endblock %}
+
+{% block content %}
+<div class="container my-5 py-5 text-center">
+    <div class="payment-processing-card ss-detail-container border-0 shadow-lg p-5 mx-auto max-w-500 rounded-4">
+        <div id="processing-state">
+            <div class="spinner-border text-ss-secondary mb-4 w-4rem h-4rem bw-05rem" role="status">
+                <span class="visually-hidden">Loading...</span>
+            </div>
+            <h3 class="fw-bold text-ss-primary mb-2">Processing Your Payment</h3>
+            <p class="text-muted">Redirecting to simulated secure gateway...</p>
+
+            <div class="progress mt-4 mb-3 h-6px">
+                <div id="payment-progress"
+                    class="progress-bar progress-bar-striped progress-bar-animated bg-ss-secondary" role="progressbar"
+                    style="width: 0%"></div>
+            </div>
+
+            <div id="status-text" class="small fw-bold text-ss-primary opacity-75">Verifying transaction details...
+            </div>
+        </div>
+
+        <div id="success-state" class="d-none">
+            <div class="text-success display-1 mb-4">
+                <i class="bi bi-check-circle-fill bounce-animation"></i>
+            </div>
+            <h3 class="fw-bold text-ss-primary mb-2">Transaction Authorized!</h3>
+            <p class="text-muted">Your payment was successful. Finalizing your order...</p>
+        </div>
+    </div>
+
+    <!-- Hidden form for POST submission -->
+    <form id="payment-success-form" method="POST" action="{{ url_for('customer.payment_success', order_id=order.id) }}"
+        class="d-none">
+        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+    </form>
+</div>
+{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{{ url_for('static', filename='css/customer/payment.css') }}">
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    document.addEventListener('DOMContentLoaded', function () {
+        const progressBar = document.getElementById('payment-progress');
+        const statusText = document.getElementById('status-text');
+        const processingState = document.getElementById('processing-state');
+        const successState = document.getElementById('success-state');
+
+        const steps = [
+            { width: 33, text: "Connecting to secure server..." },
+            { width: 66, text: "Verifying order #{{ order.id }}..." },
+            { width: 100, text: "Final authorization from bank..." }
+        ];
+
+        let currentStep = 0;
+
+        const interval = setInterval(() => {
+            if (currentStep < steps.length) {
+                progressBar.style.width = steps[currentStep].width + '%';
+                statusText.innerText = steps[currentStep].text;
+                currentStep++;
+            } else {
+                clearInterval(interval);
+
+                // Switch to success state
+                processingState.classList.add('d-none');
+                successState.classList.remove('d-none');
+
+                // Submit via POST after a short delay
+                setTimeout(() => {
+                    document.getElementById('payment-success-form').submit();
+                }, 1500);
+            }
+        }, 1200);
+    });
+</script>
+{% endblock %}

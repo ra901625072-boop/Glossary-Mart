@@ -1,0 +1,22 @@
+/* ========== Customer Orders (Detail & Confirmation) ========== */
+.btn-primary {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    border: none;
+}
+
+/* ========== Order Confirmation Animation ========== */
+.success-icon {
+    font-size: 5rem;
+    color: #28a745;
+    animation: scaleIn 0.5s ease-out;
+}
+
+@keyframes scaleIn {
+    from {
+        transform: scale(0);
+    }
+
+    to {
+        transform: scale(1);
+    }
+}

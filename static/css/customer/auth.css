@@ -1,0 +1,28 @@
+/* ========== Customer Authentication (Login & Register) ========== */
+.ss-auth-wrapper {
+    background: var(--ss-bg);
+    min-height: 100vh;
+    display: flex;
+    align-items: center;
+}
+
+.ss-auth-icon {
+    width: 80px;
+    height: 80px;
+    background: var(--ss-bg);
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border: 2px solid var(--ss-border);
+}
+
+.form-control:focus {
+    box-shadow: none;
+    background-color: #fcfcfc !important;
+}
+
+.auth-logo {
+    text-decoration: none;
+    display: inline-block;
+}

@@ -1,0 +1,215 @@
+{% extends 'base.html' %}
+
+{% block title %}Checkout - Jay Goga Kirana Store{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{{ url_for('static', filename='css/customer/checkout.css') }}">
+{% endblock %}
+
+{% block content %}
+<div class="container my-5 page-transition">
+    <div class="d-flex align-items-center mb-5">
+        <div class="ss-feature-icon me-3 mb-0" style="width: 60px; height: 60px; font-size: 1.5rem;">
+            <i class="bi bi-shield-check"></i>
+        </div>
+        <div>
+            <h1 class="fw-900 mb-0 gradient-text">Secure Checkout</h1>
+            <p class="text-muted mb-0">Complete your order with peace of mind</p>
+        </div>
+    </div>
+
+    <div class="row g-5">
+        <div class="col-lg-8">
+            <!-- Shipping Information -->
+            <div class="glass-panel border-0 shadow-lg p-4 p-md-5 mb-5 rounded-4 hover-lift">
+                <h4 class="fw-bold text-ss-primary mb-4 pb-2 border-bottom border-opacity-10">
+                    <i class="bi bi-truck me-2"></i>Shipping Information
+                </h4>
+
+                <form method="POST" action="{{ url_for('customer.checkout') }}" id="checkoutForm">
+                    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+
+                    <div class="row g-4 mb-4">
+                        <div class="col-md-6">
+                            <label class="form-label smallest text-uppercase fw-bold text-muted">Full Name</label>
+                            <input type="text" class="form-control bg-light border-0 py-3 rounded-3 fw-bold"
+                                value="{{ user.full_name or user.username }}" readonly>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label smallest text-uppercase fw-bold text-muted">Email Address</label>
+                            <input type="email" class="form-control bg-light border-0 py-3 rounded-3 fw-bold"
+                                value="{{ user.email }}" readonly>
+                        </div>
+                    </div>
+
+                    <div class="mb-4">
+                        <label class="form-label smallest text-uppercase fw-bold text-muted">Contact Phone</label>
+                        <input type="text" class="form-control bg-light border-0 py-3 rounded-3 fw-bold"
+                            value="{{ user.phone or 'Not provided' }}" readonly>
+                    </div>
+
+                    <div class="mb-5">
+                        <label for="shipping_address"
+                            class="form-label smallest text-uppercase fw-bold text-muted">Shipping Address*</label>
+                        <textarea class="form-control bg-white border-2 py-3 rounded-3 transition-all" id="shipping_address"
+                            name="shipping_address" rows="3" required minlength="15"
+                            placeholder="Enter your complete home/office address">{{ user.address or '' }}</textarea>
+                        <div id="address-help" class="form-text small opacity-75 mt-2 transition-all">
+                            <i class="bi bi-info-circle me-1"></i>Please provide a complete address (min 15 chars). We only deliver to Pali, Unjha, and surrounding areas.
+                        </div>
+                    </div>
+
+                    <!-- Payment Method Selection -->
+                    <div class="mb-2">
+                        <h5 class="fw-bold text-ss-primary mb-4">
+                            <i class="bi bi-wallet2 me-2"></i>Select Payment Method
+                        </h5>
+                        <div class="row g-3">
+                            <div class="col-md-3">
+                                <div class="payment-card-option glass-panel border shadow-none p-4 text-center cursor-pointer active"
+                                    onclick="selectPayment('COD')">
+                                    <input class="form-check-input d-none" type="radio" name="payment_method"
+                                        id="pay_cod" value="COD" checked>
+                                    <div class="pay-icon-bg mb-3"><i class="bi bi-cash-stack"></i></div>
+                                    <div class="fw-bold small text-uppercase tracking-wider">Cash</div>
+                                </div>
+                            </div>
+                            <div class="col-md-3">
+                                <div class="payment-card-option glass-panel border shadow-none p-4 text-center cursor-pointer"
+                                    onclick="selectPayment('UPI')">
+                                    <input class="form-check-input d-none" type="radio" name="payment_method"
+                                        id="pay_upi" value="UPI">
+                                    <div class="pay-icon-bg mb-3"><i class="bi bi-qr-code-scan"></i></div>
+                                    <div class="fw-bold small text-uppercase tracking-wider">UPI</div>
+                                </div>
+                            </div>
+                            <div class="col-md-3">
+                                <div class="payment-card-option glass-panel border shadow-none p-4 text-center cursor-pointer"
+                                    onclick="selectPayment('CARD')">
+                                    <input class="form-check-input d-none" type="radio" name="payment_method"
+                                        id="pay_card" value="CARD">
+                                    <div class="pay-icon-bg mb-3"><i class="bi bi-credit-card-2-front"></i></div>
+                                    <div class="fw-bold small text-uppercase tracking-wider">Card</div>
+                                </div>
+                            </div>
+                            <div class="col-md-3">
+                                <div class="payment-card-option glass-panel border shadow-none p-4 text-center cursor-pointer"
+                                    onclick="selectPayment('UDHAR')">
+                                    <input class="form-check-input d-none" type="radio" name="payment_method"
+                                        id="pay_udhar" value="UDHAR">
+                                    <div class="pay-icon-bg mb-3"><i class="bi bi-journal-text"></i></div>
+                                    <div class="fw-bold small text-uppercase tracking-wider">Udhar</div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </form>
+            </div>
+        </div>
+
+        <!-- Order Sidebar -->
+        <div class="col-lg-4">
+            <div class="ss-detail-container sticky-top border-0 shadow-lg p-5 rounded-4 glass-panel" style="top: 110px;">
+                <h4 class="fw-900 text-ss-primary mb-4">Your Order</h4>
+
+                <div class="checkout-items-summary mb-4" style="max-height: 200px; overflow-y: auto;">
+                    {% for item in cart_items %}
+                    <div class="d-flex justify-content-between align-items-center mb-3">
+                        <div class="d-flex align-items-center">
+                            <div class="small fw-bold text-ss-primary me-2">{{ item.quantity }}x</div>
+                            <div class="text-muted small text-truncate" style="max-width: 150px;">{{ item.product.name
+                                }}</div>
+                        </div>
+                        <span class="fw-bold small">₹{{ "{:,.0f}".format(item.subtotal) }}</span>
+                    </div>
+                    {% endfor %}
+                </div>
+
+                <hr class="my-4 opacity-10">
+
+                <div class="d-flex justify-content-between mb-2">
+                    <span class="text-muted small">Cart Subtotal</span>
+                    <span class="small fw-bold">₹{{ "{:,.0f}".format(total) }}</span>
+                </div>
+                <div class="d-flex justify-content-between mb-4">
+                    <span class="text-muted small">Delivery</span>
+                    <span class="text-ss-success small fw-bold">FREE</span>
+                </div>
+
+                <div class="d-flex justify-content-between align-items-end mb-5">
+                    <div class="text-uppercase smallest fw-900 text-muted mb-1">Total to Pay</div>
+                    <div class="h2 fw-900 text-ss-primary mb-0">₹{{ "{:,.0f}".format(total) }}</div>
+                </div>
+
+                <button type="submit" form="checkoutForm"
+                    class="btn btn-ss-primary btn-lg w-100 py-3 rounded-pill shadow-lg sparkle-hover mb-3">
+                    <i class="bi bi-bag-check-fill me-2"></i> PLACE SECURE ORDER
+                </button>
+
+                <a href="{{ url_for('customer.view_cart') }}"
+                    class="btn btn-link text-muted w-100 mt-2 smaller text-decoration-none">
+                    <i class="bi bi-arrow-left me-1"></i> Edit Cart Items
+                </a>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    function selectPayment(method) {
+        // Uncheck all and remove active class from cards
+        document.querySelectorAll('.payment-card-option').forEach(card => {
+            card.classList.remove('active');
+        });
+        document.querySelectorAll('input[name="payment_method"]').forEach(input => {
+            input.checked = false;
+        });
+
+        // Check the selected radio and add active class to its card
+        const radio = document.getElementById('pay_' + method.toLowerCase());
+        if (radio) {
+            radio.checked = true;
+            radio.closest('.payment-card-option').classList.add('active');
+        }
+    }
+        // Address Validation UX
+        const addressInput = document.getElementById('shipping_address');
+        const addressHelp = document.getElementById('address-help');
+        if (addressInput) {
+            addressInput.addEventListener('input', function() {
+                const len = this.value.trim().length;
+                if (len >= 15) {
+                    this.classList.remove('border-danger', 'border-opacity-50');
+                    this.style.borderColor = 'var(--ss-primary)';
+                    if (addressHelp) {
+                        addressHelp.classList.remove('text-danger');
+                        addressHelp.classList.add('text-ss-primary');
+                        addressHelp.innerHTML = '<i class="bi bi-check-circle-fill me-1"></i>Address looks good! Local delivery restricted to Pali, Unjha region.';
+                    }
+                } else if (len > 0) {
+                    this.style.borderColor = '';
+                    this.classList.add('border-danger', 'border-opacity-50');
+                    if (addressHelp) {
+                        addressHelp.classList.remove('text-ss-primary');
+                        addressHelp.classList.add('text-danger');
+                        addressHelp.innerHTML = `<i class="bi bi-exclamation-circle me-1"></i>Address is too short. Please add ${15 - len} more characters.`;
+                    }
+                } else {
+                    this.style.borderColor = '';
+                    this.classList.remove('border-danger', 'border-opacity-50');
+                    if (addressHelp) {
+                        addressHelp.classList.remove('text-danger', 'text-ss-primary');
+                        addressHelp.innerHTML = '<i class="bi bi-info-circle me-1"></i>Please provide a complete address (min 15 chars). We only deliver to Pali, Unjha, and surrounding areas.';
+                    }
+                }
+            });
+            
+            // Trigger immediately if pre-filled
+            if(addressInput.value.trim().length > 0) {
+                addressInput.dispatchEvent(new Event('input'));
+            }
+        }
+</script>
+{% endblock %}
