@@ -14,3 +14,4 @@ Flask-Limiter==3.5.0
 gunicorn
 boto3
 stripe
+pyotp
