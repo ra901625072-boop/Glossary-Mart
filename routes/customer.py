@@ -1,15 +1,16 @@
+import stripe
 from flask import (current_app, flash, jsonify, redirect, render_template,
                    request, url_for)
 from flask_login import current_user
+from flask_mail import Message
 
-from models import Category, Order, Product, Review, db
+from models import Category, Order, Product, Review, db, Wishlist
 from services.cart_service import CartService
 from services.order_service import OrderService
 
 from . import customer_bp
 from .decorators import customer_required
 from .forms import ProfileForm
-
 
 @customer_bp.route('/')
 def index():
@@ -23,11 +24,9 @@ def shop():
     category = request.args.get('category', '')
     sort_by = request.args.get('sort', '')
     
-    # Industry level: only show active products
-    query = Product.query.filter_by(is_active=True)
+    query = db.session.query(Product).filter_by(is_active=True)
     
     if search:
-        # Escape LIKE wildcards to prevent unexpected pattern matching
         safe_search = search.replace('%', '\\%').replace('_', '\\_')
         query = query.filter(Product.name.ilike(f'%{safe_search}%'))
     if category:
@@ -54,7 +53,7 @@ def shop():
         query = query.order_by(Product.name.asc())
     
     products = query.all()
-    categories = Category.query.order_by(Category.name).all()
+    categories = db.session.query(Category).order_by(Category.name).all()
     
     return render_template('customer/shop.html', 
                          products=products,
@@ -66,7 +65,7 @@ def shop():
 @customer_bp.route('/product/<int:product_id>')
 def product_detail(product_id):
     """Product detail page"""
-    product = Product.query.filter_by(id=product_id, is_active=True).first_or_404()
+    product = db.session.query(Product).filter_by(id=product_id, is_active=True).first_or_404()
     return render_template('customer/product_detail.html', product=product)
 
 @customer_bp.route('/cart/add/<int:product_id>', methods=['POST'])
@@ -108,7 +107,6 @@ def update_cart(cart_id):
             flash(message, 'success' if 'updated' in message else 'info')
         else:
             flash(message, 'danger')
-                
     except Exception as e:
         if current_user.is_authenticated:
             db.session.rollback()
@@ -124,12 +122,10 @@ def remove_from_cart(cart_id):
             flash(message, 'info')
         else:
             flash(message, 'danger')
-                
     except Exception as e:
         if current_user.is_authenticated:
             db.session.rollback()
         flash(f'Error removing item: {str(e)}', 'danger')
-
     return redirect(url_for('customer.view_cart'))
 
 @customer_bp.route('/checkout', methods=['GET', 'POST'])
@@ -157,15 +153,13 @@ def checkout():
                 return redirect(url_for('customer.view_cart'))
             
             if payment_method == 'UDHAR':
-                flash(f'Order placed successfully on Store Credit! Your Udhar balance has been updated.', 'success')
+                flash(f'Order placed successfully on Store Credit!', 'success')
                 return redirect(url_for('customer.order_confirmation', order_id=order.id))
             elif payment_method in ['UPI', 'CARD']:
                 return redirect(url_for('customer.process_payment', order_id=order.id))
             
-            # COD Flow
+            # COD Flow - Send email
             try:
-                from flask_mail import Message
-
                 from app import mail
                 msg = Message(
                     f"Order Confirmation - #{order.id} | Jay Goga Kirana Store",
@@ -176,7 +170,7 @@ def checkout():
             except Exception as e:
                 current_app.logger.error(f"Error sending email: {str(e)}")
             
-            flash(f'Order placed successfully with Cash on Delivery! Order ID: #{order.id}', 'success')
+            flash(f'Order placed successfully with Cash on Delivery!', 'success')
             return redirect(url_for('customer.order_confirmation', order_id=order.id))
         except Exception as e:
             db.session.rollback()
@@ -189,30 +183,28 @@ def checkout():
 @customer_required
 def order_confirmation(order_id):
     """Order confirmation page"""
-    order = Order.query.get_or_404(order_id)
-    if order.user_id != current_user.id:
+    order = db.session.get(Order, order_id)
+    if not order or order.user_id != current_user.id:
         flash('Unauthorized access.', 'danger')
         return redirect(url_for('customer.shop'))
     return render_template('customer/order_confirmation.html', order=order)
-
 
 @customer_bp.route('/payment/process/<int:order_id>')
 @customer_required
 def process_payment(order_id):
     """Simulated payment processing page"""
-    order = Order.query.get_or_404(order_id)
-    if order.user_id != current_user.id:
+    order = db.session.get(Order, order_id)
+    if not order or order.user_id != current_user.id:
         flash('Unauthorized access.', 'danger')
         return redirect(url_for('customer.shop'))
-    
     return render_template('customer/payment_processing.html', order=order)
 
 @customer_bp.route('/payment/success/<int:order_id>', methods=['POST'])
 @customer_required
 def payment_success(order_id):
     """Update order after successful simulated payment"""
-    order = Order.query.get_or_404(order_id)
-    if order.user_id != current_user.id:
+    order = db.session.get(Order, order_id)
+    if not order or order.user_id != current_user.id:
         return redirect(url_for('customer.shop'))
     
     order.payment_status = 'Paid'
@@ -221,8 +213,6 @@ def payment_success(order_id):
     # Send order confirmation email
     if current_app.config.get('MAIL_USERNAME'):
         try:
-            from flask_mail import Message
-
             from app import mail
             msg = Message(
                 f"Order Confirmation - #{order.id} | Jay Goga Kirana Store",
@@ -232,9 +222,7 @@ def payment_success(order_id):
             mail.send(msg)
         except Exception as e:
             current_app.logger.error(f"Error sending email: {str(e)}")
-    else:
-        current_app.logger.info("Skipping email: MAIL_USERNAME not configured.")
-        
+            
     flash('Payment successful! Your order has been placed.', 'success')
     return redirect(url_for('customer.order_confirmation', order_id=order.id))
 
@@ -242,8 +230,7 @@ def payment_success(order_id):
 @customer_required
 def profile():
     """View customer profile"""
-    # Get recent orders
-    recent_orders = Order.query.filter_by(user_id=current_user.id).order_by(Order.created_at.desc()).limit(5).all()
+    recent_orders = db.session.query(Order).filter_by(user_id=current_user.id).order_by(Order.created_at.desc()).limit(5).all()
     return render_template('customer/profile.html', user=current_user, recent_orders=recent_orders)
 
 @customer_bp.route('/profile/edit', methods=['GET', 'POST'])
@@ -251,14 +238,11 @@ def profile():
 def edit_profile():
     """Edit customer profile"""
     form = ProfileForm(obj=current_user)
-    
     if form.validate_on_submit():
-        # Validation already handled by WTForms
         current_user.full_name = form.full_name.data
         current_user.email = form.email.data
         current_user.phone = form.phone.data
         current_user.address = form.address.data
-        
         try:
             db.session.commit()
             flash('Profile updated successfully!', 'success')
@@ -266,15 +250,13 @@ def edit_profile():
         except Exception as e:
             db.session.rollback()
             flash(f'Error updating profile: {str(e)}', 'danger')
-            
     return render_template('customer/edit_profile.html', form=form, user=current_user)
 
 @customer_bp.route('/product/<int:product_id>/review', methods=['POST'])
 @customer_required
 def submit_review(product_id):
     """Submit a product review"""
-    product = Product.query.filter_by(id=product_id, is_active=True).first_or_404()
-    
+    product = db.session.query(Product).filter_by(id=product_id, is_active=True).first_or_404()
     rating = request.form.get('rating', type=int)
     comment = request.form.get('comment', '')
     
@@ -282,23 +264,14 @@ def submit_review(product_id):
         flash('Please provide a valid rating (1-5).', 'danger')
         return redirect(url_for('customer.product_detail', product_id=product_id))
     
-    # Check if user already reviewed this product
-    existing_review = Review.query.filter_by(
-        user_id=current_user.id,
-        product_id=product_id
-    ).first()
+    existing_review = db.session.query(Review).filter_by(user_id=current_user.id, product_id=product_id).first()
     
     if existing_review:
         existing_review.rating = rating
         existing_review.comment = comment
         flash('Your review has been updated!', 'success')
     else:
-        review = Review(
-            user_id=current_user.id,
-            product_id=product_id,
-            rating=rating,
-            comment=comment
-        )
+        review = Review(user_id=current_user.id, product_id=product_id, rating=rating, comment=comment)
         db.session.add(review)
         flash('Thank you for your review!', 'success')
     
@@ -314,15 +287,15 @@ def submit_review(product_id):
 @customer_required
 def my_orders():
     """View customer order history"""
-    orders = Order.query.filter_by(user_id=current_user.id).order_by(Order.created_at.desc()).all()
+    orders = db.session.query(Order).filter_by(user_id=current_user.id).order_by(Order.created_at.desc()).all()
     return render_template('customer/orders.html', orders=orders)
 
 @customer_bp.route('/my-orders/<int:order_id>')
 @customer_required
 def order_detail(order_id):
     """View specific order details"""
-    order = Order.query.get_or_404(order_id)
-    if order.user_id != current_user.id:
+    order = db.session.get(Order, order_id)
+    if not order or order.user_id != current_user.id:
         flash('Unauthorized access.', 'danger')
         return redirect(url_for('customer.my_orders'))
     return render_template('customer/order_detail.html', order=order)
@@ -334,10 +307,8 @@ def api_search():
     if len(query) < 2:
         return jsonify([])
     
-    # Escape LIKE wildcards
     safe_search = query.replace('%', '\\%').replace('_', '\\_')
-    
-    products = Product.query.filter(
+    products = db.session.query(Product).filter(
         Product.is_active == True,
         Product.name.ilike(f'%{safe_search}%')
     ).limit(5).all()
@@ -358,7 +329,6 @@ def api_search():
 def api_get_cart():
     """API endpoint to get current cart items and total for the Mini-Cart drawer"""
     cart_items, total = CartService.get_cart_items()
-    
     items = []
     for item in cart_items:
         p = item.product
@@ -369,28 +339,24 @@ def api_get_cart():
             'image': p.image_path if p.image_path else 'images/placeholder-product.png',
             'product_id': p.id
         })
-        
-    return jsonify({
-        'items': items,
-        'total': float(total)
-    })
-
-from models import Wishlist
-
+    return jsonify({'items': items, 'total': float(total)})
 
 @customer_bp.route('/wishlist')
 @customer_required
 def view_wishlist():
-    items = Wishlist.query.filter_by(user_id=current_user.id).all()
+    items = db.session.query(Wishlist).filter_by(user_id=current_user.id).all()
     return render_template('customer/wishlist.html', items=items)
 
 @customer_bp.route('/wishlist/add/<int:product_id>', methods=['POST'])
 @customer_required
 def add_to_wishlist(product_id):
-    product = Product.query.get_or_404(product_id)
-    exists = Wishlist.query.filter_by(user_id=current_user.id, product_id=product_id).first()
+    product = db.session.get(Product, product_id)
+    if not product:
+        flash('Product not found.', 'danger')
+        return redirect(url_for('customer.shop'))
+        
+    exists = db.session.query(Wishlist).filter_by(user_id=current_user.id, product_id=product_id).first()
     if not exists:
-        from models import db
         db.session.add(Wishlist(user_id=current_user.id, product_id=product_id))
         db.session.commit()
         flash(f'{product.name} added to your wishlist.', 'success')
@@ -401,23 +367,21 @@ def add_to_wishlist(product_id):
 @customer_bp.route('/wishlist/remove/<int:id>', methods=['POST'])
 @customer_required
 def remove_from_wishlist(id):
-    item = Wishlist.query.get_or_404(id)
-    if item.user_id == current_user.id:
-        from models import db
+    item = db.session.get(Wishlist, id)
+    if item and item.user_id == current_user.id:
         db.session.delete(item)
         db.session.commit()
         flash('Item removed from wishlist.', 'info')
     return redirect(url_for('customer.view_wishlist'))
 
-import stripe
-
-
 @customer_bp.route('/create-checkout-session/<int:order_id>', methods=['POST'])
 @customer_required
 def create_checkout_session(order_id):
-    order = Order.query.get_or_404(order_id)
+    order = db.session.get(Order, order_id)
+    if not order:
+        return jsonify(error="Order not found"), 404
+        
     stripe.api_key = current_app.config.get('STRIPE_SECRET_KEY', 'sk_test_dummy')
-    
     try:
         checkout_session = stripe.checkout.Session.create(
             payment_method_types=['card'],
@@ -435,8 +399,6 @@ def create_checkout_session(order_id):
             success_url=url_for('customer.payment_success', order_id=order.id, _external=True),
             cancel_url=url_for('customer.order_confirmation', order_id=order.id, _external=True),
         )
-        from flask import jsonify
         return jsonify({'id': checkout_session.id})
     except Exception as e:
-        from flask import jsonify
         return jsonify(error=str(e)), 403

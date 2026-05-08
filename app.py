@@ -7,6 +7,7 @@ from flask_login import LoginManager
 from flask_mail import Mail
 from flask_migrate import Migrate
 from flask_wtf.csrf import CSRFProtect
+from werkzeug.middleware.proxy_fix import ProxyFix
 from werkzeug.security import generate_password_hash
 
 from config import Config
@@ -23,6 +24,9 @@ def create_app(config_class=Config):
     """Application factory"""
     app = Flask(__name__)
     app.config.from_object(config_class)
+
+    # Apply ProxyFix for production (important for Render/Heroku)
+    app.wsgi_app = ProxyFix(app.wsgi_app, x_for=1, x_proto=1, x_host=1, x_port=1, x_prefix=1)
 
     # Configure logging
     if not app.debug and not app.testing:
@@ -50,7 +54,7 @@ def create_app(config_class=Config):
 
     @login_manager.user_loader
     def load_user(user_id):
-        return User.query.get(int(user_id))
+        return db.session.get(User, int(user_id))
 
     # Ensure upload folder exists
     os.makedirs(app.config['UPLOAD_FOLDER'], exist_ok=True)
@@ -86,29 +90,26 @@ def init_db():
         # Create tables if they don't exist
         db.create_all()
         
-        # Add new columns if they do not exist
+        # Helper to safely add columns
         from sqlalchemy import text
-        try:
-            db.session.execute(text("ALTER TABLE products ADD COLUMN minimum_stock_alert INTEGER DEFAULT 10"))
-        except:
-            pass
-        try:
-            db.session.execute(text("ALTER TABLE products ADD COLUMN supplier_name VARCHAR(100)"))
-        except:
-            pass
-        try:
-            db.session.execute(text("ALTER TABLE users ADD COLUMN is_verified BOOLEAN DEFAULT 0"))
-        except:
-            pass
-        try:
-            db.session.execute(text("ALTER TABLE users ADD COLUMN verification_token VARCHAR(100)"))
-        except:
-            pass
-        db.session.commit()
+        
+        def safe_execute(query, message=None):
+            try:
+                db.session.execute(text(query))
+                db.session.commit()
+                if message:
+                    app.logger.info(message)
+            except Exception:
+                db.session.rollback()
+
+        # Add new columns if they do not exist
+        safe_execute("ALTER TABLE products ADD COLUMN minimum_stock_alert INTEGER DEFAULT 10")
+        safe_execute("ALTER TABLE products ADD COLUMN supplier_name VARCHAR(100)")
+        safe_execute("ALTER TABLE users ADD COLUMN is_verified BOOLEAN DEFAULT 0")
+        safe_execute("ALTER TABLE users ADD COLUMN verification_token VARCHAR(100)")
         
         # Set is_verified=True for all existing users (Fix for legacy accounts)
-        db.session.execute(text("UPDATE users SET is_verified = 1 WHERE is_verified IS NULL OR is_verified = 0"))
-        db.session.commit()
+        safe_execute("UPDATE users SET is_verified = 1 WHERE is_verified IS NULL OR is_verified = 0")
         
         # Seed Categories and Migrate Products
         from models import Category, Product
@@ -122,22 +123,22 @@ def init_db():
             existing_cat_strings = ['Vegetables', 'Fruits', 'Dairy', 'Spices', 'Household']
             
         for cat_name in existing_cat_strings:
-            if not Category.query.filter_by(name=cat_name).first():
+            if not db.session.query(Category).filter_by(name=cat_name).first():
                 new_cat = Category(name=cat_name)
                 db.session.add(new_cat)
         db.session.commit()
         
         # Migrate products to use category_id
-        products_to_migrate = Product.query.filter(Product.category_id == None).all()
+        products_to_migrate = db.session.query(Product).filter(Product.category_id == None).all()
         for p in products_to_migrate:
             if p.category:
-                cat = Category.query.filter_by(name=p.category).first()
+                cat = db.session.query(Category).filter_by(name=p.category).first()
                 if cat:
                     p.category_id = cat.id
         db.session.commit()
 
         # Check if admin user exists
-        admin = User.query.filter_by(username=app.config['ADMIN_USERNAME']).first()
+        admin = db.session.query(User).filter_by(username=app.config['ADMIN_USERNAME']).first()
         if not admin:
             # Create admin user
             admin = User(
@@ -152,11 +153,23 @@ def init_db():
             app.logger.info(f"Admin user created: {app.config['ADMIN_USERNAME']}")
 
 if __name__ == '__main__':
+    # Initialize database before running
     init_db()
+    
+    # Get port from environment variable (default to 5000)
+    port = int(os.environ.get("PORT", 5000))
+    
     print("\n" + "="*50)
     print("Jay Goga Kirana Store Management System")
     print("="*50)
     print(f"Admin Username: {app.config['ADMIN_USERNAME']}")
     print(f"Admin Password: {app.config['ADMIN_PASSWORD']}")
+    print(f"Server running on port: {port}")
     print("="*50 + "\n")
-    app.run(debug=True, host='0.0.0.0', port=5000)
+    
+    app.run(debug=True, host='0.0.0.0', port=port)
+else:
+    # This runs when imported by gunicorn
+    # We still want to ensure the DB is initialized
+    with app.app_context():
+        init_db()

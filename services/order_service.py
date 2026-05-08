@@ -1,7 +1,6 @@
+from decimal import Decimal
 from flask_login import current_user
-
 from models import Cart, Order, OrderItem, Product, db
-
 
 class OrderService:
     @staticmethod
@@ -21,7 +20,7 @@ class OrderService:
         
         for item in cart_items:
             # Atomic stock reduction
-            rows_affected = Product.query.filter(
+            rows_affected = db.session.query(Product).filter(
                 Product.id == item.product_id,
                 Product.stock_quantity >= item.quantity
             ).update({
@@ -32,7 +31,7 @@ class OrderService:
                 db.session.rollback()
                 return False, order, f'Insufficient stock for an item during processing.'
 
-            product = Product.query.get(item.product_id)
+            product = db.session.get(Product, item.product_id)
             profit = (product.selling_price - product.cost_price) * item.quantity
             order_item = OrderItem(
                 order_id=order.id,
@@ -45,12 +44,13 @@ class OrderService:
         
         # Clear cart for DB users
         if current_user.is_authenticated:
-            Cart.query.filter_by(user_id=current_user.id).delete()
+            db.session.query(Cart).filter_by(user_id=current_user.id).delete()
         
         db.session.commit()
         
         if payment_method == 'UDHAR':
-            current_user.credit = float(current_user.credit) + float(total_amount)
+            # Use Decimal for accurate currency addition
+            current_user.credit = Decimal(str(current_user.credit or 0)) + Decimal(str(total_amount))
             db.session.commit()
             
         return True, order, 'Order processed successfully.'

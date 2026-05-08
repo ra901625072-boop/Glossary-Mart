@@ -1,14 +1,12 @@
 from flask import session
 from flask_login import current_user
-
 from models import Cart, Product, db
-
 
 class CartService:
     @staticmethod
     def get_cart_items():
         if current_user.is_authenticated and current_user.role == 'customer':
-            cart_items = Cart.query.filter_by(user_id=current_user.id).all()
+            cart_items = db.session.query(Cart).filter_by(user_id=current_user.id).all()
             total = sum(item.subtotal for item in cart_items)
             return cart_items, total
         else:
@@ -25,7 +23,7 @@ class CartService:
                     self.product_id = p.id
                     
             for pid_str, qty in cart.items():
-                product = Product.query.get(int(pid_str))
+                product = db.session.get(Product, int(pid_str))
                 if product:
                     item = DummyCartItem(product, qty, pid_str)
                     cart_items.append(item)
@@ -37,7 +35,7 @@ class CartService:
         if quantity <= 0:
             return False, 'Invalid quantity.'
         
-        product = Product.query.filter_by(id=product_id, is_active=True).first()
+        product = db.session.query(Product).filter_by(id=product_id, is_active=True).first()
         if not product:
             return False, 'Product not found.'
             
@@ -45,7 +43,7 @@ class CartService:
             return False, f'Only {product.stock_quantity} units available.'
         
         if current_user.is_authenticated and current_user.role == 'customer':
-            cart_item = Cart.query.filter_by(user_id=current_user.id, product_id=product_id).first()
+            cart_item = db.session.query(Cart).filter_by(user_id=current_user.id, product_id=product_id).first()
             if cart_item:
                 new_quantity = cart_item.quantity + quantity
                 if new_quantity > product.stock_quantity:
@@ -74,7 +72,7 @@ class CartService:
     @staticmethod
     def update_item(cart_id, quantity):
         if current_user.is_authenticated and current_user.role == 'customer':
-            cart_item = Cart.query.get(int(cart_id))
+            cart_item = db.session.get(Cart, int(cart_id))
             if not cart_item or cart_item.user_id != current_user.id:
                 return False, 'Unauthorized access.'
             
@@ -93,7 +91,7 @@ class CartService:
             pid = str(cart_id).replace('session_', '')
             cart = session.get('cart', {})
             if pid in cart:
-                product = Product.query.get(int(pid))
+                product = db.session.get(Product, int(pid))
                 if not product or quantity <= 0:
                     del cart[pid]
                     session.modified = True
@@ -109,7 +107,7 @@ class CartService:
     @staticmethod
     def remove_item(cart_id):
         if current_user.is_authenticated and current_user.role == 'customer':
-            cart_item = Cart.query.get(int(cart_id))
+            cart_item = db.session.get(Cart, int(cart_id))
             if not cart_item or cart_item.user_id != current_user.id:
                 return False, 'Unauthorized access.'
             product_name = cart_item.product.name if cart_item.product else 'Item'
@@ -120,7 +118,7 @@ class CartService:
             pid = str(cart_id).replace('session_', '')
             cart = session.get('cart', {})
             if pid in cart:
-                product = Product.query.get(int(pid))
+                product = db.session.get(Product, int(pid))
                 product_name = product.name if product else 'Item'
                 del cart[pid]
                 session.modified = True

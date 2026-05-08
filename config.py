@@ -12,7 +12,12 @@ class Config:
     SECRET_KEY = os.getenv('SECRET_KEY', 'dev-secret-key-change-in-production')
     
     # Database configuration
-    SQLALCHEMY_DATABASE_URI = os.getenv('DATABASE_URI', 'sqlite:///store.db')
+    # Render provides DATABASE_URL. SQLAlchemy 1.4+ requires 'postgresql://' instead of 'postgres://'
+    database_url = os.getenv('DATABASE_URL') or os.getenv('DATABASE_URI') or 'sqlite:///store.db'
+    if database_url and database_url.startswith("postgres://"):
+        database_url = database_url.replace("postgres://", "postgresql://", 1)
+        
+    SQLALCHEMY_DATABASE_URI = database_url
     SQLALCHEMY_TRACK_MODIFICATIONS = False
     
     # Upload configuration

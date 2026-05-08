@@ -1,23 +1,24 @@
+import logging
+import secrets
+
 from flask import flash, redirect, render_template, session, url_for
 from flask_login import current_user, login_required, login_user, logout_user
 from werkzeug.security import check_password_hash, generate_password_hash
+from flask_mail import Message
 
 from extensions import limiter
-from models import User, db
-
+from models import User, db, Cart, Product
 from . import auth_bp
 from .forms import LoginForm, RegistrationForm
-
 
 def merge_session_cart(user):
     """Merge guest session cart into user's DB cart"""
     if 'cart' in session and session['cart'] and user.role == 'customer':
-        from models import Cart, Product
         for pid_str, qty in session['cart'].items():
             product_id = int(pid_str)
-            product = Product.query.get(product_id)
+            product = db.session.get(Product, product_id)
             if product:
-                cart_item = Cart.query.filter_by(user_id=user.id, product_id=product_id).first()
+                cart_item = db.session.query(Cart).filter_by(user_id=user.id, product_id=product_id).first()
                 if cart_item:
                     cart_item.quantity = min(cart_item.quantity + qty, product.stock_quantity)
                 else:
@@ -42,7 +43,7 @@ def login():
         login_id = form.email.data.strip()
         password = form.password.data
         
-        user = User.query.filter(
+        user = db.session.query(User).filter(
             (User.email == login_id.lower()) | (User.username == login_id)
         ).first()
         
@@ -52,12 +53,11 @@ def login():
                 return redirect(url_for('auth.customer_login'))
             
             if user.two_factor_enabled:
-                from flask import session
                 session['2fa_user_id'] = user.id
                 return redirect(url_for('security.verify_2fa'))
             else:
                 login_user(user)
-                flash('Login successful! Please set up 2FA for better security.', 'warning')
+                flash('Login successful!', 'success')
                 return redirect(url_for('admin.dashboard'))
         else:
             flash('Invalid username/email or password.', 'danger')
@@ -82,7 +82,6 @@ def customer_register():
     form = RegistrationForm()
     if form.validate_on_submit():
         try:
-            import secrets
             token = secrets.token_urlsafe(32)
             new_user = User(
                 username=form.username.data.strip(),
@@ -99,20 +98,17 @@ def customer_register():
             db.session.add(new_user)
             db.session.commit()
             
+            # Send verification email
             try:
-                from flask import url_for
-                from flask_mail import Message
-
                 from app import mail
                 msg = Message("Verify Your Email | Jay Goga Kirana Store", recipients=[new_user.email])
                 verify_url = url_for('security.verify_email', token=token, _external=True)
                 msg.body = f"Welcome! Click here to verify your email address: {verify_url}"
                 mail.send(msg)
             except Exception as e:
-                import logging
                 logging.error(f"Error sending verification email: {str(e)}")
 
-            flash('Registration successful! Please check your email to verify your account before logging in.', 'success')
+            flash('Registration successful! Please check your email to verify your account.', 'success')
             return redirect(url_for('auth.customer_login'))
             
         except Exception as e:
@@ -137,7 +133,7 @@ def customer_login():
         password = form.password.data
         
         # Check both email (lowercase) and username
-        user = User.query.filter(
+        user = db.session.query(User).filter(
             (User.email == login_id.lower()) | (User.username == login_id)
         ).first()
         
