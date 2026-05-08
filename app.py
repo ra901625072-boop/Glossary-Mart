@@ -75,7 +75,7 @@ def create_app(config_class=Config):
         from flask import session
         from flask_login import current_user
         if current_user.is_authenticated and current_user.role == 'customer':
-            cart_count = Cart.query.filter_by(user_id=current_user.id).count()
+            cart_count = db.session.query(Cart).filter_by(user_id=current_user.id).count()
         elif not current_user.is_authenticated:
             cart_count = len(session.get('cart', {}))
         return {'cart_count': cart_count}

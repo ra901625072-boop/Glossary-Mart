@@ -63,7 +63,7 @@ def dashboard():
 @admin_required
 def products():
     """Product management page"""
-    products = Product.query.filter_by(is_active=True).order_by(Product.created_at.desc()).all()
+    products = db.session.query(Product).filter_by(is_active=True).order_by(Product.created_at.desc()).all()
     return render_template('admin/products.html', products=products)
 
 @admin_bp.route('/products/add', methods=['GET', 'POST'])
@@ -71,7 +71,7 @@ def products():
 def add_product():
     """Add new product"""
     form = ProductForm()
-    categories = Category.query.order_by(Category.name).all()
+    categories = db.session.query(Category).order_by(Category.name).all()
     form.category_id.choices = [(c.id, c.name) for c in categories]
     
     if form.validate_on_submit():
@@ -107,9 +107,13 @@ def add_product():
 @admin_required
 def edit_product(product_id):
     """Edit product"""
-    product = Product.query.get_or_404(product_id)
+    product = db.session.get(Product, product_id)
+    if not product:
+        flash("Product not found.", "danger")
+        return redirect(url_for('admin.products'))
+        
     form = ProductForm(obj=product)
-    categories = Category.query.order_by(Category.name).all()
+    categories = db.session.query(Category).order_by(Category.name).all()
     form.category_id.choices = [(c.id, c.name) for c in categories]
     
     if form.validate_on_submit():
@@ -142,7 +146,11 @@ def edit_product(product_id):
 @admin_required
 def delete_product(product_id):
     """Soft delete product"""
-    product = Product.query.get_or_404(product_id)
+    product = db.session.get(Product, product_id)
+    if not product:
+        flash("Product not found.", "danger")
+        return redirect(url_for('admin.products'))
+        
     name = product.name
     
     try:
@@ -171,7 +179,10 @@ def sales():
             flash('Quantity must be greater than zero.', 'danger')
             return redirect(url_for('admin.sales'))
         
-        product = Product.query.get_or_404(product_id)
+        product = db.session.get(Product, product_id)
+        if not product:
+            flash("Product not found.", "danger")
+            return redirect(url_for('admin.sales'))
         
         if product.stock_quantity < quantity:
             flash(f'Insufficient stock! Only {product.stock_quantity} units available.', 'danger')
@@ -200,14 +211,14 @@ def sales():
         
         return redirect(url_for('admin.sales'))
     
-    products = Product.query.filter(Product.stock_quantity > 0).order_by(Product.name).all()
+    products = db.session.query(Product).filter(Product.stock_quantity > 0).order_by(Product.name).all()
     return render_template('admin/sales.html', products=products)
 
 @admin_bp.route('/sales/history')
 @admin_required
 def sales_history():
     """Sales history page"""
-    sales = Sale.query.order_by(Sale.sale_date.desc()).limit(100).all()
+    sales = db.session.query(Sale).order_by(Sale.sale_date.desc()).limit(100).all()
     return render_template('admin/sales_history.html', sales=sales)
 
 @admin_bp.route('/sales/export')
@@ -220,7 +231,7 @@ def export_sales():
     end_date_str = request.args.get('end_date')
     export_format = request.args.get('format', 'csv')
     
-    query = Sale.query
+    query = db.session.query(Sale)
     
     if start_date_str:
         try:
@@ -267,14 +278,17 @@ def export_sales():
 @admin_required
 def view_bill(sale_id):
     """Printable bill for a sale"""
-    sale = Sale.query.get_or_404(sale_id)
+    sale = db.session.get(Sale, sale_id)
+    if not sale:
+        flash("Sale record not found.", "danger")
+        return redirect(url_for('admin.sales_history'))
     return render_template('admin/bill.html', sale=sale)
 
 @admin_bp.route('/orders')
 @admin_required
 def admin_orders():
     """Admin view of all customer orders"""
-    orders = Order.query.order_by(Order.created_at.desc()).all()
+    orders = db.session.query(Order).order_by(Order.created_at.desc()).all()
     total_orders = len(orders)
     pending_orders = sum(1 for o in orders if o.order_status == 'Pending')
     total_revenue = sum(o.total_amount for o in orders)
@@ -289,7 +303,10 @@ def admin_orders():
 @admin_required
 def admin_order_detail(order_id):
     """Admin view of order details"""
-    order = Order.query.get_or_404(order_id)
+    order = db.session.get(Order, order_id)
+    if not order:
+        flash("Order not found.", "danger")
+        return redirect(url_for('admin.admin_orders'))
     return render_template('admin/admin_order_detail.html', order=order)
 
 @admin_bp.route('/orders/<int:order_id>/update-status', methods=['POST'])
@@ -299,7 +316,11 @@ def update_order_status(order_id):
     ALLOWED_ORDER_STATUS = ['Pending', 'Processing', 'Shipped', 'Delivered', 'Cancelled']
     ALLOWED_PAYMENT_STATUS = ['Pending', 'Paid', 'Failed']
     
-    order = Order.query.get_or_404(order_id)
+    order = db.session.get(Order, order_id)
+    if not order:
+        flash("Order not found.", "danger")
+        return redirect(url_for('admin.admin_orders'))
+        
     new_status = request.form.get('order_status')
     payment_status = request.form.get('payment_status')
     
@@ -335,14 +356,16 @@ def update_order_status(order_id):
 @admin_required
 def get_product_api(product_id):
     """API endpoint to get product details"""
-    product = Product.query.get_or_404(product_id)
+    product = db.session.get(Product, product_id)
+    if not product:
+        return jsonify({"error": "Product not found"}), 404
     return jsonify(product.to_dict())
 
 @admin_bp.route('/categories')
 @admin_required
 def categories():
     """Category management page"""
-    categories = Category.query.order_by(Category.name).all()
+    categories = db.session.query(Category).order_by(Category.name).all()
     return render_template('admin/categories.html', categories=categories)
 
 @admin_bp.route('/categories/add', methods=['GET', 'POST'])
@@ -354,7 +377,7 @@ def add_category():
         name = form.name.data
         description = form.description.data
         
-        existing = Category.query.filter_by(name=name).first()
+        existing = db.session.query(Category).filter_by(name=name).first()
         if existing:
             flash(f'Category "{name}" already exists.', 'warning')
             return redirect(url_for('admin.add_category'))
@@ -375,14 +398,18 @@ def add_category():
 @admin_required
 def edit_category(category_id):
     """Edit category"""
-    category = Category.query.get_or_404(category_id)
+    category = db.session.get(Category, category_id)
+    if not category:
+        flash("Category not found.", "danger")
+        return redirect(url_for('admin.categories'))
+        
     form = CategoryForm(obj=category)
     
     if form.validate_on_submit():
         name = form.name.data
         description = form.description.data
         
-        existing = Category.query.filter(Category.name == name, Category.id != category_id).first()
+        existing = db.session.query(Category).filter(Category.name == name, Category.id != category_id).first()
         if existing:
             flash(f'Category "{name}" already exists.', 'warning')
             return redirect(url_for('admin.edit_category', category_id=category_id))
@@ -404,7 +431,11 @@ def edit_category(category_id):
 @admin_required
 def delete_category(category_id):
     """Delete category"""
-    category = Category.query.get_or_404(category_id)
+    category = db.session.get(Category, category_id)
+    if not category:
+        flash("Category not found.", "danger")
+        return redirect(url_for('admin.categories'))
+        
     name = category.name
     
     # Check if category is used by products
@@ -427,7 +458,7 @@ def delete_category(category_id):
 @admin_required
 def suppliers():
     """Supplier management page"""
-    suppliers_list = Supplier.query.order_by(Supplier.name).all()
+    suppliers_list = db.session.query(Supplier).order_by(Supplier.name).all()
     return render_template('admin/suppliers.html', suppliers=suppliers_list)
 
 @admin_bp.route('/suppliers/add', methods=['GET', 'POST'])
@@ -457,7 +488,11 @@ def add_supplier():
 @admin_required
 def edit_supplier(supplier_id):
     """Edit supplier"""
-    supplier = Supplier.query.get_or_404(supplier_id)
+    supplier = db.session.get(Supplier, supplier_id)
+    if not supplier:
+        flash("Supplier not found.", "danger")
+        return redirect(url_for('admin.suppliers'))
+        
     form = SupplierForm(obj=supplier)
     
     if form.validate_on_submit():
@@ -481,7 +516,11 @@ def edit_supplier(supplier_id):
 @admin_required
 def delete_supplier(supplier_id):
     """Delete supplier"""
-    supplier = Supplier.query.get_or_404(supplier_id)
+    supplier = db.session.get(Supplier, supplier_id)
+    if not supplier:
+        flash("Supplier not found.", "danger")
+        return redirect(url_for('admin.suppliers'))
+        
     name = supplier.name
     
     if supplier.purchases:
@@ -503,7 +542,7 @@ def delete_supplier(supplier_id):
 @admin_required
 def purchases():
     """Purchase tracking page"""
-    purchases_list = Purchase.query.order_by(Purchase.purchase_date.desc()).all()
+    purchases_list = db.session.query(Purchase).order_by(Purchase.purchase_date.desc()).all()
     return render_template('admin/purchases.html', purchases=purchases_list)
 
 @admin_bp.route('/purchases/add', methods=['GET', 'POST'])
@@ -512,10 +551,10 @@ def add_purchase():
     """Add new purchase (increases stock)"""
     form = PurchaseForm()
     
-    suppliers = Supplier.query.order_by(Supplier.name).all()
+    suppliers = db.session.query(Supplier).order_by(Supplier.name).all()
     form.supplier_id.choices = [(s.id, s.name) for s in suppliers]
     
-    products = Product.query.filter_by(is_active=True).order_by(Product.name).all()
+    products = db.session.query(Product).filter_by(is_active=True).order_by(Product.name).all()
     form.product_id.choices = [(p.id, p.name) for p in products]
     
     if not suppliers:
@@ -527,7 +566,7 @@ def add_purchase():
         return redirect(url_for('admin.add_product'))
     
     if form.validate_on_submit():
-        product = Product.query.get(form.product_id.data)
+        product = db.session.get(Product, form.product_id.data)
         
         quantity = form.quantity.data
         price_per_unit = form.purchase_price.data
@@ -564,14 +603,17 @@ def add_purchase():
 @admin_required
 def customers():
     """View customers and their credit balances"""
-    customers_list = User.query.filter_by(role='customer').order_by(User.full_name).all()
+    customers_list = db.session.query(User).filter_by(role='customer').order_by(User.full_name).all()
     return render_template('admin/customers.html', customers=customers_list)
 
 @admin_bp.route('/customers/<int:user_id>/clear_credit', methods=['POST'])
 @admin_required
 def clear_credit(user_id):
     """Clear (settle) customer credit balance"""
-    customer = User.query.get_or_404(user_id)
+    customer = db.session.get(User, user_id)
+    if not customer:
+        flash("Customer not found.", "danger")
+        return redirect(url_for('admin.customers'))
     
     amount_paid_str = request.form.get('amount_paid')
     if not amount_paid_str:
@@ -597,27 +639,22 @@ def clear_credit(user_id):
         
     return redirect(url_for('admin.customers'))
 
-from models import Coupon
-
-
 @admin_bp.route('/pos')
 @admin_required
 def pos():
-    products = Product.query.filter(Product.stock_quantity > 0, Product.is_active == True).all()
+    products = db.session.query(Product).filter(Product.stock_quantity > 0, Product.is_active == True).all()
     return render_template('admin/pos.html', products=products)
 
 @admin_bp.route('/api/pos/checkout', methods=['POST'])
 @admin_required
 def pos_checkout():
-    from flask import request
     data = request.json
     cart_items = data.get('cart', [])
     total_paid = 0
     
     try:
-        from models import Sale
         for item in cart_items:
-            product = Product.query.get(item['id'])
+            product = db.session.get(Product, item['id'])
             if product and product.stock_quantity >= item['qty']:
                 qty = item['qty']
                 profit = (product.selling_price - product.cost_price) * qty
@@ -626,15 +663,13 @@ def pos_checkout():
                 db.session.add(sale)
                 total_paid += float(product.selling_price * qty)
         db.session.commit()
-        from flask import jsonify
         return jsonify({'success': True, 'total': total_paid})
     except Exception as e:
         db.session.rollback()
-        from flask import jsonify
         return jsonify({'success': False, 'error': str(e)})
 
 @admin_bp.route('/coupons')
 @admin_required
 def coupons():
-    coupons = Coupon.query.all()
+    coupons = db.session.query(Coupon).all()
     return render_template('admin/coupons.html', coupons=coupons)

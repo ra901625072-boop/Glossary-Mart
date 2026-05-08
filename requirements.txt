@@ -15,3 +15,5 @@ gunicorn
 boto3
 stripe
 pyotp
+qrcode
+Pillow

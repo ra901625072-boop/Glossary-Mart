@@ -26,7 +26,7 @@ security_bp = Blueprint("security", __name__, url_prefix="/security")
 @security_bp.route("/verify/<token>")
 @limiter.limit("5 per minute")
 def verify_email(token):
-    user = User.query.filter_by(verification_token=token).first()
+    user = db.session.query(User).filter_by(verification_token=token).first()
     if user:
         user.is_verified = True
         user.verification_token = None
@@ -42,7 +42,7 @@ def verify_email(token):
 def forgot_password():
     if request.method == "POST":
         email = request.form.get("email", "").strip().lower()
-        user = User.query.filter_by(email=email).first()
+        user = db.session.query(User).filter_by(email=email).first()
         if user:
             token = secrets.token_urlsafe(32)
             user.reset_token = token
@@ -70,7 +70,7 @@ def forgot_password():
 @security_bp.route("/reset-password/<token>", methods=["GET", "POST"])
 @limiter.limit("5 per minute")
 def reset_password(token):
-    user = User.query.filter_by(reset_token=token).first()
+    user = db.session.query(User).filter_by(reset_token=token).first()
     if not user:
         flash("Invalid or expired reset token.", "danger")
         return redirect(url_for("auth.customer_login"))
@@ -145,7 +145,7 @@ def verify_2fa():
     if "2fa_user_id" not in session:
         return redirect(url_for("auth.login"))
 
-    user = User.query.get(session["2fa_user_id"])
+    user = db.session.get(User, session["2fa_user_id"])
 
     if request.method == "POST":
         token = request.form.get("token")
