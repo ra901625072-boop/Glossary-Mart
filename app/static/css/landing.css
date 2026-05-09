@@ -1,0 +1,170 @@
+/* ========== Landing Page - Premium Boutique Refinement ========== */
+
+.lp-hero-gradient {
+    background: var(--bg-main);
+    position: relative;
+    padding: 220px 0 160px;
+    color: var(--text-main);
+    overflow: hidden;
+    transition: var(--ss-transition);
+}
+
+.lp-hero-background {
+    position: absolute;
+    inset: 0;
+    z-index: 0;
+}
+
+.hero-blob {
+    position: absolute;
+    border-radius: 50%;
+    filter: blur(160px);
+    opacity: 0.15;
+    animation: blobFloat 30s infinite alternate cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.hero-blob-1 {
+    width: 800px;
+    height: 800px;
+    background: var(--accent);
+    top: -300px;
+    right: -200px;
+}
+
+.hero-blob-2 {
+    width: 700px;
+    height: 700px;
+    background: var(--primary);
+    bottom: -200px;
+    left: -200px;
+    animation-delay: -10s;
+}
+
+@keyframes blobFloat {
+    0% { transform: translate(0, 0) scale(1); }
+    100% { transform: translate(100px, -100px) scale(1.3); }
+}
+
+.lp-hero-title {
+    font-size: clamp(4rem, 12vw, 6.5rem);
+    font-weight: 950;
+    line-height: 0.85;
+    letter-spacing: -0.05em;
+    margin-bottom: 3rem;
+    color: var(--text-main);
+}
+
+.lp-hero-accent {
+    background: var(--ss-gradient-accent);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    display: inline-block;
+    filter: drop-shadow(0 0 10px rgba(var(--accent-rgb), 0.3));
+}
+
+.hero-image-wrapper {
+    background: rgba(var(--primary-rgb), 0.3);
+    border: 1.5px solid var(--border-subtle);
+    box-shadow: var(--ss-shadow-2xl);
+    transform: perspective(1500px) rotateY(-15deg) rotateX(5deg);
+    transition: var(--ss-transition-bounce);
+    padding: 1.5rem;
+    border-radius: 3.5rem;
+}
+
+.hero-image-wrapper:hover {
+    transform: perspective(1500px) rotateY(0deg) rotateX(0deg) translateY(-20px);
+    border-color: var(--accent);
+    box-shadow: var(--ss-shadow-gold);
+}
+
+.lp-stats-container {
+    background: var(--sur-low);
+    backdrop-filter: blur(35px);
+    border-radius: 3rem;
+    margin-top: -120px;
+    box-shadow: var(--ss-shadow-2xl);
+    position: relative;
+    z-index: 10;
+    padding: 4rem;
+    border: 2px solid var(--accent-subtle);
+}
+
+.stat-item h2 {
+    color: var(--accent);
+    font-size: 4rem;
+    font-weight: 900;
+    margin-bottom: 0.5rem;
+    letter-spacing: -3px;
+}
+
+.ss-feature-card {
+    background: var(--sur-low);
+    padding: 5rem 4rem;
+    border-radius: 3rem;
+    height: 100%;
+    transition: var(--ss-transition-bounce);
+    border: 1.5px solid var(--border-subtle);
+    position: relative;
+}
+
+.ss-feature-card:hover {
+    transform: translateY(-25px);
+    border-color: var(--accent);
+    background: var(--sur-mid);
+    box-shadow: var(--ss-shadow-gold);
+}
+
+.ss-feature-icon {
+    width: 100px;
+    height: 100px;
+    background: var(--sur-high);
+    color: var(--accent);
+    border-radius: 32px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 3.5rem;
+    margin-bottom: 3.5rem;
+    transition: var(--ss-transition-bounce);
+    border: 1px solid var(--border-subtle);
+}
+
+.ss-feature-card:hover .ss-feature-icon {
+    background: var(--ss-gradient-accent);
+    color: var(--text-on-accent);
+    transform: rotate(-15deg) scale(1.3);
+    box-shadow: var(--ss-shadow-gold);
+}
+
+.lp-cta-gradient {
+    background: var(--ss-gradient-dark);
+    border: 2px solid var(--accent-subtle);
+    border-radius: 4rem;
+    padding: 8rem 5rem;
+    position: relative;
+    overflow: hidden;
+    text-align: center;
+}
+
+.lp-cta-gradient::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: radial-gradient(circle at center, rgba(var(--accent-rgb), 0.2), transparent 70%);
+}
+
+.pulse-dot {
+    width: 10px;
+    height: 10px;
+    background: var(--accent);
+    border-radius: 50%;
+    box-shadow: 0 0 0 rgba(var(--accent-rgb), 0.4);
+    animation: pulse 2s infinite;
+}
+
+@keyframes pulse {
+    0% { box-shadow: 0 0 0 0 rgba(var(--accent-rgb), 0.7); }
+    70% { box-shadow: 0 0 0 15px rgba(var(--accent-rgb), 0); }
+    100% { box-shadow: 0 0 0 0 rgba(var(--accent-rgb), 0); }
+}

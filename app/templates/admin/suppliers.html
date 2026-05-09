@@ -1,0 +1,96 @@
+{% extends 'admin/admin_base.html' %}
+
+{% block title %}Logistics Partners - Jay Goga Admin{% endblock %}
+
+{% block content %}
+<div class="container-fluid px-4 py-4 admin-order-container">
+    <div class="row align-items-center mb-5">
+        <div class="col-md-7">
+            <div class="d-flex align-items-center mb-2">
+                <div class="bg-ss-accent rounded-pill me-3" style="width: 5px; height: 32px;"></div>
+                <h1 class="display-6 fw-900 text-ss-main mb-0">Logistics Partners</h1>
+            </div>
+            <p class="text-muted mb-0 ps-4 fs-5">Directory of authorized product providers and vendors.</p>
+        </div>
+        <div class="col-md-5 text-md-end mt-4 mt-md-0">
+            <a href="{{ url_for('admin.add_supplier') }}" class="btn btn-ss-primary px-5 py-3 shadow-xl">
+                <i class="bi bi-person-plus-fill me-3"></i>REGISTER PARTNER
+            </a>
+        </div>
+    </div>
+
+    <div class="admin-table-container">
+        <div class="table-responsive">
+            <table class="table table-hover align-middle admin-table">
+                <thead>
+                    <tr>
+                        <th>Partner Identity</th>
+                        <th>Primary Liaison</th>
+                        <th>Communication Vector</th>
+                        <th>Digital Point</th>
+                        <th class="text-end">Command</th>
+                    </tr>
+                </thead>
+                <tbody class="border-0">
+                    {% for supplier in suppliers %}
+                    <tr class="transition-all">
+                        <td>
+                            <div class="fw-900 text-ss-main text-uppercase tracking-wider fs-5 mb-1">{{ supplier.name }}</div>
+                            <span class="smallest fw-900 text-muted opacity-50 tracking-widest text-uppercase">#SUP-{{ '{:04d}'.format(supplier.id) }}</span>
+                        </td>
+                        <td>
+                            <div class="smallest fw-900 text-ss-primary text-uppercase tracking-widest">{{ supplier.contact_person|upper if supplier.contact_person else 'SYSTEM MANAGED' }}</div>
+                        </td>
+                        <td>
+                            <div class="smallest fw-800 text-muted tracking-wide">
+                                {% if supplier.phone %}
+                                <i class="bi bi-telephone-fill text-ss-accent me-2 opacity-50"></i>{{ supplier.phone }}
+                                {% else %}
+                                <span class="opacity-25">UNAVAILABLE</span>
+                                {% endif %}
+                            </div>
+                        </td>
+                        <td>
+                            <div class="smallest fw-800 text-muted tracking-wide">
+                                {% if supplier.email %}
+                                <i class="bi bi-envelope-at-fill text-ss-primary me-2 opacity-50"></i>{{ supplier.email }}
+                                {% else %}
+                                <span class="opacity-25">UNAVAILABLE</span>
+                                {% endif %}
+                            </div>
+                        </td>
+                        <td class="text-end">
+                            <div class="d-flex justify-content-end gap-3">
+                                <a href="{{ url_for('admin.edit_supplier', supplier_id=supplier.id) }}"
+                                    class="bg-ss-primary bg-opacity-10 text-ss-primary p-2 rounded-3 transition-all hover-lift" title="Edit">
+                                    <i class="bi bi-pencil-fill fs-5"></i>
+                                </a>
+                                <form action="{{ url_for('admin.delete_supplier', supplier_id=supplier.id) }}" method="POST" class="d-inline" 
+                                    onsubmit="return confirm('DANGER: Confirm partner termination? This operation is irreversible.');">
+                                    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                                    <button type="submit" class="bg-danger bg-opacity-10 text-danger p-2 rounded-3 border-0 transition-all hover-lift" title="Delete">
+                                        <i class="bi bi-trash3-fill fs-5"></i>
+                                    </button>
+                                </form>
+                            </div>
+                        </td>
+                    </tr>
+                    {% else %}
+                    <tr>
+                        <td colspan="5" class="text-center py-5">
+                            <i class="bi bi-truck display-1 text-muted opacity-10 d-block mb-4"></i>
+                            <h3 class="fw-900 text-ss-main">No Partners Registered</h3>
+                            <p class="text-muted">Awaiting logistics provider configuration.</p>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{{ url_for('static', filename='css/admin/orders.css') }}">
+{% endblock %}

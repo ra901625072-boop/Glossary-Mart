@@ -1,0 +1,131 @@
+/* ========== Admin Order Management - Premium Refinement ========== */
+
+.admin-order-container {
+    animation: fadeIn 0.6s ease-out;
+}
+
+.order-stat-card {
+    background: var(--sur-low);
+    backdrop-filter: blur(20px);
+    border-radius: var(--ss-radius-xl);
+    border: 1.5px solid var(--border-subtle);
+    padding: 2rem;
+    transition: var(--ss-transition-bounce);
+    height: 100%;
+}
+
+.order-stat-card:hover {
+    transform: translateY(-5px);
+    background: var(--sur-mid);
+    border-color: var(--accent);
+    box-shadow: var(--ss-shadow-xl);
+}
+
+.order-list-panel {
+    background: var(--sur-low);
+    backdrop-filter: blur(25px);
+    border-radius: var(--ss-radius-xl);
+    border: 1.5px solid var(--border-subtle);
+    overflow: hidden;
+}
+
+.order-table th {
+    background: rgba(var(--primary-rgb), 0.5) !important;
+    color: var(--accent) !important;
+    font-weight: 900 !important;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    font-size: 0.75rem;
+    padding: 1.5rem !important;
+    border-bottom: 2px solid var(--border-subtle) !important;
+}
+
+.order-table td {
+    padding: 1.5rem !important;
+    border-bottom: 1px solid var(--border-subtle) !important;
+    vertical-align: middle;
+}
+
+.order-table tr:hover {
+    background: rgba(var(--accent-rgb), 0.05) !important;
+}
+
+.process-order-btn {
+    background: var(--ss-gradient-accent);
+    color: var(--text-on-accent);
+    border: none;
+    padding: 0.75rem 1.5rem;
+    border-radius: var(--ss-radius-full);
+    font-weight: 900;
+    font-size: 0.75rem;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    transition: var(--ss-transition-bounce);
+    box-shadow: var(--ss-shadow-md);
+}
+
+.process-order-btn:hover {
+    transform: scale(1.05) translateY(-2px);
+    box-shadow: var(--ss-shadow-gold);
+    color: var(--text-on-accent);
+}
+
+/* Detail View Enhancements */
+.order-detail-card {
+    background: var(--sur-low);
+    backdrop-filter: blur(30px);
+    border-radius: var(--ss-radius-2xl);
+    border: 1.5px solid var(--border-subtle);
+    padding: 3rem;
+}
+
+.order-info-block {
+    background: rgba(var(--primary-rgb), 0.3);
+    border-radius: var(--ss-radius-lg);
+    padding: 1.5rem;
+    border: 1px solid var(--border-subtle);
+    height: 100%;
+}
+
+.order-info-label {
+    font-size: 0.7rem;
+    font-weight: 900;
+    text-transform: uppercase;
+    color: var(--accent);
+    letter-spacing: 0.15em;
+    margin-bottom: 0.5rem;
+    display: block;
+}
+
+.order-info-value {
+    font-weight: 800;
+    font-size: 1.1rem;
+    color: var(--text-main);
+}
+
+.status-control-panel {
+    background: var(--sur-low);
+    backdrop-filter: blur(20px);
+    border-radius: var(--ss-radius-xl);
+    border: 1.5px solid var(--border-subtle);
+    padding: 2.5rem;
+}
+
+.status-select {
+    background: var(--bg-alt) !important;
+    border: 1.5px solid var(--border-subtle) !important;
+    color: var(--text-main) !important;
+    font-weight: 800 !important;
+    padding: 1rem !important;
+    border-radius: var(--ss-radius-lg) !important;
+}
+
+.status-select:focus {
+    border-color: var(--accent) !important;
+    box-shadow: var(--ss-shadow-gold) !important;
+}
+
+@keyframes fadeIn {
+    from { opacity: 0; transform: translateY(20px); }
+    to { opacity: 1; transform: translateY(0); }
+}

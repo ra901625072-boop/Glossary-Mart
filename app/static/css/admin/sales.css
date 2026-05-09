@@ -1,0 +1,96 @@
+/* ========== Admin Sales Terminal - Premium Refinement ========== */
+
+.pos-container {
+    animation: fadeIn 0.6s ease-out;
+}
+
+.pos-input-group {
+    background: var(--sur-low);
+    border: 1.5px solid var(--border-subtle);
+    border-radius: var(--ss-radius-xl);
+    padding: 1rem;
+    transition: var(--ss-transition-bounce);
+}
+
+.pos-input-group:focus-within {
+    border-color: var(--accent);
+    box-shadow: var(--ss-shadow-gold);
+    background: var(--sur-mid);
+}
+
+.pos-qty-control {
+    background: var(--bg-alt);
+    border-radius: var(--ss-radius-full);
+    padding: 0.5rem;
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    border: 1px solid var(--border-subtle);
+}
+
+.pos-preview-card {
+    background: var(--sur-low);
+    backdrop-filter: blur(20px);
+    border-radius: var(--ss-radius-xl);
+    border: 1.5px solid var(--border-subtle);
+    padding: 2.5rem;
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+}
+
+.pos-asset-thumb {
+    width: 80px;
+    height: 80px;
+    object-fit: cover;
+    border-radius: var(--ss-radius-lg);
+    border: 1px solid var(--border-subtle);
+    box-shadow: var(--ss-shadow-md);
+}
+
+.pos-total-panel {
+    background: var(--ss-gradient-accent);
+    color: var(--text-on-accent);
+    border-radius: var(--ss-radius-xl);
+    padding: 2rem;
+    box-shadow: var(--ss-shadow-gold);
+    position: relative;
+    overflow: hidden;
+}
+
+.pos-total-panel::before {
+    content: '';
+    position: absolute;
+    top: -50%;
+    right: -50%;
+    width: 200%;
+    height: 200%;
+    background: radial-gradient(circle, rgba(255,255,255,0.1) 0%, transparent 70%);
+    pointer-events: none;
+}
+
+.pos-summary-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 1rem;
+    padding: 0 0.5rem;
+}
+
+.pos-summary-label {
+    font-size: 0.75rem;
+    font-weight: 900;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    opacity: 0.7;
+}
+
+.pos-summary-value {
+    font-weight: 800;
+    font-size: 1.1rem;
+}
+
+@keyframes fadeIn {
+    from { opacity: 0; transform: scale(0.98); }
+    to { opacity: 1; transform: scale(1); }
+}

@@ -1,0 +1,128 @@
+{% extends 'admin/admin_base.html' %}
+
+{% block title %}Taxonomy Management - Jay Goga Admin{% endblock %}
+
+{% block content %}
+<div class="container-fluid px-4 py-4 admin-order-container">
+    <div class="row align-items-center mb-5">
+        <div class="col-md-7">
+            <div class="d-flex align-items-center mb-2">
+                <div class="bg-ss-accent rounded-pill me-3" style="width: 5px; height: 32px;"></div>
+                <h1 class="display-6 fw-900 text-ss-main mb-0">Taxonomy Management</h1>
+            </div>
+            <p class="text-muted mb-0 ps-4 fs-5">Structural classification of artisanal inventory assets.</p>
+        </div>
+        <div class="col-md-5 text-md-end mt-4 mt-md-0">
+            <a href="{{ url_for('admin.add_category') }}" class="btn btn-ss-primary px-5 py-3 shadow-xl">
+                <i class="bi bi-plus-lg me-3"></i>APPEND CATEGORY
+            </a>
+        </div>
+    </div>
+
+    <div class="admin-table-container">
+        <div class="table-responsive">
+            <table class="table table-hover align-middle admin-table">
+                <thead>
+                    <tr>
+                        <th>Taxon ID</th>
+                        <th>Classification Name</th>
+                        <th>Descriptive Context</th>
+                        <th class="text-center">Asset Load</th>
+                        <th class="text-end">Command</th>
+                    </tr>
+                </thead>
+                <tbody class="border-0">
+                    {% if categories %}
+                    {% for category in categories %}
+                    <tr class="transition-all">
+                        <td>
+                            <span class="smallest fw-900 text-muted opacity-50 text-uppercase tracking-widest">#CAT-{{ category.id }}</span>
+                        </td>
+                        <td>
+                            <div class="fw-900 text-ss-main text-uppercase tracking-wider fs-5">{{ category.name }}</div>
+                        </td>
+                        <td>
+                            <span class="smallest fw-800 text-muted opacity-75">{{ category.description or 'GENERAL CLASSIFICATION' }}</span>
+                        </td>
+                        <td class="text-center">
+                            <span class="badge bg-ss-primary bg-opacity-10 text-ss-primary rounded-pill smallest fw-900 tracking-widest px-3 py-2">
+                                {{ category.products|length }} ASSETS
+                            </span>
+                        </td>
+                        <td class="text-end">
+                            <div class="d-flex justify-content-end gap-3">
+                                <a href="{{ url_for('admin.edit_category', category_id=category.id) }}"
+                                    class="bg-ss-primary bg-opacity-10 text-ss-primary p-2 rounded-3 transition-all hover-lift" title="Edit">
+                                    <i class="bi bi-pencil-square fs-5"></i>
+                                </a>
+                                <button type="button" class="bg-danger bg-opacity-10 text-danger p-2 rounded-3 border-0 transition-all hover-lift"
+                                    onclick="confirmDelete({{ category.id }}, '{{ category.name|replace("'", "\\'") }}')" title="Delete">
+                                    <i class="bi bi-trash3 fs-5"></i>
+                                </button>
+                            </div>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                    {% else %}
+                    <tr>
+                        <td colspan="5" class="text-center py-5">
+                            <i class="bi bi-tags display-1 text-muted opacity-10 d-block mb-4"></i>
+                            <h3 class="fw-900 text-ss-main">No Taxonomy Data</h3>
+                            <p class="text-muted">Populate classifications to organize your inventory.</p>
+                        </td>
+                    </tr>
+                    {% endif %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+<!-- Delete Confirmation Modal -->
+<div class="modal fade" id="deleteModal" tabindex="-1">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content border-0 shadow-2xl rounded-5 overflow-hidden bg-ss-primary bg-opacity-95 backdrop-blur">
+            <div class="modal-header border-0 bg-danger bg-opacity-20 p-4">
+                <h5 class="modal-title fw-900 text-danger text-uppercase tracking-widest" id="deleteModalLabel">
+                    <i class="bi bi-exclamation-triangle-fill me-2"></i>Irreversible Action
+                </h5>
+                <button type="button" class="btn-close btn-close-white shadow-none" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body p-5 text-center">
+                <div class="bg-danger bg-opacity-20 d-inline-block p-4 rounded-circle mb-4 shadow-xl">
+                    <i class="bi bi-trash3 display-4 text-danger"></i>
+                </div>
+                <h4 class="fw-900 text-ss-main mb-3">Terminate Classification?</h4>
+                <div class="glass-panel p-3 mb-4 bg-white bg-opacity-5">
+                    <span id="deleteCategoryName" class="fw-900 text-ss-primary text-uppercase tracking-wider fs-4"></span>
+                </div>
+                <p class="smallest fw-800 text-muted text-uppercase tracking-widest opacity-75">
+                    Historical links will be severed. Operation requires zero asset dependencies.
+                </p>
+            </div>
+            <div class="modal-footer border-0 p-5 pt-0 gap-3">
+                <button type="button" class="btn btn-ss-low rounded-pill px-4 py-3 smallest fw-900 text-uppercase tracking-widest flex-grow-1" data-bs-dismiss="modal">Abort</button>
+                <form id="deleteForm" method="POST" class="d-inline flex-grow-1">
+                    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                    <button type="submit" class="btn btn-danger rounded-pill px-4 py-3 smallest fw-900 text-uppercase tracking-widest w-100 shadow-xl">Execute Deletion</button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    function confirmDelete(id, name) {
+        const modal = new bootstrap.Modal(document.getElementById('deleteModal'));
+        document.getElementById('deleteCategoryName').textContent = name;
+        document.getElementById('deleteForm').action = "{{ url_for('admin.delete_category', category_id=0) }}".replace('0', id);
+        modal.show();
+    }
+</script>
+{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{{ url_for('static', filename='css/admin/orders.css') }}">
+{% endblock %}

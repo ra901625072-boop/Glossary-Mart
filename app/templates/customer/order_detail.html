@@ -1,0 +1,117 @@
+{% extends 'base.html' %}
+
+{% block title %}Acquisition Detail #{{ order.id }} - Jay Goga Kirana Store{% endblock %}
+
+{% block content %}
+<div class="container my-5 orders-container">
+    <!-- Breadcrumb -->
+    <nav aria-label="breadcrumb" class="mb-5">
+        <ol class="breadcrumb smallest fw-900 text-uppercase tracking-widest">
+            <li class="breadcrumb-item"><a href="{{ url_for('customer.my_orders') }}" class="text-ss-primary text-decoration-none">SYNOPSIS</a></li>
+            <li class="breadcrumb-item active text-muted">REFERENCE #{{ order.id }}</li>
+        </ol>
+    </nav>
+
+    <div class="row g-5">
+        <!-- Main Content -->
+        <div class="col-lg-8">
+            <div class="order-detail-header shadow-2xl">
+                <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center mb-5 pb-4 border-bottom border-ss-main border-opacity-5">
+                    <div>
+                        <span class="smallest fw-900 text-ss-primary text-uppercase tracking-widest opacity-50 d-block mb-1">Acquisition Log</span>
+                        <h2 class="fw-900 text-ss-main mb-0">Reference #JG-{{ order.id }}</h2>
+                    </div>
+                    <div class="mt-4 mt-md-0 text-md-end">
+                        <span class="status-badge-premium {% if order.order_status == 'Delivered' %}bg-ss-success text-white{% elif order.order_status == 'Cancelled' %}bg-danger text-white{% else %}bg-ss-primary text-white{% endif %} fs-6 px-4">
+                            {{ order.order_status }}
+                        </span>
+                        <p class="text-muted smallest fw-900 text-uppercase tracking-widest mt-2 mb-0 opacity-50">
+                            Logged: {{ order.created_at.strftime('%b %d, %Y') }}
+                        </p>
+                    </div>
+                </div>
+
+                <div class="order-items-list mb-5">
+                    <h6 class="smallest fw-900 text-muted text-uppercase tracking-widest mb-4">Discrete Assets ({{ order.order_items|length }})</h6>
+                    {% for item in order.order_items %}
+                    <div class="order-item-row d-flex justify-content-between align-items-center">
+                        <div class="d-flex align-items-center">
+                            <div class="bg-ss-primary bg-opacity-5 p-2 rounded-3 me-3" style="width: 50px; height: 50px;">
+                                <i class="bi bi-box text-ss-primary fs-3 opacity-30"></i>
+                            </div>
+                            <div>
+                                <h6 class="fw-900 text-ss-main mb-1">{{ item.product.name if item.product else 'Legacy Asset' }}</h6>
+                                <span class="smallest fw-800 text-muted">{{ item.quantity }} units @ ₹{{ "{:,.2f}".format(item.price) }}</span>
+                            </div>
+                        </div>
+                        <span class="fw-900 text-ss-main fs-5">₹{{ "{:,.2f}".format(item.subtotal) }}</span>
+                    </div>
+                    {% endfor %}
+                </div>
+
+                <div class="logistics-box mt-5 pt-5 border-top border-ss-main border-opacity-5">
+                    <h6 class="smallest fw-900 text-ss-primary text-uppercase tracking-widest mb-4">Logistical Destination</h6>
+                    <div class="glass-panel p-4 border-opacity-5 bg-ss-main bg-opacity-5">
+                        <p class="mb-0 text-ss-main fs-5 fw-500 lh-base">
+                            <i class="bi bi-geo-alt me-3 text-ss-primary"></i> {{ order.shipping_address }}
+                        </p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Sidebar Summary -->
+        <div class="col-lg-4">
+            <div class="glass-panel p-5 shadow-2xl border-opacity-10 sticky-top" style="top: 100px;">
+                <h4 class="fw-900 text-ss-main mb-5">Valuation Summary</h4>
+
+                <div class="space-y-4 mb-5">
+                    <div class="d-flex justify-content-between">
+                        <span class="text-muted fw-500">Asset Valuation</span>
+                        <span class="fw-800 text-ss-main">₹{{ "{:,.2f}".format(order.total_amount) }}</span>
+                    </div>
+                    <div class="d-flex justify-content-between">
+                        <span class="text-muted fw-500">Logistics Allocation</span>
+                        <span class="text-ss-success fw-900">FREE</span>
+                    </div>
+                </div>
+
+                <div class="pt-4 border-top border-ss-main border-opacity-5 mb-5">
+                    <div class="d-flex justify-content-between align-items-end">
+                        <div>
+                            <small class="smallest fw-900 text-uppercase tracking-widest text-muted d-block mb-1">TOTAL EXPOSURE</small>
+                            <h1 class="display-4 fw-900 text-ss-main mb-0">₹{{ "{:,.0f}".format(order.total_amount) }}</h1>
+                        </div>
+                        <div class="bg-ss-accent-subtle p-2 rounded-circle mb-2 shadow-gold">
+                            <i class="bi bi-currency-rupee text-ss-accent fs-3"></i>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="space-y-4 pt-4 border-top border-ss-main border-opacity-5">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <span class="smallest fw-900 text-muted text-uppercase tracking-widest">Protocol</span>
+                        <span class="fw-800 text-ss-main">{{ order.payment_method }}</span>
+                    </div>
+                    <div class="d-flex justify-content-between align-items-center">
+                        <span class="smallest fw-900 text-muted text-uppercase tracking-widest">Settlement</span>
+                        <span class="badge rounded-pill px-3 py-1 fw-900 smallest {% if order.payment_status == 'Paid' %}bg-ss-success{% else %}bg-warning text-dark{% endif %}">
+                            {{ order.payment_status|upper }}
+                        </span>
+                    </div>
+                </div>
+
+                <div class="mt-5 pt-2">
+                    <button class="btn btn-ss-outline w-100 py-3 mb-3 smallest fw-900 tracking-widest" onclick="window.print()">
+                        <i class="bi bi-printer me-2"></i> GENERATE MANIFEST
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{{ url_for('static', filename='css/customer/orders.css') }}">
+{% endblock %}

@@ -1,0 +1,252 @@
+{% extends 'admin/admin_base.html' %}
+
+{% block title %}Institutional Terminal - Jay Goga Admin{% endblock %}
+
+{% block content %}
+<div class="container-fluid px-4 py-4 pos-container">
+    <div class="row g-5">
+        <!-- Asset Catalog -->
+        <div class="col-lg-8">
+            <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center mb-5 gap-4">
+                <div>
+                    <h2 class="display-6 fw-950 text-ss-main mb-1 text-uppercase tracking-wider">Asset Terminal</h2>
+                    <p class="text-muted smallest fw-900 text-uppercase tracking-widest opacity-50 mb-0 ps-1">Real-time inventory selection & signal generation</p>
+                </div>
+                <div class="w-md-40">
+                    <div class="pos-input-group shadow-xl">
+                        <div class="input-group bg-transparent border-0">
+                            <span class="input-group-text bg-transparent border-0 opacity-40"><i class="bi bi-search fs-5"></i></span>
+                            <input type="text" id="search" class="form-control bg-transparent border-0 smallest fw-900 text-uppercase tracking-widest shadow-none" 
+                                placeholder="IDENTIFY ASSET / SCAN BARCODE...">
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="row g-4" id="product-list" style="height: calc(100vh - 260px); overflow-y: auto; align-content: flex-start; padding-right: 10px;">
+                {% for product in products %}
+                <div class="col-md-4 col-xl-3 product-card" data-name="{{ product.name|lower }}">
+                    <div class="glass-panel border-0 h-100 transition-all hover-lift p-0 overflow-hidden text-center position-relative shadow-lg border border-ss-main border-opacity-5" 
+                        style="cursor:pointer;" 
+                        onclick="addToCart({{ product.id }}, '{{ product.name|replace("'", "\\'") }}', {{ product.selling_price }}, '{{ product.image_path or "" }}')">
+                        
+                        <div class="p-4">
+                            {% if product.image_path %}
+                                <div class="mb-3 rounded-4 overflow-hidden border border-ss-main border-opacity-10 shadow-inner">
+                                    <img src="{{ url_for('static', filename=product.image_path) }}" 
+                                        class="img-fluid" style="height: 100px; width: 100%; object-fit: cover;">
+                                </div>
+                            {% else %}
+                                <div class="bg-ss-primary bg-opacity-5 rounded-4 mb-3 d-flex align-items-center justify-content-center mx-auto shadow-inner" style="height: 100px; width: 100%;">
+                                    <i class="bi bi-box-seam display-6 text-ss-primary opacity-20"></i>
+                                </div>
+                            {% endif %}
+                            
+                            <h6 class="fw-900 text-ss-main mb-2 text-uppercase tracking-wide text-truncate">{{ product.name }}</h6>
+                            <div class="text-ss-primary fw-900 fs-4 mb-3">₹{{ "{:,.2f}".format(product.selling_price) }}</div>
+                            
+                            <div class="d-flex justify-content-center align-items-center gap-2">
+                                <span class="smallest fw-900 text-uppercase tracking-widest {{ 'text-danger' if product.stock_quantity < 10 else 'text-muted' }}">
+                                    Stock: {{ product.stock_quantity }}
+                                </span>
+                                <div class="vr bg-ss-main opacity-10" style="height: 10px;"></div>
+                                <span class="smallest fw-900 text-ss-primary text-uppercase tracking-widest opacity-50">{{ product.category_rel.name if product.category_rel else 'GENERAL' }}</span>
+                            </div>
+                        </div>
+                        
+                        <div class="position-absolute top-0 end-0 p-2 opacity-0 hover-opacity-100 transition-all">
+                            <div class="bg-ss-primary text-on-accent rounded-circle p-2 shadow-gold"><i class="bi bi-plus-lg"></i></div>
+                        </div>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+
+        <!-- Order Manifest -->
+        <div class="col-lg-4">
+            <div class="pos-preview-card shadow-2xl sticky-top" style="top: 100px;">
+                <div class="d-flex justify-content-between align-items-center mb-5 pb-3 border-bottom border-ss-main border-opacity-5">
+                    <div>
+                        <h4 class="fw-950 text-ss-main text-uppercase tracking-widest mb-1">Manifest</h4>
+                        <span class="smallest fw-900 text-muted text-uppercase tracking-widest opacity-50">Operational Directive</span>
+                    </div>
+                    <button class="btn btn-ss-outline rounded-pill px-4 smallest fw-900 tracking-widest text-uppercase" onclick="clearCart()">
+                        <i class="bi bi-trash3 me-2"></i> ABORT
+                    </button>
+                </div>
+
+                <div class="order-scroll flex-grow-1 mb-5" id="pos-cart" style="max-height: 450px; overflow-y: auto; padding-right: 5px;">
+                    <div class="text-center py-5 text-muted opacity-25" id="empty-cart-msg">
+                        <i class="bi bi-terminal display-1 d-block mb-4"></i>
+                        <h5 class="fw-900 text-uppercase tracking-widest">System Idle</h5>
+                        <p class="smallest fw-800">Awaiting asset selection...</p>
+                    </div>
+                </div>
+
+                <div class="pt-5 border-top border-ss-main border-opacity-5">
+                    <div class="pos-summary-row mb-3">
+                        <span class="pos-summary-label">Subtotal Velocity</span>
+                        <span class="pos-summary-value text-ss-main" id="pos-subtotal">₹0.00</span>
+                    </div>
+                    <div class="pos-summary-row mb-5">
+                        <span class="pos-summary-label">Integrated Tax</span>
+                        <span class="pos-summary-value text-ss-main">₹0.00</span>
+                    </div>
+                    
+                    <div class="pos-total-panel mb-5">
+                        <div class="d-flex justify-content-between align-items-center">
+                            <div>
+                                <span class="smallest fw-900 text-uppercase tracking-widest opacity-70 d-block mb-1">Institutional Total</span>
+                                <h2 class="fw-950 mb-0 display-5" id="pos-total">₹0.00</h2>
+                            </div>
+                            <i class="bi bi-shield-check display-3 opacity-30"></i>
+                        </div>
+                    </div>
+
+                    <button class="btn btn-auth py-4 fs-5" onclick="processPOS()">
+                        AUTHORIZE SETTLEMENT <i class="bi bi-check-circle-fill ms-3"></i>
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Extra JS Logic -->
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+<script>
+    let posCart = {};
+    
+    function addToCart(id, name, price, img) {
+        if(posCart[id]) {
+            posCart[id].qty++;
+        } else {
+            posCart[id] = {name: name, price: price, qty: 1, img: img};
+        }
+        renderCart();
+    }
+
+    function removeItem(id) {
+        if(posCart[id].qty > 1) posCart[id].qty--;
+        else delete posCart[id];
+        renderCart();
+    }
+
+    function clearCart() {
+        if(Object.keys(posCart).length === 0) return;
+        Swal.fire({
+            title: 'ABORT MANIFEST?',
+            text: "This will terminate the current operational directive.",
+            icon: 'warning',
+            showCancelButton: true,
+            confirmButtonColor: '#d4af37',
+            cancelButtonColor: 'rgba(255,255,255,0.1)',
+            confirmButtonText: 'YES, ABORT',
+            background: '#141a30',
+            color: '#fff'
+        }).then((result) => {
+            if (result.isConfirmed) {
+                posCart = {};
+                renderCart();
+            }
+        });
+    }
+
+    function renderCart() {
+        let root = document.getElementById('pos-cart');
+        let emptyMsg = document.getElementById('empty-cart-msg');
+        
+        if (Object.keys(posCart).length === 0) {
+            emptyMsg.style.display = 'block';
+            root.innerHTML = '';
+            root.appendChild(emptyMsg);
+            document.getElementById('pos-total').innerText = '₹0.00';
+            document.getElementById('pos-subtotal').innerText = '₹0.00';
+            return;
+        }
+
+        emptyMsg.style.display = 'none';
+        root.innerHTML = '';
+        let total = 0;
+
+        for(let id in posCart) {
+            let item = posCart[id];
+            total += item.price * item.qty;
+            
+            let row = document.createElement('div');
+            row.className = 'd-flex justify-content-between align-items-center mb-4 p-3 rounded-4 glass-panel border-ss-main border-opacity-5 hover-lift transition-all';
+            row.innerHTML = `
+                <div class="d-flex align-items-center gap-3 flex-grow-1">
+                    <div class="pos-asset-thumb shadow-inner">
+                        ${item.img ? `<img src="/static/${item.img}" class="img-fluid rounded-3" style="width:100%; height:100%; object-fit:cover;">` : `<i class="bi bi-box-seam opacity-20"></i>`}
+                    </div>
+                    <div>
+                        <h6 class="fw-900 text-ss-main mb-1 smallest text-uppercase tracking-wider">${item.name}</h6>
+                        <span class="smallest fw-900 text-ss-primary">₹${item.price.toFixed(2)} × ${item.qty}</span>
+                    </div>
+                </div>
+                <div class="text-end d-flex align-items-center gap-4">
+                    <span class="fw-950 text-ss-main">₹${(item.price * item.qty).toFixed(2)}</span>
+                    <button class="bg-danger bg-opacity-10 text-danger border-0 rounded-circle d-flex align-items-center justify-content-center shadow-none transition-all hover-scale" style="width:32px; height:32px;" onclick="removeItem(${id})">
+                        <i class="bi bi-dash fs-5"></i>
+                    </button>
+                </div>
+            `;
+            root.appendChild(row);
+        }
+        
+        const totalStr = '₹' + total.toLocaleString(undefined, {minimumFractionDigits: 2});
+        document.getElementById('pos-total').innerText = totalStr;
+        document.getElementById('pos-subtotal').innerText = totalStr;
+    }
+
+    function processPOS() {
+        if(Object.keys(posCart).length === 0) {
+            Swal.fire({ title: 'SYSTEM IDLE', text: 'Operational manifest is empty.', icon: 'info', background: '#141a30', color: '#fff' });
+            return;
+        }
+        
+        let cartArr = [];
+        for(let id in posCart) cartArr.push({id: id, qty: posCart[id].qty});
+        
+        Swal.fire({
+            title: 'AUTHORIZING...',
+            text: 'Processing settlement data.',
+            allowOutsideClick: false,
+            didOpen: () => { Swal.showLoading(); }
+        });
+
+        fetch('{{ url_for("admin.pos_checkout") }}', {
+            method: 'POST',
+            headers: {'Content-Type': 'application/json', 'X-CSRFToken': '{{ csrf_token() }}'},
+            body: JSON.stringify({cart: cartArr})
+        }).then(r => r.json()).then(d => {
+            if(d.success) { 
+                Swal.fire({
+                    icon: 'success',
+                    title: 'SETTLEMENT COMPLETE',
+                    text: 'Inventory assets have been re-allocated.',
+                    background: '#141a30',
+                    color: '#fff',
+                    timer: 2000,
+                    showConfirmButton: false
+                }).then(() => location.reload());
+            } else { 
+                Swal.fire({ icon: 'error', title: 'BREACH DETECTED', text: d.error, background: '#141a30', color: '#fff' });
+            }
+        });
+    }
+
+    document.getElementById('search').addEventListener('input', function(e) {
+        let val = e.target.value.toLowerCase();
+        document.querySelectorAll('.product-card').forEach(el => {
+            el.style.display = el.dataset.name.includes(val) ? 'block' : 'none';
+        });
+    });
+</script>
+{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{{ url_for('static', filename='css/admin/sales.css') }}">
+{% endblock %}

@@ -1,0 +1,215 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Jay Goga Boutique - Artisanal Provisions & Goods</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@100..900&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/colors.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/landing.css') }}">
+    <script>
+        const savedTheme = localStorage.getItem('ss-theme') || 'dark';
+        if (savedTheme === 'light') document.documentElement.setAttribute('data-theme', 'light');
+    </script>
+    <style>
+        body { font-family: 'Outfit', sans-serif; }
+    </style>
+</head>
+
+<body>
+    <!-- Premium Header -->
+    <nav class="navbar navbar-expand-lg sticky-top stand-nav py-4" id="mainNavbar">
+        <div class="container">
+            <a class="navbar-brand fw-900 text-ss-main fs-2" href="/">
+                JAY GOGA <span style="color: var(--accent);">BOUTIQUE</span>
+            </a>
+            <div class="d-flex align-items-center gap-4">
+                <button class="btn btn-link nav-link px-2 d-flex align-items-center" id="themeToggle">
+                    <i class="bi bi-moon-stars fs-4" id="themeIcon"></i>
+                </button>
+                {% if not current_user.is_authenticated %}
+                <a href="{{ url_for('auth.customer_login') }}" class="smallest fw-900 text-ss-main text-uppercase tracking-widest text-decoration-none d-none d-md-block opacity-75 hover-opacity-100">Login</a>
+                <a href="{{ url_for('auth.customer_register') }}" class="btn btn-ss-primary px-5 py-3 rounded-pill shadow-xl fs-6">GET STARTED</a>
+                {% else %}
+                <a href="{{ url_for('customer.shop') }}" class="btn btn-ss-primary px-5 py-3 rounded-pill shadow-xl fs-6">ENTER MARKETPLACE</a>
+                {% endif %}
+            </div>
+        </div>
+    </nav>
+
+    <!-- Hero Section -->
+    <section class="lp-hero-gradient">
+        <div class="lp-hero-background">
+            <div class="hero-blob hero-blob-1"></div>
+            <div class="hero-blob hero-blob-2"></div>
+        </div>
+        <div class="container position-relative z-1">
+            <div class="row align-items-center g-5">
+                <div class="col-lg-7 text-center text-lg-start">
+                    <div class="d-inline-flex align-items-center gap-3 px-4 py-2 rounded-pill mb-5" style="background: rgba(var(--accent-rgb), 0.1); border: 1.5px solid var(--accent-subtle);">
+                        <span class="pulse-dot"></span>
+                        <span class="smallest fw-900 tracking-widest text-uppercase text-ss-primary">Artisanal Provisioning Terminal</span>
+                    </div>
+                    <h1 class="lp-hero-title">Elevate Your <br><span class="lp-hero-accent">Daily Selection.</span></h1>
+                    <p class="lead mb-5 text-ss-main opacity-75 fs-4 fw-500 max-w-lg">Handpicked excellence, curated artisanal goods, and institutional-grade logistics. Reimagining the neighborhood boutique for the modern connoisseur.</p>
+                    <div class="d-flex flex-wrap gap-4 justify-content-center justify-content-lg-start">
+                        <a href="{{ url_for('customer.shop') }}" class="btn btn-ss-primary btn-lg px-5 py-4 shadow-xl fs-5">
+                            BEGIN DISCOVERY <i class="bi bi-arrow-right ms-3"></i>
+                        </a>
+                        <a href="#features" class="btn btn-ss-outline btn-lg px-5 py-4 fs-5">
+                            OUR MANIFESTO
+                        </a>
+                    </div>
+                </div>
+                <div class="col-lg-5 d-none d-lg-block">
+                    <div class="hero-image-wrapper shadow-2xl">
+                        <img src="https://images.unsplash.com/photo-1542838132-92c53300491e?ixlib=rb-1.2.1&auto=format&fit=crop&w=1200&q=80" alt="Boutique"
+                            class="img-fluid rounded-4 shadow-2xl opacity-75">
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Stats Box -->
+    <div class="container">
+        <div class="lp-stats-container shadow-2xl">
+            <div class="row text-center g-5">
+                <div class="col-md-4 stat-item">
+                    <h2>25k+</h2>
+                    <p class="text-muted smallest fw-900 text-uppercase tracking-widest mb-0">Artisanal Assets</p>
+                </div>
+                <div class="col-md-4 stat-item">
+                    <h2>100%</h2>
+                    <p class="text-muted smallest fw-900 text-uppercase tracking-widest mb-0">Client Satisfaction</p>
+                </div>
+                <div class="col-md-4 stat-item">
+                    <h2>15m</h2>
+                    <p class="text-muted smallest fw-900 text-uppercase tracking-widest mb-0">Prime Delivery</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Features Section -->
+    <section id="features" class="py-5" style="margin-top: 10rem;">
+        <div class="container py-5">
+            <div class="text-center mb-5">
+                <div class="lp-section-divider"></div>
+                <h2 class="display-3 fw-950 mb-3 text-ss-main">The Institutional Standard</h2>
+                <p class="text-muted fs-4 max-w-2xl mx-auto opacity-75">Deploying excellence through local warmth and global artisanal standards.</p>
+            </div>
+            <div class="row g-5 pt-5">
+                <div class="col-md-4">
+                    <div class="ss-feature-card">
+                        <div class="ss-feature-icon"><i class="bi bi-gem"></i></div>
+                        <h3 class="h3 fw-900 mb-4 text-ss-main">Curated Purity</h3>
+                        <p class="text-muted fs-5 mb-0">Handpicked selections of the finest grains and spices. We maintain zero-compromise protocols for your kitchen.</p>
+                    </div>
+                </div>
+                <div class="col-md-4">
+                    <div class="ss-feature-card">
+                        <div class="ss-feature-icon"><i class="bi bi-shield-check"></i></div>
+                        <h3 class="h3 fw-900 mb-4 text-ss-main">Verified Origins</h3>
+                        <p class="text-muted fs-5 mb-0">Direct supply lines from artisanal farms. Every asset is verified for freshness before induction into our inventory.</p>
+                    </div>
+                </div>
+                <div class="col-md-4">
+                    <div class="ss-feature-card">
+                        <div class="ss-feature-icon"><i class="bi bi-lightning-charge"></i></div>
+                        <h3 class="h3 fw-900 mb-4 text-ss-main">Rapid Logistics</h3>
+                        <p class="text-muted fs-5 mb-0">Institutional-grade delivery networks ensuring your selections arrive within a 15-minute operational window.</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Call to Action -->
+    <section class="py-5 mb-5 mt-5">
+        <div class="container py-5">
+            <div class="lp-cta-gradient shadow-2xl">
+                <div class="row justify-content-center">
+                    <div class="col-lg-8">
+                        <h2 class="display-4 fw-950 mb-4 text-ss-main">Begin Your Artisanal Journey</h2>
+                        <p class="lead mb-5 text-ss-main opacity-75 fs-4">Join an exclusive network of discerning clients who demand institutional-grade essentials.</p>
+                        <a href="{{ url_for('customer.shop') }}" class="btn btn-ss-primary btn-lg px-5 py-4 shadow-xl fs-4">
+                            AUTHORIZE ACCESS <i class="bi bi-chevron-right ms-3"></i>
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <footer class="py-5 mt-5 border-top border-ss-main border-opacity-5">
+        <div class="container">
+            <div class="row mb-5 g-5 text-ss-main">
+                <div class="col-md-4">
+                    <div class="mb-5">
+                        <a class="navbar-brand fw-900 text-ss-main fs-3" href="/">
+                            JAY GOGA <span style="color: var(--accent);">BOUTIQUE</span>
+                        </a>
+                    </div>
+                    <p class="small text-muted mb-0 lh-lg">Distributing premium quality groceries and daily essentials with a commitment to artisanal integrity and local community values.</p>
+                </div>
+                <div class="col-md-4 offset-md-4 text-md-end">
+                    <h6 class="smallest fw-900 text-uppercase tracking-widest text-ss-primary mb-5">Command Terminal</h6>
+                    <p class="mb-3 smallest fw-800"><i class="bi bi-geo-alt text-ss-primary me-3"></i> PALI UNJHA MEHSANA GUJARAT 384260</p>
+                    <p class="mb-3 smallest fw-800"><i class="bi bi-envelope text-ss-primary me-3"></i> BOUTIQUE@JAYGOGA.COM</p>
+                    <p class="mb-0 smallest fw-800"><i class="bi bi-telephone text-ss-primary me-3"></i> +91 9313840278</p>
+                </div>
+            </div>
+            <div class="pt-5 d-flex flex-column flex-md-row justify-content-between align-items-center gap-4">
+                <p class="mb-0 smallest fw-900 text-muted opacity-50 tracking-widest">© 2026 JAY GOGA BOUTIQUE. ALL RIGHTS RESERVED.</p>
+                <div class="d-flex gap-5">
+                    <a href="{{ url_for('auth.login') }}" class="smallest fw-900 text-ss-primary text-decoration-none opacity-50 hover-opacity-100 tracking-widest">OWNER PORTAL</a>
+                    <a href="#" class="smallest fw-900 text-muted text-decoration-none opacity-50 hover-opacity-100 tracking-widest">PRIVACY</a>
+                    <a href="#" class="smallest fw-900 text-muted text-decoration-none opacity-50 hover-opacity-100 tracking-widest">TERMS</a>
+                </div>
+            </div>
+        </div>
+    </footer>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            const themeToggle = document.getElementById('themeToggle');
+            const themeIcon = document.getElementById('themeIcon');
+            const root = document.documentElement;
+            
+            function updateIcon(isLight) {
+                if (isLight) {
+                    themeIcon.className = 'bi bi-sun-fill text-warning fs-4';
+                } else {
+                    themeIcon.className = 'bi bi-moon-stars fs-4';
+                }
+            }
+
+            const currentTheme = localStorage.getItem('ss-theme') || 'dark';
+            updateIcon(currentTheme === 'light');
+
+            if (themeToggle) {
+                themeToggle.addEventListener('click', () => {
+                    const isLight = root.getAttribute('data-theme') === 'light';
+                    if (isLight) {
+                        root.removeAttribute('data-theme');
+                        localStorage.setItem('ss-theme', 'dark');
+                        updateIcon(false);
+                    } else {
+                        root.setAttribute('data-theme', 'light');
+                        localStorage.setItem('ss-theme', 'light');
+                        updateIcon(true);
+                    }
+                });
+            }
+        });
+    </script>
+</body>
+</html>

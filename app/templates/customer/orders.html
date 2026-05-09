@@ -1,0 +1,87 @@
+{% extends 'base.html' %}
+
+{% block title %}Order Synopsis - Jay Goga Kirana Store{% endblock %}
+
+{% block content %}
+<div class="container my-5 orders-container">
+    <!-- Header -->
+    <div class="row align-items-center mb-5">
+        <div class="col-md-8">
+            <div class="d-flex align-items-center mb-2">
+                <div class="bg-ss-accent rounded-pill me-3" style="width: 5px; height: 32px;"></div>
+                <h1 class="display-5 fw-900 text-ss-main mb-0">Order Synopsis</h1>
+            </div>
+            <p class="text-muted mb-0 ps-4 fs-5">{{ orders|length }} acquisitions recorded in your artisanal history.</p>
+        </div>
+    </div>
+
+    {% if orders %}
+    <div class="row g-4">
+        {% for order in orders %}
+        <div class="col-lg-6">
+            <div class="ss-order-card">
+                <div class="d-flex justify-content-between align-items-start mb-4">
+                    <div>
+                        <span class="smallest fw-900 text-ss-primary text-uppercase tracking-widest opacity-50 d-block mb-1">Acquisition Reference</span>
+                        <h3 class="fw-900 text-ss-main mb-1">#JG-{{ order.id }}</h3>
+                        <p class="text-muted small mb-0 fw-600">
+                            <i class="bi bi-calendar3 me-2 text-ss-primary"></i> {{ order.created_at.strftime('%B %d, %Y') }}
+                        </p>
+                    </div>
+                    <span class="status-badge-premium {% if order.order_status == 'Delivered' %}bg-ss-success text-white{% elif order.order_status == 'Cancelled' %}bg-danger text-white{% else %}bg-ss-primary text-white{% endif %}">
+                        {{ order.order_status|upper }}
+                    </span>
+                </div>
+
+                <div class="order-meta-box mb-4">
+                    <div class="row g-0">
+                        <div class="col-6 border-end border-ss-main border-opacity-10 px-3">
+                            <span class="order-meta-label">Collection Size</span>
+                            <span class="order-meta-value">{{ order.order_items|length }} Discrete Assets</span>
+                        </div>
+                        <div class="col-6 px-3">
+                            <span class="order-meta-label text-end d-block">Net Valuation</span>
+                            <span class="order-meta-value text-ss-primary text-end d-block">₹{{ "{:,.0f}".format(order.total_amount) }}</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="d-flex justify-content-between align-items-center">
+                    <div class="d-flex align-items-center">
+                        <div class="bg-ss-primary bg-opacity-10 p-2 rounded-circle me-3">
+                            <i class="bi bi-shield-lock text-ss-primary fs-5"></i>
+                        </div>
+                        <div>
+                            <span class="smallest fw-900 text-muted text-uppercase tracking-widest d-block">{{ order.payment_method }}</span>
+                            <span class="smallest fw-800 {% if order.payment_status == 'Paid' %}text-ss-success{% else %}text-warning{% endif %}">
+                                {{ order.payment_status|upper }}
+                            </span>
+                        </div>
+                    </div>
+                    <a href="{{ url_for('customer.order_detail', order_id=order.id) }}"
+                        class="btn btn-ss-primary btn-sm px-4 rounded-pill shadow-lg">
+                        EXAMINE DETAILS
+                    </a>
+                </div>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+    {% else %}
+    <div class="glass-panel text-center py-5 shadow-2xl border-opacity-10">
+        <div class="mb-5 d-inline-flex p-5 rounded-circle bg-ss-primary bg-opacity-5 text-ss-primary">
+            <i class="bi bi-journal-x" style="font-size: 6rem;"></i>
+        </div>
+        <h2 class="fw-900 text-ss-main mb-3">No History Recorded</h2>
+        <p class="text-muted fs-5 mb-5">Your artisanal journey begins with your first selection.</p>
+        <a href="{{ url_for('customer.shop') }}" class="btn btn-ss-primary btn-lg px-5 py-3 shadow-xl">
+            BEGIN DISCOVERY
+        </a>
+    </div>
+    {% endif %}
+</div>
+{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{{ url_for('static', filename='css/customer/orders.css') }}">
+{% endblock %}

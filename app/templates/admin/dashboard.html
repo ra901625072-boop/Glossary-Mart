@@ -1,0 +1,330 @@
+{% extends 'admin/admin_base.html' %}
+
+{% block title %}Institutional Intelligence - Jay Goga Admin{% endblock %}
+
+{% block content %}
+<div class="container-fluid px-4 py-4 dashboard-container">
+    <!-- Critical Alerts -->
+    {% if stock_stats.low_stock_products %}
+    <div class="glass-panel d-flex flex-column flex-md-row align-items-center p-4 mb-5 border-start border-4 border-ss-accent shadow-2xl" style="background: rgba(var(--accent-rgb), 0.05);">
+        <div class="db-stat-icon-container bg-ss-accent bg-opacity-20 text-ss-accent mb-3 mb-md-0 me-md-4 border-ss-accent border-opacity-30">
+            <i class="bi bi-shield-exclamation fs-3"></i>
+        </div>
+        <div class="flex-grow-1">
+            <h5 class="fw-900 mb-1 text-ss-main">Institutional Stock Alert</h5>
+            <p class="mb-0 text-muted fw-600">Inventory breach detected: <strong>{{ stock_stats.low_stock_products|length }}</strong> assets are currently below safety thresholds.</p>
+        </div>
+        <div class="mt-4 mt-md-0">
+            <a href="#low-stock-section" class="btn btn-ss-primary px-4 py-2 fs-6">RESOLVE BREACH</a>
+        </div>
+    </div>
+    {% endif %}
+
+    <!-- Premium Header -->
+    <div class="row align-items-center mb-5">
+        <div class="col-lg-8">
+            <div class="d-flex align-items-center mb-2">
+                <div class="bg-ss-accent rounded-pill me-3" style="width: 5px; height: 32px;"></div>
+                <h1 class="display-6 fw-900 text-ss-main mb-0">Operational Intelligence</h1>
+            </div>
+            <p class="text-muted mb-0 ps-4 fs-5">Real-time visualization of institutional performance and asset health.</p>
+        </div>
+        <div class="col-lg-4 text-lg-end mt-4 mt-lg-0">
+            <div class="d-inline-flex align-items-center gap-3 glass-panel px-4 py-3 border-opacity-10">
+                <span class="pulse-dot"></span>
+                <span class="smallest fw-900 text-uppercase tracking-widest text-ss-primary">Live Institutional Feed</span>
+            </div>
+        </div>
+    </div>
+
+    <!-- Tier 1 Stats -->
+    <div class="row g-4 mb-5">
+        <div class="col-md-4">
+            <div class="db-stat-card">
+                <div class="d-flex justify-content-between align-items-start mb-4">
+                    <div>
+                        <span class="db-stat-label">Daily Revenue Velocity</span>
+                        <h2 class="db-stat-value text-ss-main">₹{{ "{:,.2f}".format(stats_1_day.total_sales) }}</h2>
+                    </div>
+                    <div class="db-stat-icon-container db-stat-icon-orders">
+                        <i class="bi bi-activity"></i>
+                    </div>
+                </div>
+                <div class="pt-4 border-top border-ss-main border-opacity-5 d-flex justify-content-between align-items-center">
+                    <span class="smallest fw-900 text-ss-success tracking-widest text-uppercase">₹{{ "{:,.2f}".format(stats_1_day.total_profit) }} YIELD</span>
+                    <span class="smallest fw-900 text-muted tracking-widest text-uppercase">{{ stats_1_day.transaction_count }} SIGNALS</span>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="db-stat-card">
+                <div class="d-flex justify-content-between align-items-start mb-4">
+                    <div>
+                        <span class="db-stat-label">Weekly Settlement Volume</span>
+                        <h2 class="db-stat-value text-ss-main">₹{{ "{:,.2f}".format(stats_7_days.total_sales) }}</h2>
+                    </div>
+                    <div class="db-stat-icon-container db-stat-icon-revenue">
+                        <i class="bi bi-graph-up-arrow"></i>
+                    </div>
+                </div>
+                <div class="pt-4 border-top border-ss-main border-opacity-5 d-flex justify-content-between align-items-center">
+                    <span class="smallest fw-900 text-ss-success tracking-widest text-uppercase">₹{{ "{:,.2f}".format(stats_7_days.total_profit) }} YIELD</span>
+                    <span class="smallest fw-900 text-muted tracking-widest text-uppercase">{{ stats_7_days.transaction_count }} SIGNALS</span>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="db-stat-card">
+                <div class="d-flex justify-content-between align-items-start mb-4">
+                    <div>
+                        <span class="db-stat-label">Monthly Gross Allocation</span>
+                        <h2 class="db-stat-value text-ss-main">₹{{ "{:,.2f}".format(stats_30_days.total_sales) }}</h2>
+                    </div>
+                    <div class="db-stat-icon-container db-stat-icon-profit">
+                        <i class="bi bi-bar-chart-fill"></i>
+                    </div>
+                </div>
+                <div class="pt-4 border-top border-ss-main border-opacity-5 d-flex justify-content-between align-items-center">
+                    <span class="smallest fw-900 text-ss-success tracking-widest text-uppercase">₹{{ "{:,.2f}".format(stats_30_days.total_profit) }} YIELD</span>
+                    <span class="smallest fw-900 text-muted tracking-widest text-uppercase">{{ stats_30_days.transaction_count }} SIGNALS</span>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Tier 1.5: Operational Pipeline -->
+    <div class="row g-4 mb-5">
+        <div class="col-md-6">
+            <div class="glass-panel p-4 d-flex align-items-center shadow-lg border-start border-4 border-ss-primary">
+                <div class="db-stat-icon-container bg-ss-primary bg-opacity-10 text-ss-primary me-4">
+                    <i class="bi bi-cart-check fs-3"></i>
+                </div>
+                <div>
+                    <span class="db-stat-label text-uppercase tracking-widest opacity-50">Total Active Orders</span>
+                    <h3 class="fw-900 text-ss-main mb-0">{{ total_orders }} <span class="fs-6 fw-600 text-muted">SIGNALS DETECTED</span></h3>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-6">
+            <div class="glass-panel p-4 d-flex align-items-center shadow-lg border-start border-4 border-ss-accent">
+                <div class="db-stat-icon-container bg-ss-accent bg-opacity-10 text-ss-accent me-4">
+                    <i class="bi bi-clock-history fs-3"></i>
+                </div>
+                <div>
+                    <span class="db-stat-label text-uppercase tracking-widest opacity-50">Pending Action Items</span>
+                    <h3 class="fw-900 text-ss-accent mb-0">{{ pending_orders }} <span class="fs-6 fw-600 text-muted">AWAITING CLEARANCE</span></h3>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Tier 2 Analytics -->
+    <div class="row g-4 mb-5">
+        <div class="col-lg-8">
+            <div class="db-chart-panel h-100 shadow-2xl">
+                <div class="d-flex justify-content-between align-items-center mb-5">
+                    <h5 class="fw-900 text-ss-main mb-0 text-uppercase tracking-wider">Acquisition & Profit Analytics</h5>
+                    <span class="smallest fw-900 text-ss-primary text-uppercase tracking-widest bg-ss-primary bg-opacity-10 px-3 py-1 rounded-pill">30D PERFORMANCE</span>
+                </div>
+                <div style="height: 400px;">
+                    <canvas id="salesChart"></canvas>
+                </div>
+            </div>
+        </div>
+        <div class="col-lg-4">
+            <div class="db-chart-panel h-100 shadow-2xl">
+                <h5 class="fw-900 text-ss-main mb-5 text-uppercase tracking-wider text-center">Category Distribution</h5>
+                <div style="height: 400px;">
+                    <canvas id="stockCategoryChart"></canvas>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Inventory Watchlist -->
+    <div class="row align-items-center mb-4 mt-5" id="low-stock-section">
+        <div class="col">
+            <h4 class="fw-900 text-ss-main">
+                <i class="bi bi-shield-exclamation text-ss-accent me-3"></i>Critical Asset Watchlist
+            </h4>
+        </div>
+    </div>
+
+    <div class="order-list-panel shadow-2xl mb-5">
+        <div class="table-responsive">
+            <table class="table table-hover align-middle mb-0 order-table">
+                <thead>
+                    <tr>
+                        <th>Asset Identifier</th>
+                        <th class="text-center">Current Allocation</th>
+                        <th class="text-end">Command</th>
+                    </tr>
+                </thead>
+                <tbody class="border-0">
+                    {% if stock_stats.low_stock_products %}
+                        {% for product in stock_stats.low_stock_products %}
+                        <tr class="transition-all">
+                            <td>
+                                <div class="fw-900 text-ss-main text-uppercase tracking-wider fs-5 mb-1">{{ product.name }}</div>
+                                <span class="smallest fw-900 text-muted opacity-50 text-uppercase tracking-widest">{{ product.category_rel.name if product.category_rel else 'UNCLASSIFIED' }}</span>
+                            </td>
+                            <td class="text-center">
+                                <div class="fs-3 fw-900 {{ 'text-danger' if product.stock == 0 else 'text-ss-accent' }} mb-0">
+                                    {{ product.stock }}
+                                </div>
+                                <span class="smallest fw-900 text-muted text-uppercase tracking-widest">UNITS REMAINING</span>
+                            </td>
+                            <td class="text-end">
+                                <a href="{{ url_for('admin.edit_product', product_id=product.id) }}"
+                                    class="process-order-btn text-decoration-none d-inline-block">
+                                    <i class="bi bi-plus-circle me-2"></i>RESTOCK ASSET
+                                </a>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    {% else %}
+                        <tr>
+                            <td colspan="3" class="text-center py-5">
+                                <i class="bi bi-shield-check-fill display-1 text-ss-success opacity-10 d-block mb-4"></i>
+                                <h3 class="fw-900 text-ss-main">Institutional Inventory Optimal</h3>
+                                <p class="text-muted">All assets are currently maintained within safety parameters.</p>
+                            </td>
+                        </tr>
+                    {% endif %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{{ url_for('static', filename='css/admin/dashboard.css') }}">
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    document.addEventListener('DOMContentLoaded', function () {
+        const isLight = document.documentElement.getAttribute('data-theme') === 'light';
+        const labelColor = isLight ? '#475569' : 'rgba(255,255,255,0.4)';
+        const gridColor = isLight ? 'rgba(0,0,0,0.05)' : 'rgba(255,255,255,0.03)';
+
+        Chart.defaults.font.family = "'Outfit', sans-serif";
+        Chart.defaults.color = labelColor;
+        
+        const salesCtx = document.getElementById('salesChart').getContext('2d');
+        const salesLabels = {{ chart_data.labels | tojson if chart_data else [] }};
+        const salesData = {{ chart_data.sales | tojson if chart_data else [] }};
+        const profitData = {{ chart_data.profit | tojson if chart_data else [] }};
+
+        const gradient = salesCtx.createLinearGradient(0, 0, 0, 400);
+        gradient.addColorStop(0, 'rgba(212, 175, 55, 0.15)');
+        gradient.addColorStop(1, 'rgba(212, 175, 55, 0)');
+
+        new Chart(salesCtx, {
+            type: 'line',
+            data: {
+                labels: salesLabels,
+                datasets: [
+                    {
+                        label: 'Gross Allocation',
+                        data: salesData,
+                        borderColor: '#d4af37',
+                        backgroundColor: gradient,
+                        fill: true,
+                        tension: 0.4,
+                        borderWidth: 4,
+                        pointRadius: 0,
+                        pointHoverRadius: 8,
+                        pointHoverBackgroundColor: '#d4af37',
+                        pointHoverBorderColor: '#fff',
+                        pointHoverBorderWidth: 4
+                    },
+                    {
+                        label: 'Net Yield',
+                        data: profitData,
+                        borderColor: '#10b981',
+                        backgroundColor: 'transparent',
+                        fill: false,
+                        tension: 0.4,
+                        borderWidth: 3,
+                        borderDash: [8, 8],
+                        pointRadius: 0
+                    }
+                ]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                interaction: { intersect: false, mode: 'index' },
+                plugins: {
+                    legend: { display: false },
+                    tooltip: {
+                        backgroundColor: isLight ? '#ffffff' : 'rgba(20, 26, 48, 0.98)',
+                        titleColor: isLight ? '#0f172a' : '#ffffff',
+                        bodyColor: isLight ? '#0f172a' : '#ffffff',
+                        titleFont: { size: 14, weight: '900' },
+                        padding: 20,
+                        cornerRadius: 16,
+                        displayColors: true,
+                        boxPadding: 8,
+                        borderColor: isLight ? '#e2e8f0' : 'rgba(212,175,55,0.2)',
+                        borderWidth: 1
+                    }
+                },
+                scales: {
+                    y: { 
+                        beginAtZero: true, 
+                        grid: { color: gridColor, drawBorder: false },
+                        ticks: { color: labelColor, font: { weight: '800' }, callback: v => '₹' + v.toLocaleString() }
+                    },
+                    x: { grid: { display: false }, ticks: { color: labelColor, font: { weight: '800' } } }
+                }
+            }
+        });
+
+        const stockLabels = {{ stock_stats.category_labels | tojson if stock_stats else [] }};
+        const stockValues = {{ stock_stats.category_values | tojson if stock_stats else [] }};
+
+        const catCtx = document.getElementById('stockCategoryChart').getContext('2d');
+        new Chart(catCtx, {
+            type: 'doughnut',
+            data: {
+                labels: stockLabels,
+                datasets: [{
+                    data: stockValues,
+                    backgroundColor: ['#d4af37', '#10b981', '#3b82f6', '#8b5cf6', '#f43f5e'],
+                    borderWidth: 0,
+                    hoverOffset: 20
+                }]
+            },
+            options: {
+                maintainAspectRatio: false,
+                cutout: '80%',
+                plugins: {
+                    legend: { 
+                        position: 'bottom', 
+                        labels: { 
+                            color: labelColor,
+                            boxWidth: 12, 
+                            usePointStyle: true, 
+                            padding: 25, 
+                            font: { weight: '900', size: 11 } 
+                        } 
+                    },
+                    tooltip: {
+                        backgroundColor: isLight ? '#ffffff' : 'rgba(20, 26, 48, 0.98)',
+                        titleColor: isLight ? '#0f172a' : '#ffffff',
+                        bodyColor: isLight ? '#0f172a' : '#ffffff',
+                        padding: 15,
+                        cornerRadius: 12,
+                        borderColor: isLight ? '#e2e8f0' : 'rgba(212,175,55,0.2)',
+                        borderWidth: 1,
+                        callbacks: { label: c => ' ₹' + c.raw.toLocaleString() }
+                    }
+                }
+            }
+        });
+    });
+</script>
+{% endblock %}

@@ -1,0 +1,84 @@
+{% block content %}
+<style>
+    .auth-bg {
+        background: linear-gradient(135deg, var(--ss-primary) 0%, #0f172a 100%);
+        min-height: 100vh;
+        position: relative;
+        overflow: hidden;
+    }
+    .floating-blob {
+        position: absolute;
+        width: 400px;
+        height: 400px;
+        background: var(--ss-primary);
+        filter: blur(100px);
+        opacity: 0.1;
+        border-radius: 50%;
+        z-index: 1;
+        animation: move 20s infinite alternate;
+    }
+    @keyframes move {
+        from { transform: translate(-10%, -10%); }
+        to { transform: translate(10%, 10%); }
+    }
+</style>
+
+<div class="auth-bg py-5">
+    <div class="floating-blob" style="top: 10%; left:-10%;"></div>
+    <div class="floating-blob" style="bottom: 10%; right: -10%; background: var(--ss-secondary);"></div>
+
+    <div class="container position-relative z-index-10">
+        <div class="row justify-content-center">
+            <div class="col-xl-5 col-lg-6">
+                <div class="glass-panel border-0 shadow-2xl p-0 overflow-hidden rounded-5 border-top border-4 border-ss-primary">
+                    <!-- Header -->
+                    <div class="bg-ss-primary bg-opacity-10 p-5 text-center">
+                        <div class="bg-ss-primary bg-opacity-20 d-inline-block p-4 rounded-circle mb-4">
+                            <i class="bi bi-shield-lock display-4 text-ss-primary"></i>
+                        </div>
+                        <h2 class="fw-900 text-ss-primary text-uppercase tracking-widest h4 mb-2">Setup Secure Login</h2>
+                        <p class="smallest fw-bold text-ss-primary text-uppercase tracking-widest opacity-75 mb-0">Protect your account with Two-Factor Authentication</p>
+                    </div>
+
+                    <div class="p-5 text-center">
+                        <!-- Step 1: QR Code -->
+                        <div class="mb-5">
+                            <p class="smallest fw-900 text-ss-primary text-uppercase tracking-widest mb-4">Step 01: Scan QR Code</p>
+                            <div class="d-inline-block p-3 glass-panel border-ss-primary border-opacity-20 bg-white shadow-sm mb-4 rounded-4 transition-all hover-scale">
+                                <img src="data:image/png;base64,{{ qr_b64 }}" alt="QR Code" class="img-fluid" style="width: 200px;">
+                            </div>
+                            <p class="smallest fw-bold text-muted text-uppercase tracking-widest mb-3 opacity-50">Scan with Authenticator App</p>
+                            <div class="p-3 bg-light rounded-4 border border-ss-primary border-opacity-10 mb-4 mx-auto shadow-inner" style="max-width: 300px;">
+                                <code class="fw-900 text-ss-primary tracking-widest">{{ secret }}</code>
+                                <div class="smallest text-muted mt-1 opacity-50 fw-bold">Manual Setup Key</div>
+                            </div>
+                        </div>
+
+                        <!-- Step 2: Token Verification -->
+                        <div class="border-top border-ss-primary border-opacity-10 pt-5">
+                            <p class="smallest fw-900 text-ss-primary text-uppercase tracking-widest mb-4">Step 02: Enter Verification Code</p>
+                            <form method="POST">
+                                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                                <div class="mb-5">
+                                    <input type="text" class="form-control bg-light border-0 py-3 text-center fs-3 fw-900 tracking-widest rounded-4 shadow-none" 
+                                        id="token" name="token" placeholder="000 000" maxlength="6" required autofocus 
+                                        style="background: rgba(15, 23, 42, 0.05) !important;">
+                                </div>
+                                <button type="submit" class="btn btn-ss-primary w-100 py-3 rounded-pill fw-900 tracking-widest shadow-xl sparkle-hover">
+                                    <i class="bi bi-shield-check me-2 fs-5"></i> ENABLE SECURE LOGIN
+                                </button>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="text-center mt-4">
+                    <a href="{{ url_for('admin.dashboard') }}" class="smallest fw-900 text-white opacity-25 text-decoration-none text-uppercase tracking-widest hover-opacity-100 transition-all">
+                        <i class="bi bi-arrow-left me-2"></i> Back to Dashboard
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

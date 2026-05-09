@@ -1,0 +1,199 @@
+{% extends 'base.html' %}
+
+{% block title %}Secure Settlement - Jay Goga Kirana Store{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{{ url_for('static', filename='css/customer/checkout.css') }}">
+{% endblock %}
+
+{% block content %}
+<div class="container my-5 checkout-container">
+    <!-- Header -->
+    <div class="row align-items-center mb-5">
+        <div class="col-md-8">
+            <div class="d-flex align-items-center mb-2">
+                <div class="bg-ss-accent rounded-pill me-3" style="width: 5px; height: 32px;"></div>
+                <h1 class="display-5 fw-900 text-ss-main mb-0">Secure Settlement</h1>
+            </div>
+            <p class="text-muted mb-0 ps-4 fs-5">Finalize your artisanal acquisition with institutional-grade security.</p>
+        </div>
+    </div>
+
+    <div class="row g-5">
+        <div class="col-lg-8">
+            <!-- Shipping Information -->
+            <div class="ss-checkout-panel shadow-2xl mb-5">
+                <h4 class="fw-900 text-ss-main mb-5 d-flex align-items-center">
+                    <i class="bi bi-geo-alt-fill text-ss-primary me-3"></i>Logistical Directives
+                </h4>
+
+                <form method="POST" action="{{ url_for('customer.checkout') }}" id="checkoutForm">
+                    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+
+                    <div class="row g-4 mb-5">
+                        <div class="col-md-6">
+                            <label class="smallest fw-900 text-muted text-uppercase tracking-widest mb-2 d-block">Authorized Signatory</label>
+                            <input type="text" class="form-control bg-white bg-opacity-5 border-white border-opacity-10 py-3 rounded-3 fw-800 text-ss-main"
+                                value="{{ user.full_name or user.username }}" readonly>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="smallest fw-900 text-muted text-uppercase tracking-widest mb-2 d-block">Digital Identity</label>
+                            <input type="email" class="form-control bg-white bg-opacity-5 border-white border-opacity-10 py-3 rounded-3 fw-800 text-ss-main"
+                                value="{{ user.email }}" readonly>
+                        </div>
+                    </div>
+
+                    <div class="mb-5">
+                        <label for="shipping_address"
+                            class="smallest fw-900 text-ss-primary text-uppercase tracking-widest mb-3 d-block">Logistical Destination*</label>
+                        <textarea class="form-control p-4 fs-5" id="shipping_address"
+                            name="shipping_address" rows="3" required minlength="15"
+                            placeholder="Enter your precise topographical data for delivery">{{ user.address or '' }}</textarea>
+                        <div id="address-help" class="smallest fw-800 text-muted mt-3 tracking-wide">
+                            <i class="bi bi-shield-check-fill me-2 text-ss-primary"></i>Local delivery restricted to the Pali & Unjha administrative zones.
+                        </div>
+                    </div>
+
+                    <!-- Payment Method Selection -->
+                    <div class="mt-5 pt-4 border-top border-white border-opacity-5">
+                        <h4 class="fw-900 text-ss-main mb-5 d-flex align-items-center">
+                            <i class="bi bi-wallet2 text-ss-primary me-3"></i>Settlement Protocol
+                        </h4>
+                        <div class="row g-4">
+                            <div class="col-md-3">
+                                <div class="payment-card-option p-4 text-center active"
+                                    onclick="selectPayment('COD')">
+                                    <input class="form-check-input d-none" type="radio" name="payment_method"
+                                        id="pay_cod" value="COD" checked>
+                                    <div class="pay-icon-bg mb-3 mx-auto"><i class="bi bi-currency-exchange"></i></div>
+                                    <div class="fw-900 smallest text-uppercase tracking-widest">Liquid Cash</div>
+                                </div>
+                            </div>
+                            <div class="col-md-3">
+                                <div class="payment-card-option p-4 text-center"
+                                    onclick="selectPayment('UPI')">
+                                    <input class="form-check-input d-none" type="radio" name="payment_method"
+                                        id="pay_upi" value="UPI">
+                                    <div class="pay-icon-bg mb-3 mx-auto"><i class="bi bi-qr-code-scan"></i></div>
+                                    <div class="fw-900 smallest text-uppercase tracking-widest">Instant UPI</div>
+                                </div>
+                            </div>
+                            <div class="col-md-3">
+                                <div class="payment-card-option p-4 text-center"
+                                    onclick="selectPayment('CARD')">
+                                    <input class="form-check-input d-none" type="radio" name="payment_method"
+                                        id="pay_card" value="CARD">
+                                    <div class="pay-icon-bg mb-3 mx-auto"><i class="bi bi-credit-card-2-front"></i></div>
+                                    <div class="fw-900 smallest text-uppercase tracking-widest">Credit Card</div>
+                                </div>
+                            </div>
+                            <div class="col-md-3">
+                                <div class="payment-card-option p-4 text-center"
+                                    onclick="selectPayment('UDHAR')">
+                                    <input class="form-check-input d-none" type="radio" name="payment_method"
+                                        id="pay_udhar" value="UDHAR">
+                                    <div class="pay-icon-bg mb-3 mx-auto"><i class="bi bi-journal-text"></i></div>
+                                    <div class="fw-900 smallest text-uppercase tracking-widest">Store Credit</div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </form>
+            </div>
+        </div>
+
+        <!-- Order Sidebar -->
+        <div class="col-lg-4">
+            <div class="checkout-sidebar shadow-2xl">
+                <h3 class="fw-900 text-ss-main mb-5">Acquisition Summary</h3>
+
+                <div class="checkout-items-summary mb-5" style="max-height: 250px; overflow-y: auto;">
+                    {% for item in cart_items %}
+                    <div class="checkout-item-mini d-flex justify-content-between align-items-center">
+                        <div class="d-flex align-items-center">
+                            <span class="smallest fw-900 text-ss-primary me-2">{{ item.quantity }}x</span>
+                            <span class="text-ss-main small fw-600 text-truncate" style="max-width: 180px;">{{ item.product.name }}</span>
+                        </div>
+                        <span class="fw-900 text-ss-main small">₹{{ "{:,.0f}".format(item.subtotal) }}</span>
+                    </div>
+                    {% endfor %}
+                </div>
+
+                <div class="space-y-3 mb-5">
+                    <div class="d-flex justify-content-between">
+                        <span class="text-muted fw-500">Gross Valuation</span>
+                        <span class="fw-800 text-ss-main">₹{{ "{:,.2f}".format(total) }}</span>
+                    </div>
+                    <div class="d-flex justify-content-between">
+                        <span class="text-muted fw-500">Logistics Allocation</span>
+                        <span class="text-ss-success fw-900">COMPLIMENTARY</span>
+                    </div>
+                </div>
+
+                <div class="pt-4 border-top border-white border-opacity-5 mb-5">
+                    <div class="d-flex justify-content-between align-items-end">
+                        <div>
+                            <small class="smallest fw-900 text-uppercase tracking-widest text-muted d-block mb-1">TOTAL EXPOSURE</small>
+                            <h1 class="display-4 fw-900 text-ss-main mb-0">₹{{ "{:,.0f}".format(total) }}</h1>
+                        </div>
+                        <div class="bg-ss-accent-subtle p-2 rounded-circle mb-2">
+                            <i class="bi bi-shield-lock-fill text-ss-accent fs-3"></i>
+                        </div>
+                    </div>
+                </div>
+
+                <button type="submit" form="checkoutForm"
+                    class="btn btn-ss-primary btn-lg w-100 py-4 shadow-xl fs-5 mb-4">
+                    AUTHORIZE ACQUISITION <i class="bi bi-chevron-right ms-2"></i>
+                </button>
+
+                <div class="text-center">
+                    <a href="{{ url_for('customer.view_cart') }}"
+                        class="smallest fw-900 text-muted text-uppercase tracking-widest text-decoration-none">
+                        <i class="bi bi-arrow-left me-2"></i> Alter Selection
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    function selectPayment(method) {
+        document.querySelectorAll('.payment-card-option').forEach(card => card.classList.remove('active'));
+        const radio = document.getElementById('pay_' + method.toLowerCase());
+        if (radio) {
+            radio.checked = true;
+            radio.closest('.payment-card-option').classList.add('active');
+        }
+    }
+    
+    // Address Validation UX
+    const addressInput = document.getElementById('shipping_address');
+    const addressHelp = document.getElementById('address-help');
+    if (addressInput) {
+        addressInput.addEventListener('input', function() {
+            const len = this.value.trim().length;
+            if (len >= 15) {
+                this.classList.remove('border-danger');
+                this.classList.add('border-ss-primary');
+                if (addressHelp) {
+                    addressHelp.classList.remove('text-danger');
+                    addressHelp.classList.add('text-ss-primary');
+                    addressHelp.innerHTML = '<i class="bi bi-check-circle-fill me-2"></i>Topographical data validated for regional logistics.';
+                }
+            } else if (len > 0) {
+                this.classList.add('border-danger');
+                if (addressHelp) {
+                    addressHelp.classList.remove('text-ss-primary');
+                    addressHelp.classList.add('text-danger');
+                    addressHelp.innerHTML = `<i class="bi bi-exclamation-circle me-2"></i>Incomplete data. Append ${15 - len} more characters for validation.`;
+                }
+            }
+        });
+        if(addressInput.value.trim().length > 0) addressInput.dispatchEvent(new Event('input'));
+    }
+</script>
+{% endblock %}

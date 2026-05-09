@@ -1,0 +1,126 @@
+{% extends 'admin/admin_base.html' %}
+
+{% block title %}Client Portfolio - Jay Goga Admin{% endblock %}
+
+{% block content %}
+<div class="container-fluid px-4 py-4 admin-order-container">
+    <div class="row align-items-center mb-5">
+        <div class="col-md-7">
+            <div class="d-flex align-items-center mb-2">
+                <div class="bg-ss-accent rounded-pill me-3" style="width: 5px; height: 32px;"></div>
+                <h1 class="display-6 fw-900 text-ss-main mb-0">Client Portfolio</h1>
+            </div>
+            <p class="text-muted mb-0 ps-4 fs-5">Comprehensive management of customer identities and credit exposure.</p>
+        </div>
+    </div>
+
+    <div class="admin-table-container">
+        <div class="table-responsive">
+            <table class="table table-hover align-middle admin-table">
+                <thead>
+                    <tr>
+                        <th>Client Identity</th>
+                        <th>Communication Vectors</th>
+                        <th>Registration Date</th>
+                        <th class="text-end">Credit Exposure</th>
+                        <th class="text-end">Operation</th>
+                    </tr>
+                </thead>
+                <tbody class="border-0">
+                    {% for customer in customers %}
+                    <tr class="transition-all">
+                        <td>
+                            <div class="d-flex align-items-center">
+                                <div class="bg-ss-primary bg-opacity-10 text-ss-primary fw-900 me-3 shadow-inner d-flex justify-content-center align-items-center rounded-circle" style="width:50px; height:50px; border: 1.5px solid var(--border-subtle) !important;">
+                                    {{ (customer.full_name or customer.username)[0]|upper }}
+                                </div>
+                                <div>
+                                    <h5 class="mb-0 fw-900 text-ss-main text-uppercase tracking-wider">{{ customer.full_name or customer.username }}</h5>
+                                    <span class="smallest text-muted text-uppercase fw-900 tracking-widest opacity-50">UID: #{{ customer.id }}</span>
+                                </div>
+                            </div>
+                        </td>
+                        <td>
+                            <div class="smallest space-y-1">
+                                {% if customer.phone %}
+                                <div class="text-ss-main fw-800"><i class="bi bi-telephone-fill text-ss-primary me-2 opacity-50"></i>{{ customer.phone }}</div>
+                                {% endif %}
+                                {% if customer.email %}
+                                <div class="text-muted fw-700"><i class="bi bi-envelope-at-fill me-2 opacity-50"></i>{{ customer.email }}</div>
+                                {% endif %}
+                            </div>
+                        </td>
+                        <td>
+                            <div class="smallest fw-900 text-ss-primary text-uppercase tracking-widest">{{ customer.created_at.strftime('%b %d, %Y') }}</div>
+                        </td>
+                        <td class="text-end">
+                            {% if customer.credit > 0 %}
+                            <div class="text-danger fw-900 fs-4 mb-0">₹{{ '{:,.2f}'.format(customer.credit) }}</div>
+                            <span class="badge bg-danger bg-opacity-10 text-danger smallest fw-900 tracking-widest px-2 py-1">OUTSTANDING</span>
+                            {% else %}
+                            <span class="badge bg-ss-success bg-opacity-10 text-ss-success smallest fw-900 tracking-widest px-3 py-2"><i class="bi bi-shield-check me-1"></i>LIQUID</span>
+                            {% endif %}
+                        </td>
+                        <td class="text-end">
+                            {% if customer.credit > 0 %}
+                            <button type="button" class="process-order-btn py-2 px-4" 
+                                data-bs-toggle="modal" data-bs-target="#clearCreditModal{{ customer.id }}">
+                                <i class="bi bi-wallet2 me-2"></i>SETTLE
+                            </button>
+                            
+                            <!-- Settle Credit Modal -->
+                            <div class="modal fade" id="clearCreditModal{{ customer.id }}" tabindex="-1">
+                                <div class="modal-dialog modal-dialog-centered">
+                                    <div class="modal-content border-0 shadow-2xl rounded-5 overflow-hidden bg-ss-primary bg-opacity-95 backdrop-blur">
+                                        <div class="modal-header border-0 bg-ss-primary text-white p-4">
+                                            <h5 class="modal-title fw-900 text-uppercase tracking-widest">Settle Exposure</h5>
+                                            <button type="button" class="btn-close btn-close-white shadow-none" data-bs-dismiss="modal"></button>
+                                        </div>
+                                        <div class="modal-body p-5">
+                                            <p class="text-muted mb-5 fw-600">Authorize credit settlement for <strong>{{ customer.full_name or customer.username }}</strong>.</p>
+                                            
+                                            <div class="glass-panel p-4 mb-5 border-ss-accent bg-ss-accent bg-opacity-5 d-flex justify-content-between align-items-center">
+                                                <span class="smallest fw-900 text-ss-accent text-uppercase tracking-widest">Current Debt</span>
+                                                <span class="h2 fw-900 text-ss-accent mb-0">₹{{ '{:,.2f}'.format(customer.credit) }}</span>
+                                            </div>
+                                            
+                                            <form action="{{ url_for('admin.clear_credit', user_id=customer.id) }}" method="POST">
+                                                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
+                                                <div class="mb-5">
+                                                    <label class="smallest fw-900 text-ss-primary text-uppercase tracking-widest mb-3 d-block text-start">Settlement Quantum (₹)</label>
+                                                    <input type="number" step="0.01" min="0.01" max="{{ customer.credit }}" 
+                                                        class="form-control bg-white bg-opacity-5 border-white border-opacity-10 py-4 fs-2 fw-900 text-ss-main text-center shadow-none" 
+                                                        name="amount_paid" value="{{ customer.credit }}" required>
+                                                </div>
+                                                <button type="submit" class="btn btn-ss-primary btn-lg w-100 py-4 shadow-xl fs-5">
+                                                    <i class="bi bi-check-circle-fill me-3"></i>AUTHORIZE SETTLEMENT
+                                                </button>
+                                            </form>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            {% else %}
+                            <span class="smallest fw-900 text-muted opacity-20 tracking-widest">NO DUE EXPOSURE</span>
+                            {% endif %}
+                        </td>
+                    </tr>
+                    {% else %}
+                    <tr>
+                        <td colspan="5" class="text-center py-5">
+                            <i class="bi bi-people display-1 text-muted opacity-10 d-block mb-4"></i>
+                            <h3 class="fw-900 text-ss-main">No Client Data</h3>
+                            <p class="text-muted">Registered acquisitions will generate client profiles automatically.</p>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{{ url_for('static', filename='css/admin/orders.css') }}">
+{% endblock %}

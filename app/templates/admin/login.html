@@ -1,0 +1,92 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Institutional Access - Jay Goga Admin</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@100..900&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/colors.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/customer/auth.css') }}">
+    <style>
+        body { font-family: 'Outfit', sans-serif; }
+        .admin-glow { border-color: var(--accent) !important; box-shadow: var(--ss-shadow-gold) !important; }
+    </style>
+</head>
+<body>
+    <div class="ss-auth-wrapper">
+        <div class="container">
+            <div class="row justify-content-center">
+                <div class="col-lg-5 col-md-8">
+                    <div class="text-center mb-5 animate-fade-in">
+                        <div class="auth-logo-text mb-2">
+                            SYSTEM <span>ADMIN</span>
+                        </div>
+                        <div class="smallest fw-900 text-ss-primary text-uppercase tracking-widest opacity-50">Centralized Store Operations</div>
+                    </div>
+
+                    <div class="auth-card admin-glow">
+                        <div class="text-center mb-5">
+                            <div class="ss-auth-icon mx-auto bg-dark border border-ss-main border-opacity-10">
+                                <i class="bi bi-gear-wide-connected text-ss-accent"></i>
+                            </div>
+                            <h2 class="fw-900 text-ss-main mb-2">Internal Access</h2>
+                            <p class="smallest fw-900 text-muted text-uppercase tracking-widest opacity-75">Institutional Gateway Only</p>
+                        </div>
+
+                        {% with messages = get_flashed_messages(with_categories=true) %}
+                            {% if messages %}
+                                {% for category, message in messages %}
+                                    <div class="alert alert-{{ category }} bg-opacity-10 border-0 text-{{ category }} smallest fw-900 rounded-4 mb-4">
+                                        <i class="bi bi-shield-exclamation me-2"></i> {{ message }}
+                                    </div>
+                                {% endfor %}
+                            {% endif %}
+                        {% endwith %}
+
+                        <form method="POST" action="{{ url_for('auth.login') }}">
+                            {{ form.hidden_tag() }}
+                            <div class="mb-4">
+                                <label class="form-label">Admin Credential</label>
+                                <div class="position-relative">
+                                    <span class="position-absolute top-50 start-0 translate-middle-y ps-4 text-ss-primary opacity-30"><i class="bi bi-person-badge"></i></span>
+                                    {{ form.email(class="form-control ps-5", placeholder="Enter Username", autofocus=True) }}
+                                </div>
+                            </div>
+
+                            <div class="mb-5">
+                                <label class="form-label">Clearance Key</label>
+                                <div class="position-relative">
+                                    <span class="position-absolute top-50 start-0 translate-middle-y ps-4 text-ss-primary opacity-30"><i class="bi bi-shield-lock"></i></span>
+                                    {{ form.password(class="form-control ps-5", placeholder="••••••••") }}
+                                </div>
+                            </div>
+
+                            <button type="submit" class="btn-auth mb-4">
+                                AUTHORIZE ENTRY <i class="bi bi-lock-fill ms-2"></i>
+                            </button>
+                        </form>
+                        
+                        <div class="text-center pt-4 border-top border-ss-main border-opacity-5">
+                            <a href="{{ url_for('auth.customer_login') }}" class="smallest fw-900 text-ss-primary text-uppercase tracking-widest text-decoration-none">
+                                Switch to Client Terminal
+                            </a>
+                        </div>
+                    </div>
+                    
+                    <div class="text-center mt-5">
+                        <a href="/" class="smallest fw-900 text-muted text-uppercase tracking-widest text-decoration-none opacity-50 hover-opacity-100 transition-all">
+                            <i class="bi bi-arrow-left me-2"></i> Back to Marketplace
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>

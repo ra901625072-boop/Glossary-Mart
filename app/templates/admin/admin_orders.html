@@ -1,0 +1,139 @@
+{% extends 'admin/admin_base.html' %}
+
+{% block title %}Operational Directives - Jay Goga Admin{% endblock %}
+
+{% block content %}
+<div class="container-fluid px-4 py-4 admin-order-container">
+    <div class="row align-items-center mb-5">
+        <div class="col-md-7">
+            <div class="d-flex align-items-center mb-2">
+                <div class="bg-ss-accent rounded-pill me-3" style="width: 5px; height: 32px;"></div>
+                <h1 class="display-6 fw-900 text-ss-main mb-0">Operational Directives</h1>
+            </div>
+            <p class="text-muted mb-0 ps-4 fs-5">Administrative management of verified customer acquisitions.</p>
+        </div>
+    </div>
+
+    <!-- Directive Statistics -->
+    <div class="row g-4 mb-5">
+        <div class="col-md-4">
+            <div class="order-stat-card">
+                <div class="d-flex align-items-center">
+                    <div class="bg-ss-primary bg-opacity-10 text-ss-primary p-3 rounded-4 me-4 shadow-inner">
+                        <i class="bi bi-box-seam fs-2"></i>
+                    </div>
+                    <div>
+                        <span class="smallest fw-900 text-muted text-uppercase tracking-widest d-block mb-1">Total Directive Load</span>
+                        <h2 class="fw-900 text-ss-main mb-0">{{ total_orders }} ORDERS</h2>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="order-stat-card">
+                <div class="d-flex align-items-center">
+                    <div class="bg-ss-accent bg-opacity-10 text-ss-accent p-3 rounded-4 me-4 shadow-inner">
+                        <i class="bi bi-clock-history fs-2"></i>
+                    </div>
+                    <div>
+                        <span class="smallest fw-900 text-muted text-uppercase tracking-widest d-block mb-1">Awaiting Processing</span>
+                        <h2 class="fw-900 text-ss-accent mb-0">{{ pending_orders }} PENDING</h2>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="order-stat-card">
+                <div class="d-flex align-items-center">
+                    <div class="bg-ss-success bg-opacity-10 text-ss-success p-3 rounded-4 me-4 shadow-inner">
+                        <i class="bi bi-currency-rupee fs-2"></i>
+                    </div>
+                    <div>
+                        <span class="smallest fw-900 text-muted text-uppercase tracking-widest d-block mb-1">Gross Settlement Value</span>
+                        <h2 class="fw-900 text-ss-success mb-0">₹{{ "{:,.0f}".format(total_revenue) }}</h2>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Active Orders List -->
+    <div class="admin-table-container">
+        <div class="table-responsive">
+            <table class="table table-hover align-middle admin-table">
+                <thead>
+                    <tr>
+                        <th>Reference ID</th>
+                        <th>Subject Profile</th>
+                        <th>Log Date</th>
+                        <th class="text-center">Complexity</th>
+                        <th>Net Valuation</th>
+                        <th>Current Phase</th>
+                        <th class="text-end">Command</th>
+                    </tr>
+                </thead>
+                <tbody class="border-0">
+                    {% if orders %}
+                    {% for order in orders %}
+                    <tr class="transition-all">
+                        <td>
+                            <span class="fw-900 text-ss-primary tracking-widest smallest">#ORD-{{ order.id }}</span>
+                        </td>
+                        <td>
+                            <div class="fw-900 text-ss-main text-uppercase tracking-wider">{{ order.user.full_name or order.user.username }}</div>
+                            <div class="smallest fw-bold text-muted opacity-50">{{ order.user.email }}</div>
+                        </td>
+                        <td>
+                            <div class="smallest fw-900 text-ss-main text-uppercase tracking-widest">{{ order.created_at.strftime('%b %d, %Y') }}</div>
+                            <div class="smallest text-muted opacity-50">{{ order.created_at.strftime('%I:%M %p') }}</div>
+                        </td>
+                        <td class="text-center">
+                            <span class="badge bg-ss-primary bg-opacity-10 text-ss-primary rounded-pill smallest fw-900 tracking-widest px-3 py-2">
+                                {{ order.order_items|length }} ASSETS
+                            </span>
+                        </td>
+                        <td>
+                            <span class="fw-900 text-ss-main">₹{{ "{:,.0f}".format(order.total_amount) }}</span>
+                        </td>
+                        <td>
+                            <div class="d-flex flex-column gap-2">
+                                {% set pay_color = 'ss-success' if order.payment_status == 'Paid' else 'warning' %}
+                                <span class="badge bg-{{ pay_color }} bg-opacity-10 text-{{ pay_color }} rounded-pill smallest fw-900 tracking-widest px-2 py-1">
+                                    {{ order.payment_status|upper }}
+                                </span>
+                                {% set status_color = 'ss-success' if order.order_status == 'Delivered' 
+                                    else 'ss-primary' if order.order_status == 'Processing'
+                                    else 'ss-accent' if order.order_status == 'Pending'
+                                    else 'muted' %}
+                                <span class="badge bg-{{ status_color }} bg-opacity-10 text-{{ status_color }} rounded-pill smallest fw-900 tracking-widest px-2 py-1">
+                                    {{ order.order_status|upper }}
+                                </span>
+                            </div>
+                        </td>
+                        <td class="text-end">
+                            <a href="{{ url_for('admin.admin_order_detail', order_id=order.id) }}"
+                                class="process-order-btn text-decoration-none d-inline-block">
+                                <i class="bi bi-gear-fill me-2"></i>PROCESS
+                            </a>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                    {% else %}
+                    <tr>
+                        <td colspan="7" class="text-center py-5">
+                            <i class="bi bi-inbox display-1 text-muted opacity-10 d-block mb-4"></i>
+                            <h3 class="fw-900 text-ss-main">No Directives Logged</h3>
+                            <p class="text-muted">Awaiting customer acquisition signals.</p>
+                        </td>
+                    </tr>
+                    {% endif %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{{ url_for('static', filename='css/admin/orders.css') }}">
+{% endblock %}

@@ -1,0 +1,186 @@
+{% extends 'admin/admin_base.html' %}
+
+{% block title %}Directive Analysis #{{ order.id }} - Jay Goga Admin{% endblock %}
+
+{% block content %}
+<div class="container-fluid px-4 py-4 admin-order-container">
+    <!-- Header -->
+    <div class="row align-items-center mb-5">
+        <div class="col-md-7">
+            <div class="d-flex align-items-center mb-2">
+                <div class="bg-ss-accent rounded-pill me-3" style="width: 5px; height: 32px;"></div>
+                <h1 class="display-6 fw-900 text-ss-main mb-0">Directive Analysis</h1>
+            </div>
+            <p class="text-muted mb-0 ps-4 fs-5">Detailed fulfillment metrics for Reference #ORD-{{ order.id }}.</p>
+        </div>
+        <div class="col-md-5 text-md-end mt-4 mt-md-0">
+            <a href="{{ url_for('admin.admin_orders') }}" class="btn btn-ss-low px-4 py-3">
+                <i class="bi bi-arrow-left me-2"></i>RETURN TO QUEUE
+            </a>
+        </div>
+    </div>
+
+    <div class="row g-5">
+        <div class="col-lg-8">
+            <!-- Order Assets Table -->
+            <div class="order-list-panel shadow-2xl mb-5">
+                <div class="p-4 bg-ss-primary bg-opacity-5 border-bottom border-white border-opacity-5 d-flex justify-content-between align-items-center">
+                    <h5 class="fw-900 text-ss-main smallest text-uppercase tracking-widest mb-0">Discrete Assets</h5>
+                    <span class="smallest fw-900 text-ss-primary text-uppercase tracking-widest">{{ order.order_items|length }} Unique SKUs</span>
+                </div>
+                <div class="table-responsive">
+                    <table class="table table-hover align-middle mb-0 order-table">
+                        <thead>
+                            <tr>
+                                <th>Asset Description</th>
+                                <th class="text-center">Unit Basis</th>
+                                <th class="text-center">Quantity</th>
+                                <th class="text-center">Subtotal</th>
+                                <th class="text-end">Yield (Margin)</th>
+                            </tr>
+                        </thead>
+                        <tbody class="border-0">
+                            {% for item in order.order_items %}
+                            <tr class="transition-all">
+                                <td>
+                                    <div class="fw-900 text-ss-main text-uppercase tracking-wider">{{ item.product.name if item.product else 'LEGACY ASSET' }}</div>
+                                    <div class="smallest fw-bold text-muted opacity-50">UID: #{{ item.product_id }}</div>
+                                </td>
+                                <td class="text-center fw-800 text-muted small">₹{{ "{:,.2f}".format(item.price) }}</td>
+                                <td class="text-center">
+                                    <span class="badge bg-ss-primary bg-opacity-10 text-ss-primary rounded-pill smallest fw-900 tracking-widest px-3 py-2">
+                                        {{ item.quantity }} UNITS
+                                    </span>
+                                </td>
+                                <td class="text-center fw-900 text-ss-main">₹{{ "{:,.2f}".format(item.subtotal) }}</td>
+                                <td class="text-end text-ss-success fw-900 smallest">+₹{{ "{:,.2f}".format(item.profit) }}</td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                        <tfoot class="bg-ss-primary bg-opacity-5 border-top border-white border-opacity-10">
+                            <tr>
+                                <td colspan="3" class="ps-4 py-4 smallest fw-900 text-muted text-uppercase tracking-widest">Aggregate Metrics</td>
+                                <td class="text-center py-4">
+                                    <div class="fw-900 text-ss-main h5 mb-0">₹{{ "{:,.2f}".format(order.total_amount) }}</div>
+                                </td>
+                                <td class="pe-4 text-end py-4">
+                                    <div class="fw-900 text-ss-success h5 mb-0">₹{{ "{:,.2f}".format(order.total_profit) }}</div>
+                                </td>
+                            </tr>
+                        </tfoot>
+                    </table>
+                </div>
+            </div>
+
+            <div class="row g-4">
+                <!-- Profile Data -->
+                <div class="col-md-6">
+                    <div class="order-info-block shadow-xl border-start-4 border-ss-primary">
+                        <span class="order-info-label">Subject Profile</span>
+                        <div class="mb-4">
+                            <h5 class="fw-900 text-ss-main text-uppercase tracking-wider mb-1">{{ order.user.full_name or order.user.username }}</h5>
+                            <span class="smallest fw-900 text-ss-primary text-uppercase tracking-widest opacity-75">@{{ order.user.username }}</span>
+                        </div>
+                        <div class="space-y-2">
+                            <div class="smallest fw-800 text-muted text-uppercase tracking-widest d-flex align-items-center">
+                                <i class="bi bi-envelope me-3 text-ss-primary"></i> {{ order.user.email }}
+                            </div>
+                            <div class="smallest fw-800 text-muted text-uppercase tracking-widest d-flex align-items-center">
+                                <i class="bi bi-telephone me-3 text-ss-primary"></i> {{ order.user.phone or 'DIRECT LINE' }}
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Logistical Vector -->
+                <div class="col-md-6">
+                    <div class="order-info-block shadow-xl border-start-4 border-ss-accent">
+                        <span class="order-info-label">Logistical Vector</span>
+                        <div class="glass-panel p-4 border-opacity-5 bg-white bg-opacity-5">
+                            <p class="mb-0 text-ss-main small fw-600 lh-lg">
+                                <i class="bi bi-geo-alt me-2 text-ss-accent"></i> {{ order.shipping_address }}
+                            </p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-lg-4">
+            <!-- Command & Control -->
+            <div class="status-control-panel shadow-2xl mb-5">
+                <h5 class="fw-900 text-ss-main mb-5 d-flex align-items-center justify-content-center">
+                    <i class="bi bi-shield-lock-fill text-ss-primary me-3"></i>Command Center
+                </h5>
+                <form method="POST" action="{{ url_for('admin.update_order_status', order_id=order.id) }}">
+                    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                    <div class="mb-4">
+                        <label class="smallest fw-900 text-muted text-uppercase tracking-widest mb-2 px-1">Phase Authorization</label>
+                        <select name="order_status" class="form-select status-select">
+                            {% for status in ['Pending', 'Processing', 'Shipped', 'Delivered', 'Cancelled'] %}
+                            <option value="{{ status }}" {% if order.order_status == status %}selected{% endif %}>{{ status|upper }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    <div class="mb-5">
+                        <label class="smallest fw-900 text-muted text-uppercase tracking-widest mb-2 px-1">Settlement Status</label>
+                        <select name="payment_status" class="form-select status-select">
+                            {% for status in ['Pending', 'Paid', 'Failed'] %}
+                            <option value="{{ status }}" {% if order.payment_status == status %}selected{% endif %}>{{ status|upper }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    <button type="submit" class="btn btn-ss-primary w-100 py-4 shadow-xl fs-5">
+                        <i class="bi bi-check-circle-fill me-3"></i>UPDATE DIRECTIVE
+                    </button>
+                </form>
+            </div>
+
+            <!-- Settlement Synopsis -->
+            <div class="order-info-block shadow-2xl p-5 border-top-4 border-ss-accent">
+                <h6 class="smallest fw-900 text-ss-accent text-uppercase tracking-widest mb-5 text-center">Settlement Synopsis</h6>
+                
+                <div class="space-y-4 mb-5">
+                    <div class="d-flex justify-content-between">
+                        <span class="smallest fw-900 text-muted text-uppercase tracking-widest">Gross Value</span>
+                        <span class="fw-900 text-ss-main">₹{{ "{:,.2f}".format(order.total_amount) }}</span>
+                    </div>
+                    <div class="d-flex justify-content-between">
+                        <span class="smallest fw-900 text-muted text-uppercase tracking-widest">Logistics</span>
+                        <span class="smallest fw-900 text-ss-success">COMPLIMENTARY</span>
+                    </div>
+                </div>
+
+                <div class="pt-4 border-top border-white border-opacity-5 mb-5">
+                    <div class="d-flex justify-content-between align-items-end">
+                        <div>
+                            <small class="smallest fw-900 text-uppercase tracking-widest text-muted d-block mb-1">TOTAL LIABILITY</small>
+                            <h2 class="display-6 fw-900 text-ss-main mb-0">₹{{ "{:,.0f}".format(order.total_amount) }}</h2>
+                        </div>
+                        <i class="bi bi-shield-check display-5 text-ss-success opacity-50"></i>
+                    </div>
+                </div>
+
+                <div class="bg-white bg-opacity-5 p-4 rounded-4 border border-white border-opacity-5">
+                    <div class="row align-items-center">
+                        <div class="col">
+                            <span class="smallest fw-900 text-muted text-uppercase tracking-widest d-block mb-1">Settlement Method</span>
+                            <span class="fw-900 text-ss-primary smallest text-uppercase tracking-wider">{{ order.payment_method|upper }}</span>
+                        </div>
+                        <div class="col-auto text-end">
+                            {% set pay_status_color = 'ss-success' if order.payment_status == 'Paid' else 'warning' %}
+                            <span class="badge bg-{{ pay_status_color }} bg-opacity-10 text-{{ pay_status_color }} py-2 px-3 rounded-pill smallest fw-900 tracking-widest">
+                                {{ order.payment_status|upper }}
+                            </span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{{ url_for('static', filename='css/admin/orders.css') }}">
+{% endblock %}

@@ -1,0 +1,237 @@
+/* ========== Admin Base Layout - Premium Overhaul ========== */
+:root {
+    --sidebar-collapsed-width: 0px;
+    --sidebar-expanded-width: 300px;
+    --transition-speed: 0.5s;
+    --admin-navbar-height: 80px;
+}
+
+/* Premium Admin Navbar */
+.admin-navbar {
+    height: var(--admin-navbar-height);
+    background: var(--sur-high) !important;
+    backdrop-filter: blur(25px);
+    -webkit-backdrop-filter: blur(25px);
+    border-bottom: 1px solid var(--border-subtle);
+    box-shadow: var(--ss-shadow-lg);
+    z-index: 1050;
+    transition: var(--ss-transition);
+}
+
+.admin-brand {
+    font-weight: 900;
+    font-size: 1.75rem;
+    letter-spacing: -1.5px;
+    color: var(--text-main) !important;
+}
+
+.admin-brand span {
+    color: var(--accent);
+    font-weight: 700;
+}
+
+/* Sidebar Overhaul */
+.admin-sidebar {
+    width: var(--sidebar-collapsed-width);
+    min-width: var(--sidebar-collapsed-width);
+    background: var(--bg-alt) !important;
+    border-right: 1px solid var(--border-subtle) !important;
+    position: fixed;
+    top: var(--admin-navbar-height);
+    left: 0;
+    height: calc(100vh - var(--admin-navbar-height));
+    z-index: 1040;
+    transition: all var(--transition-speed) cubic-bezier(0.34, 1.56, 0.64, 1);
+    overflow-y: auto;
+    overflow-x: hidden;
+    opacity: 0;
+    visibility: hidden;
+    transform: translateX(-20px);
+}
+
+.admin-sidebar.manual-expanded {
+    width: var(--sidebar-expanded-width) !important;
+    min-width: var(--sidebar-expanded-width) !important;
+    opacity: 1;
+    visibility: visible;
+    transform: translateX(0);
+    box-shadow: 20px 0 60px rgba(0, 0, 0, 0.4);
+}
+
+.admin-nav-link {
+    display: flex;
+    align-items: center;
+    padding: 1rem 1.5rem;
+    color: var(--text-muted);
+    text-decoration: none;
+    transition: var(--ss-transition-bounce);
+    font-weight: 700;
+    margin: 8px 20px;
+    border-radius: var(--ss-radius-lg);
+    position: relative;
+    white-space: nowrap;
+    border: 1px solid transparent;
+}
+
+.admin-nav-link i {
+    font-size: 1.4rem;
+    margin-right: 16px;
+    width: 28px;
+    text-align: center;
+    transition: transform 0.3s ease;
+}
+
+.admin-nav-link:hover {
+    background: var(--sur-low);
+    color: var(--accent);
+    transform: translateX(8px);
+    border-color: var(--border-subtle);
+}
+
+.admin-nav-link.active {
+    background: var(--ss-gradient-accent);
+    color: var(--text-on-accent) !important;
+    box-shadow: var(--ss-shadow-gold);
+    border-color: transparent;
+}
+
+.admin-nav-link.active i {
+    color: var(--text-on-accent) !important;
+    transform: scale(1.15);
+}
+
+/* Main Content Area */
+main.flex-grow-1 {
+    margin-left: 0;
+    transition: margin-left var(--transition-speed) cubic-bezier(0.4, 0, 0.2, 1);
+    min-height: calc(100vh - var(--admin-navbar-height));
+    background: var(--bg-main);
+    display: flex;
+    flex-direction: column;
+}
+
+/* Responsive adjustments for sidebar push */
+@media (min-width: 992px) {
+    .admin-sidebar.manual-expanded + main {
+        margin-left: var(--sidebar-expanded-width);
+    }
+}
+
+/* Admin Specific Components */
+.db-stat-card {
+    background: var(--sur-low);
+    backdrop-filter: blur(15px);
+    border: 1.5px solid var(--border-subtle);
+    border-radius: var(--ss-radius-xl);
+    padding: 2rem;
+    transition: var(--ss-transition-bounce);
+    height: 100%;
+}
+
+.db-stat-card:hover {
+    transform: translateY(-8px);
+    box-shadow: var(--ss-shadow-2xl);
+    background: var(--sur-mid);
+    border-color: var(--accent);
+}
+
+.db-stat-icon-container {
+    width: 56px;
+    height: 56px;
+    border-radius: var(--ss-radius-lg);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-bottom: 1.5rem;
+    font-size: 1.75rem;
+    box-shadow: var(--ss-shadow-md);
+}
+
+.db-stat-icon-orders { background: var(--ss-gradient-soft); color: var(--accent); }
+.db-stat-icon-revenue { background: rgba(16, 185, 129, 0.1); color: var(--success); }
+.db-stat-icon-profit { background: rgba(245, 158, 11, 0.1); color: #f59e0b; }
+
+.db-stat-value {
+    font-weight: 900;
+    font-size: 2rem;
+    margin-bottom: 0.5rem;
+    letter-spacing: -1.5px;
+    color: var(--text-main);
+}
+
+.db-stat-label {
+    font-size: 0.8rem;
+    font-weight: 900;
+    text-transform: uppercase;
+    color: var(--text-muted);
+    letter-spacing: 0.12em;
+}
+
+/* Scrollbar Customization */
+::-webkit-scrollbar {
+    width: 10px;
+}
+::-webkit-scrollbar-track {
+    background: var(--bg-main);
+}
+::-webkit-scrollbar-thumb {
+    background: var(--border-subtle);
+    border-radius: 10px;
+    border: 2px solid var(--bg-main);
+}
+::-webkit-scrollbar-thumb:hover {
+    background: var(--accent);
+}
+/* Global Admin Table Styles */
+.admin-table-container {
+    background: var(--sur-low);
+    backdrop-filter: blur(25px);
+    border-radius: var(--ss-radius-xl);
+    border: 1px solid var(--border-subtle);
+    overflow: hidden;
+    box-shadow: var(--ss-shadow-xl);
+}
+
+.admin-table {
+    margin-bottom: 0 !important;
+    --bs-table-bg: transparent !important;
+    --bs-table-color: var(--text-main) !important;
+    --bs-table-hover-bg: rgba(var(--accent-rgb, 212, 175, 55), 0.05) !important;
+    --bs-table-hover-color: var(--text-main) !important;
+    border-color: var(--border-subtle) !important;
+}
+
+.admin-table thead th {
+    background: rgba(var(--primary-rgb, 20, 26, 48), 0.8) !important;
+    color: var(--accent) !important;
+    font-weight: 900 !important;
+    text-transform: uppercase;
+    letter-spacing: 0.15em;
+    font-size: 0.75rem;
+    padding: 1.5rem 1.5rem !important;
+    border-bottom: 2px solid var(--border-subtle) !important;
+}
+
+.admin-table tbody td {
+    padding: 1.25rem 1.5rem !important;
+    border-bottom: 1px solid var(--border-subtle) !important;
+    color: var(--text-main);
+    vertical-align: middle;
+}
+
+.admin-table tbody tr {
+    transition: var(--ss-transition);
+}
+
+.admin-table tbody tr:hover {
+    background: rgba(var(--accent-rgb, 212, 175, 55), 0.05) !important;
+}
+
+[data-theme="light"] .admin-table thead th {
+    background: var(--primary) !important;
+    color: white !important;
+}
+
+[data-theme="light"] .admin-table tbody tr:hover {
+    background: var(--bg-alt) !important;
+}

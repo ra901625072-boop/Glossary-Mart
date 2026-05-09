@@ -1,0 +1,50 @@
+{% extends 'base.html' %}
+
+{% block title %}Acquisition Confirmed - Jay Goga Kirana Store{% endblock %}
+
+{% block content %}
+<div class="container my-5 orders-container">
+    <div class="row justify-content-center">
+        <div class="col-lg-7">
+            <div class="glass-panel text-center py-5 shadow-2xl border-opacity-10 animate-scale-in">
+                <div class="mb-5 d-inline-flex p-5 rounded-circle bg-ss-success bg-opacity-5 text-ss-success">
+                    <i class="bi bi-shield-check" style="font-size: 6rem; filter: drop-shadow(0 0 20px rgba(16, 185, 129, 0.3));"></i>
+                </div>
+                
+                <h1 class="display-4 fw-900 text-ss-main mb-3">Settlement Successful</h1>
+                <p class="fs-5 text-muted mb-5">Your artisanal acquisition has been recorded in our institutional ledger.</p>
+
+                <div class="glass-panel mx-auto mb-5 p-4 border-ss-primary bg-ss-primary bg-opacity-5" style="max-width: 400px;">
+                    <span class="smallest fw-900 text-muted text-uppercase tracking-widest d-block mb-2">Ledger Reference</span>
+                    <h3 class="fw-900 text-ss-main mb-2">#JG-{{ order.id }}</h3>
+                    <div class="h5 fw-900 text-ss-primary mb-0">₹{{ "{:,.0f}".format(order.total_amount) }} TOTAL VALUATION</div>
+                </div>
+
+                <p class="smallest fw-900 text-muted text-uppercase tracking-widest mb-5">
+                    <i class="bi bi-envelope-check me-2"></i> Digital manifest transmitted to your primary terminal.
+                </p>
+
+                <div class="d-flex flex-column flex-md-row gap-3 justify-content-center">
+                    <a href="{{ url_for('customer.order_detail', order_id=order.id) }}"
+                        class="btn btn-ss-primary btn-lg px-5 py-3 shadow-xl fs-6">
+                        <i class="bi bi-receipt me-3"></i> EXAMINE DETAILS
+                    </a>
+                    <a href="{{ url_for('customer.shop') }}" class="btn btn-ss-outline btn-lg px-5 py-3 fs-6">
+                        <i class="bi bi-shop me-3"></i> CONTINUE BROWSING
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+.animate-scale-in {
+    animation: scaleIn 0.8s cubic-bezier(0.34, 1.56, 0.64, 1) both;
+}
+</style>
+{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{{ url_for('static', filename='css/customer/orders.css') }}">
+{% endblock %}
