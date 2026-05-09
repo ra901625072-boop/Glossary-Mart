@@ -108,15 +108,6 @@ def create_app(config_class=Config):
 
     return app
 
-# Expose app instance at the module level to support 'gunicorn app:app'
-# This is common in Render deployments where the default start command is app:app
-app = create_app()
-
-# Initialize database during module import
-# This ensures tables are created and default admin is present when gunicorn starts
-with app.app_context():
-    init_db(app)
-
 def init_db(app):
     """Initialize database and create default admin user"""
     with app.app_context():
@@ -189,3 +180,12 @@ def init_db(app):
             db.session.add(admin)
             db.session.commit()
             app.logger.info(f"Admin user created: {app.config['ADMIN_USERNAME']}")
+            
+# Expose app instance at the module level to support 'gunicorn app:app'
+# This is common in Render deployments where the default start command is app:app
+app = create_app()
+
+# Initialize database during module import
+# This ensures tables are created and default admin is present when gunicorn starts
+with app.app_context():
+    init_db(app)
