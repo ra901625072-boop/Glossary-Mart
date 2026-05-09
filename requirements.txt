@@ -12,6 +12,7 @@ pytest==7.4.3
 email-validator==2.1.0.post1
 Flask-Limiter==3.5.0
 gunicorn
+psycopg2-binary
 boto3
 stripe
 pyotp
