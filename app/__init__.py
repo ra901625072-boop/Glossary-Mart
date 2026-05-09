@@ -93,19 +93,31 @@ def create_app(config_class=Config):
         cart_count = 0
         from flask import session
         from flask_login import current_user
-        if current_user.is_authenticated and current_user.role == 'customer':
-            cart_count = db.session.query(Cart).filter_by(user_id=current_user.id).count()
-        elif not current_user.is_authenticated:
-            cart_count = len(session.get('cart', {}))
+        try:
+            if current_user.is_authenticated and current_user.role == 'customer':
+                cart_count = db.session.query(Cart).filter_by(user_id=current_user.id).count()
+            elif not current_user.is_authenticated:
+                cart_count = len(session.get('cart', {}))
+        except Exception:
+            cart_count = 0
         return {'cart_count': cart_count}
+
+    @app.route('/health')
+    def health_check():
+        return {'status': 'healthy'}, 200
 
     return app
 
 def init_db(app):
     """Initialize database and create default admin user"""
     with app.app_context():
-        # Create tables if they don't exist
-        db.create_all()
+        try:
+            # Create tables if they don't exist
+            db.create_all()
+            app.logger.info("Database tables verified/created.")
+        except Exception as e:
+            app.logger.error(f"Database creation failed: {e}")
+            # Don't re-raise here, try to continue
         
         # Helper to safely add columns
         from sqlalchemy import text
@@ -122,11 +134,11 @@ def init_db(app):
         # Add new columns if they do not exist
         safe_execute("ALTER TABLE products ADD COLUMN minimum_stock_alert INTEGER DEFAULT 10")
         safe_execute("ALTER TABLE products ADD COLUMN supplier_name VARCHAR(100)")
-        safe_execute("ALTER TABLE users ADD COLUMN is_verified BOOLEAN DEFAULT 0")
+        safe_execute("ALTER TABLE users ADD COLUMN is_verified BOOLEAN DEFAULT FALSE")
         safe_execute("ALTER TABLE users ADD COLUMN verification_token VARCHAR(100)")
         
         # Set is_verified=True for all existing users (Fix for legacy accounts)
-        safe_execute("UPDATE users SET is_verified = 1 WHERE is_verified IS NULL OR is_verified = 0")
+        safe_execute("UPDATE users SET is_verified = TRUE WHERE is_verified IS NULL OR is_verified = FALSE")
         
         # Seed Categories and Migrate Products
         from .models import Category, Product
