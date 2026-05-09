@@ -3,7 +3,7 @@ services:
     name: jay-goga-mart
     env: python
     buildCommand: ./build.sh
-    startCommand: gunicorn app:app --bind 0.0.0.0:$PORT
+    startCommand: gunicorn wsgi:app --bind 0.0.0.0:$PORT
     healthCheckPath: /health
     envVars:
       - key: DATABASE_URL
@@ -16,6 +16,8 @@ services:
         value: admin
       - key: ADMIN_PASSWORD
         value: admin123
+      - key: PYTHON_VERSION
+        value: 3.12.3
       - key: MAIL_USERNAME
         sync: false
       - key: MAIL_PASSWORD
