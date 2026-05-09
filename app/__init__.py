@@ -12,7 +12,7 @@ from werkzeug.security import generate_password_hash
 
 from .config import Config
 from .extensions import limiter
-from .models import Cart, User, db
+from .models import db, User, Category, Product, Review, Sale, Cart, Order, OrderItem, Supplier, Purchase, Wishlist, Coupon
 
 # Initialize extensions
 csrf = CSRFProtect()
@@ -34,14 +34,29 @@ def create_app(config_class=Config):
 
     # Configure logging
     if not app.debug and not app.testing:
-        if not os.path.exists('logs'):
-            os.mkdir('logs')
-        file_handler = RotatingFileHandler('logs/mart.log', maxBytes=10240, backupCount=10)
-        file_handler.setFormatter(logging.Formatter(
-            '%(asctime)s %(levelname)s: %(message)s [in %(pathname)s:%(lineno)d]'
+        # Log to stdout for Render/Production
+        import sys
+        stream_handler = logging.StreamHandler(sys.stdout)
+        stream_handler.setFormatter(logging.Formatter(
+            '%(asctime)s %(levelname)s: %(message)s'
         ))
-        file_handler.setLevel(logging.INFO)
-        app.logger.addHandler(file_handler)
+        stream_handler.setLevel(logging.INFO)
+        app.logger.addHandler(stream_handler)
+
+        if not os.path.exists('logs'):
+            try:
+                os.mkdir('logs')
+            except Exception:
+                pass
+        
+        if os.path.exists('logs'):
+            file_handler = RotatingFileHandler('logs/mart.log', maxBytes=10240, backupCount=10)
+            file_handler.setFormatter(logging.Formatter(
+                '%(asctime)s %(levelname)s: %(message)s [in %(pathname)s:%(lineno)d]'
+            ))
+            file_handler.setLevel(logging.INFO)
+            app.logger.addHandler(file_handler)
+        
         app.logger.setLevel(logging.INFO)
         app.logger.info('Jay Goga Mart startup')
 
