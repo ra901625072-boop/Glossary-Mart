@@ -1,0 +1,81 @@
+/* ========== Admin People & Logs — Premium Relationship UI ========== */
+
+.customers-container, .logs-container {
+    animation: fadeIn 0.6s var(--ease-smooth);
+}
+
+/* Customer Cards / Profile Rows */
+.customer-profile-card {
+    background: var(--sur-low);
+    border: 1px solid var(--border-subtle);
+    border-radius: var(--ss-radius-xl);
+    padding: 1.5rem;
+    transition: var(--ss-transition-bounce);
+    height: 100%;
+}
+
+.customer-profile-card:hover {
+    transform: translateY(-5px);
+    border-color: var(--accent);
+    box-shadow: var(--ss-shadow-lg);
+    background: var(--sur-mid);
+}
+
+.avatar-initial {
+    width: 48px;
+    height: 48px;
+    background: var(--ss-gradient-accent);
+    color: var(--text-on-accent);
+    border-radius: var(--ss-radius-full);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: 900;
+    font-size: 1.25rem;
+    box-shadow: var(--ss-shadow-md);
+}
+
+/* Audit Log Styling */
+.log-row {
+    transition: var(--ss-transition);
+}
+
+.log-row:hover {
+    background: rgba(var(--accent-rgb), 0.03) !important;
+}
+
+.log-notes-cell {
+    font-family: 'Inter', sans-serif;
+    font-size: 0.72rem;
+    line-height: 1.4;
+    color: var(--text-muted);
+}
+
+/* Premium Filter Dropdowns */
+.ss-input {
+    background: var(--sur-mid) !important;
+    border: 1.5px solid var(--border-subtle) !important;
+    color: var(--text-main) !important;
+    border-radius: var(--ss-radius-lg) !important;
+    font-weight: 800;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    transition: var(--ss-transition);
+}
+
+.ss-input:focus {
+    border-color: var(--accent) !important;
+    box-shadow: var(--ss-shadow-gold) !important;
+}
+
+/* Pagination / Footer Info */
+.footer-info {
+    font-size: 0.65rem;
+    font-weight: 900;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    color: var(--text-muted);
+    opacity: 0.5;
+    text-align: center;
+    margin-top: 2rem;
+}

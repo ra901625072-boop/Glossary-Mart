@@ -1,0 +1,118 @@
+/* ========== Admin POS — Terminal UI Architecture ========== */
+
+.pos-container {
+    animation: fadeIn 0.6s var(--ease-smooth);
+}
+
+/* Product Selection Cards */
+.pos-product-card {
+    background: var(--sur-low);
+    border: 1.5px solid var(--border-subtle);
+    border-radius: var(--ss-radius-xl);
+    transition: var(--ss-transition-bounce);
+    cursor: pointer;
+    overflow: hidden;
+    position: relative;
+}
+
+.pos-product-card:hover {
+    border-color: var(--accent);
+    transform: translateY(-5px);
+    box-shadow: var(--ss-shadow-lg);
+    background: var(--sur-mid);
+}
+
+.pos-product-card:active {
+    transform: scale(0.96);
+}
+
+.pos-product-thumb {
+    height: 120px;
+    background: var(--bg-alt);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.pos-product-thumb img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+/* Cart / Order Summary */
+.order-items-scroll {
+    scrollbar-width: thin;
+    scrollbar-color: var(--border-subtle) transparent;
+}
+
+.order-items-scroll::-webkit-scrollbar {
+    width: 4px;
+}
+
+.order-items-scroll::-webkit-scrollbar-track {
+    background: transparent;
+}
+
+.order-items-scroll::-webkit-scrollbar-thumb {
+    background: var(--border-subtle);
+    border-radius: 10px;
+}
+
+.cart-item {
+    background: var(--sur-low);
+    border-radius: var(--ss-radius-lg);
+    padding: 0.75rem 1rem;
+    margin-bottom: 0.75rem;
+    border: 1px solid var(--border-subtle);
+    animation: slideUpFade 0.3s var(--ease-smooth);
+}
+
+.qty-pill {
+    background: var(--bg-alt);
+    border-radius: var(--ss-radius-full);
+    padding: 0.25rem 0.75rem;
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    border: 1px solid var(--border-subtle);
+}
+
+.qty-btn {
+    width: 24px;
+    height: 24px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border: none;
+    background: var(--sur-mid);
+    color: var(--text-main);
+    font-weight: 900;
+    transition: var(--ss-transition);
+}
+
+.qty-btn:hover {
+    background: var(--accent);
+    color: var(--text-on-accent);
+}
+
+/* Payment Panel */
+.payment-btn {
+    padding: 1.5rem !important;
+    border-radius: var(--ss-radius-xl) !important;
+    font-size: 1.25rem !important;
+    font-weight: 950 !important;
+    letter-spacing: 0.1em !important;
+    box-shadow: var(--ss-shadow-xl) !important;
+    transition: var(--ss-transition-bounce) !important;
+}
+
+.payment-btn:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 15px 30px rgba(var(--accent-rgb), 0.3) !important;
+}
+
+.payment-btn:active {
+    transform: scale(0.98);
+}

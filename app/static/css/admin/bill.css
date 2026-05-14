@@ -54,14 +54,6 @@ body {
     letter-spacing: 0.05em;
 }
 
-.total-section {
-    margin-top: 40px;
-    padding: 35px;
-    background: var(--bg-alt);
-    border-radius: var(--ss-radius-lg);
-    border: 1px solid var(--border-subtle);
-}
-
 .bill-table th {
     background: rgba(var(--primary-rgb), 0.3);
     color: var(--accent);
@@ -78,6 +70,20 @@ body {
     color: var(--text-main);
     font-weight: 600;
     border-bottom: 1px solid var(--border-subtle);
+}
+
+.bill-table tbody tr:hover {
+    background: rgba(var(--accent-rgb), 0.05);
+    transform: scale(1.005);
+}
+
+.total-section {
+    margin-top: 40px;
+    padding: 35px;
+    background: var(--bg-alt);
+    border-radius: var(--ss-radius-lg);
+    border: 1px solid var(--border-subtle);
+    animation: fadeUp 0.5s ease;
 }
 
 .btn-print {

@@ -1,20 +1,18 @@
 {% extends 'admin/admin_base.html' %}
 
-{% block title %}Edit Product - Jay Goga Admin{% endblock %}
+{% block title %}Edit Product — Jay Goga Admin{% endblock %}
 
 {% block content %}
-<div class="container-fluid px-4 py-4">
-    <div class="row mb-5">
+<div class="container-fluid px-3 px-md-4 py-4 page-transition">
+    <div class="row mb-4 animate-fade-in">
         <div class="col-12">
             <div class="d-flex align-items-center gap-3">
-                <div class="bg-ss-secondary bg-opacity-10 p-3 rounded-4">
-                    <i class="bi bi-pencil-square fs-2 text-ss-secondary d-block"></i>
+                <div class="bg-ss-primary bg-opacity-10 p-3 rounded-4">
+                    <i class="bi bi-pencil-square fs-3 text-ss-primary d-block"></i>
                 </div>
                 <div>
-                    <h1 class="h3 fw-900 text-ss-primary mb-1 text-uppercase tracking-wider">
-                        Update Product Parameters
-                    </h1>
-                    <p class="text-muted smallest fw-bold text-uppercase tracking-widest opacity-75 mb-0">Modify inventory details for "{{ product.name }}"</p>
+                    <h1 class="h3 fw-900 text-ss-main mb-0">Edit Product</h1>
+                    <p class="text-muted smallest fw-900 text-uppercase tracking-widest opacity-50 mb-0">Update details for "{{ product.name }}"</p>
                 </div>
             </div>
         </div>
@@ -26,116 +24,90 @@
                 {{ form.hidden_tag() }}
                 
                 <div class="row g-4">
-                    <!-- Basic Information Card -->
+                    <!-- Basic Information -->
                     <div class="col-lg-7">
-                        <div class="glass-panel border-0 shadow-lg p-5 h-100">
-                            <h5 class="fw-900 text-dark mb-4 text-uppercase tracking-widest border-bottom border-opacity-10 pb-3">
-                                <i class="bi bi-info-circle me-2 text-ss-secondary"></i> CORE IDENTITY
-                            </h5>
+                        <div class="ss-card border-0 shadow-lg p-4 p-md-5 h-100">
+                            <h6 class="fw-900 text-ss-main mb-4 text-uppercase tracking-widest opacity-60 border-bottom border-ss-main border-opacity-10 pb-3">
+                                <i class="bi bi-info-circle me-2 text-ss-primary"></i> Basic Info
+                            </h6>
                             
                             <div class="mb-4">
-                                <label class="form-label smallest fw-900 text-ss-primary text-uppercase tracking-wider">
-                                    {{ form.name.label }} <span class="text-danger">*</span>
-                                </label>
-                                {{ form.name(class="form-control bg-light border-0 py-3 px-4 rounded-4 shadow-none", placeholder="Formal Product Name") }}
-                                {% if form.name.errors %}
-                                    {% for error in form.name.errors %}
-                                        <div class="text-danger smallest mt-1 fw-bold">{{ error }}</div>
-                                    {% endfor %}
-                                {% endif %}
+                                {{ form.name.label(class="ss-form-label") }}
+                                {{ form.name(class="ss-input w-100") }}
+                                {% for error in form.name.errors %}
+                                    <div class="text-danger smallest mt-1 fw-bold">{{ error }}</div>
+                                {% endfor %}
                             </div>
 
-                            <div class="row">
+                            <div class="row g-3">
                                 <div class="col-md-6 mb-4">
-                                    <label class="form-label smallest fw-900 text-ss-primary text-uppercase tracking-wider">
-                                        {{ form.category_id.label }} <span class="text-danger">*</span>
-                                    </label>
-                                    {{ form.category_id(class="form-select bg-light border-0 py-3 px-4 rounded-4 shadow-none") }}
+                                    {{ form.category_id.label(class="ss-form-label") }}
+                                    {{ form.category_id(class="ss-input w-100") }}
                                 </div>
                                 <div class="col-md-6 mb-4">
-                                    <label class="form-label smallest fw-900 text-ss-primary text-uppercase tracking-wider">
-                                        {{ form.supplier_name.label }}
-                                    </label>
-                                    {{ form.supplier_name(class="form-control bg-light border-0 py-3 px-4 rounded-4 shadow-none", placeholder="Primary Vendor") }}
+                                    {{ form.supplier_name.label(class="ss-form-label") }}
+                                    {{ form.supplier_name(class="ss-input w-100") }}
                                 </div>
                             </div>
 
                             <div class="mb-0">
-                                <label class="form-label smallest fw-900 text-ss-primary text-uppercase tracking-wider">
-                                    PRODUCT VISUAL
-                                </label>
+                                <label class="ss-form-label">Product Image</label>
                                 <div class="row g-3">
                                     {% if product.image_path %}
                                     <div class="col-4">
-                                        <div class="glass-panel border-0 p-2 text-center bg-white bg-opacity-50 h-100 d-flex flex-column justify-content-center align-items-center">
-                                            <span class="smallest fw-900 text-muted text-uppercase tracking-widest d-block mb-2">Active</span>
+                                        <div class="ss-card border-0 p-2 text-center bg-ss-main bg-opacity-5 h-100 d-flex flex-column justify-content-center align-items-center">
+                                            <span class="smallest fw-900 text-muted text-uppercase tracking-widest d-block mb-2 opacity-50">Current</span>
                                             <img src="{{ url_for('static', filename=product.image_path) }}" 
-                                                alt="{{ product.name }}" class="img-fluid rounded-4 shadow-sm" style="max-height: 80px;">
+                                                alt="{{ product.name }}" class="img-fluid rounded-3 shadow-sm" style="max-height: 60px; object-fit: cover;">
                                         </div>
                                     </div>
                                     {% endif %}
                                     <div class="{% if product.image_path %}col-8{% else %}col-12{% endif %}">
-                                        <div class="image-upload-wrapper glass-panel border-dashed p-4 text-center rounded-4 position-relative overflow-hidden bg-light bg-opacity-50 transition-all hover-lift h-100 d-flex flex-column justify-content-center">
-                                            <input type="file" class="position-absolute top-0 start-0 w-100 h-100 opacity-0" id="image" name="image" accept="image/*" onchange="previewImage(event)" style="cursor: pointer;">
-                                            <div id="uploadPlaceholder">
-                                                <i class="bi bi-cloud-arrow-up display-6 text-ss-primary mb-1"></i>
-                                                <p class="mb-0 smallest fw-900 text-uppercase tracking-widest text-muted">Replace Image</p>
+                                        <div class="ss-image-upload-compact position-relative sparkle-hover bg-ss-main bg-opacity-5 rounded-4 border-2 border-dashed border-ss-main border-opacity-10 d-flex flex-column align-items-center justify-content-center p-3 h-100">
+                                            <input type="file" class="position-absolute top-0 start-0 w-100 h-100 opacity-0" id="image" name="image" accept="image/*" onchange="previewImage(event)" style="cursor: pointer; z-index: 2;">
+                                            <div id="uploadPlaceholder" class="text-center">
+                                                <i class="bi bi-cloud-arrow-up text-ss-primary opacity-30 mb-1 d-block h3"></i>
+                                                <span class="smallest fw-900 text-uppercase tracking-widest text-muted">Change Image</span>
                                             </div>
-                                            <div id="imagePreview" class="d-none">
-                                                <img id="preview" src="" alt="Preview" class="img-fluid rounded-4 shadow-sm" style="max-height: 80px;">
-                                                <p class="mt-2 mb-0 smallest fw-900 text-ss-secondary text-uppercase tracking-widest" onclick="resetUpload(event)" style="cursor: pointer;">Reset Selection</p>
+                                            <div id="imagePreview" class="d-none text-center">
+                                                <img id="preview" src="" alt="Preview" class="img-fluid rounded-3 shadow-sm mb-1" style="max-height: 60px;">
+                                                <p class="smallest fw-900 text-ss-primary text-uppercase tracking-widest mb-0" onclick="resetUpload(event)">Reset</p>
                                             </div>
                                         </div>
                                     </div>
                                 </div>
-                                <small class="text-muted smallest fw-bold text-uppercase opacity-50 mt-2 d-block">Leave empty to retain existing product image.</small>
                             </div>
                         </div>
                     </div>
 
-                    <!-- Pricing & Inventory Section -->
+                    <!-- Pricing & Inventory -->
                     <div class="col-lg-5">
                         <div class="row g-4">
                             <!-- Pricing Card -->
                             <div class="col-12">
-                                <div class="glass-panel border-0 shadow-lg p-5">
-                                    <h5 class="fw-900 text-dark mb-4 text-uppercase tracking-widest border-bottom border-opacity-10 pb-3">
-                                        <i class="bi bi-currency-rupee me-2 text-ss-secondary"></i> VALUATION
-                                    </h5>
+                                <div class="ss-card border-0 shadow-lg p-4 p-md-5">
+                                    <h6 class="fw-900 text-ss-main mb-4 text-uppercase tracking-widest opacity-60 border-bottom border-ss-main border-opacity-10 pb-3">
+                                        <i class="bi bi-currency-rupee me-2 text-ss-primary"></i> Pricing
+                                    </h6>
                                     
                                     <div class="row g-3">
                                         <div class="col-6 mb-4">
-                                            <label class="form-label smallest fw-900 text-ss-primary text-uppercase tracking-wider">
-                                                {{ form.cost_price.label }} <span class="text-danger">*</span>
-                                            </label>
-                                            <div class="input-group bg-light rounded-4 border-0 p-1">
-                                                <span class="input-group-text bg-transparent border-0 opacity-50"><i class="bi bi-cash"></i></span>
-                                                {{ form.cost_price(class="form-control bg-transparent border-0 py-2 shadow-none", id="cost_price", placeholder="0.00") }}
-                                            </div>
+                                            {{ form.cost_price.label(class="ss-form-label") }}
+                                            {{ form.cost_price(class="ss-input w-100", id="cost_price") }}
                                         </div>
                                         <div class="col-6 mb-4">
-                                            <label class="form-label smallest fw-900 text-ss-primary text-uppercase tracking-wider">
-                                                {{ form.selling_price.label }} <span class="text-danger">*</span>
-                                            </label>
-                                            <div class="input-group bg-light rounded-4 border-0 p-1">
-                                                <span class="input-group-text bg-transparent border-0 opacity-50"><i class="bi bi-tag-fill"></i></span>
-                                                {{ form.selling_price(class="form-control bg-transparent border-0 py-2 shadow-none", id="selling_price", placeholder="0.00") }}
-                                            </div>
+                                            {{ form.selling_price.label(class="ss-form-label") }}
+                                            {{ form.selling_price(class="ss-input w-100", id="selling_price") }}
                                         </div>
                                     </div>
 
                                     <!-- Margin Stats -->
-                                    <div id="marginPreview" class="p-3 rounded-4 bg-ss-secondary bg-opacity-5 border border-ss-secondary border-opacity-20">
+                                    <div id="marginPreview" class="p-3 bg-ss-primary bg-opacity-5 rounded-4 border border-ss-primary border-opacity-10">
                                         <div class="d-flex justify-content-between align-items-center">
-                                            <div class="d-flex align-items-center gap-2">
-                                                <div class="bg-ss-secondary bg-opacity-20 p-2 rounded-circle">
-                                                    <i class="bi bi-graph-up-arrow text-ss-secondary"></i>
-                                                </div>
-                                                <span class="smallest fw-900 text-ss-secondary text-uppercase tracking-widest">Current Yield</span>
-                                            </div>
+                                            <div class="smallest fw-900 text-ss-primary text-uppercase tracking-widest">Profit Margin</div>
                                             <div class="text-end">
-                                                <div id="projProfit" class="fw-900 text-dark h6 mb-0"></div>
-                                                <div id="projMargin" class="badge bg-ss-secondary rounded-pill smallest fw-900 tracking-wider"></div>
+                                                <div id="projProfit" class="fw-900 text-ss-main smallest mb-0"></div>
+                                                <div id="projMargin" class="ss-badge ss-badge-success smallest"></div>
                                             </div>
                                         </div>
                                     </div>
@@ -144,29 +116,19 @@
 
                             <!-- Inventory Card -->
                             <div class="col-12">
-                                <div class="glass-panel border-0 shadow-lg p-5">
-                                    <h5 class="fw-900 text-dark mb-4 text-uppercase tracking-widest border-bottom border-opacity-10 pb-3">
-                                        <i class="bi bi-boxes me-2 text-ss-secondary"></i> LOGISTICS
-                                    </h5>
+                                <div class="ss-card border-0 shadow-lg p-4 p-md-5">
+                                    <h6 class="fw-900 text-ss-main mb-4 text-uppercase tracking-widest opacity-60 border-bottom border-ss-main border-opacity-10 pb-3">
+                                        <i class="bi bi-boxes me-2 text-ss-primary"></i> Inventory
+                                    </h6>
                                     
-                                    <div class="row">
-                                        <div class="col-6 mb-0">
-                                            <label class="form-label smallest fw-900 text-ss-primary text-uppercase tracking-wider">
-                                                {{ form.stock_quantity.label }} <span class="text-danger">*</span>
-                                            </label>
-                                            <div class="input-group bg-light rounded-4 border-0 p-1">
-                                                <span class="input-group-text bg-transparent border-0 opacity-50"><i class="bi bi-hash"></i></span>
-                                                {{ form.stock_quantity(class="form-control bg-transparent border-0 py-2 shadow-none") }}
-                                            </div>
+                                    <div class="row g-3">
+                                        <div class="col-6">
+                                            {{ form.stock_quantity.label(class="ss-form-label") }}
+                                            {{ form.stock_quantity(class="ss-input w-100") }}
                                         </div>
-                                        <div class="col-6 mb-0">
-                                            <label class="form-label smallest fw-900 text-ss-primary text-uppercase tracking-wider">
-                                                {{ form.minimum_stock_alert.label }} <span class="text-danger">*</span>
-                                            </label>
-                                            <div class="input-group bg-light rounded-4 border-0 p-1">
-                                                <span class="input-group-text bg-transparent border-0 opacity-50"><i class="bi bi-bell"></i></span>
-                                                {{ form.minimum_stock_alert(class="form-control bg-transparent border-0 py-2 shadow-none") }}
-                                            </div>
+                                        <div class="col-6">
+                                            {{ form.minimum_stock_alert.label(class="ss-form-label") }}
+                                            {{ form.minimum_stock_alert(class="ss-input w-100") }}
                                         </div>
                                     </div>
                                 </div>
@@ -175,22 +137,18 @@
                     </div>
                 </div>
 
-                <div class="d-flex align-items-center gap-4 mt-5">
-                    <a href="{{ url_for('admin.products') }}" class="btn btn-ss-outline px-4 py-3 rounded-pill fw-900 tracking-widest flex-grow-0">
-                        <i class="bi bi-arrow-left me-2"></i> ABORT CHANGES
+                <div class="d-flex flex-column flex-sm-row align-items-center gap-3 mt-5">
+                    <a href="{{ url_for('admin.products') }}" class="btn btn-ss-ghost w-100 w-sm-auto px-4 py-3 smallest fw-900 tracking-widest order-2 order-sm-1">
+                        CANCEL
                     </a>
-                    <button type="submit" class="btn btn-ss-primary px-5 py-3 rounded-pill flex-grow-1 fw-900 tracking-widest shadow-xl sparkle-hover">
-                        <i class="bi bi-shield-check me-2 fs-5"></i> COMMIT UPDATES
+                    <button type="submit" class="btn btn-ss-primary w-100 w-sm-auto px-5 py-3 shadow-xl sparkle-hover flex-grow-1 fw-900 tracking-widest order-1 order-sm-2">
+                        UPDATE PRODUCT
                     </button>
                 </div>
             </form>
         </div>
     </div>
 </div>
-{% endblock %}
-
-{% block extra_css %}
-<link rel="stylesheet" href="{{ url_for('static', filename='css/admin/add_product.css') }}">
 {% endblock %}
 
 {% block extra_js %}
@@ -224,8 +182,8 @@
         if (selling > 0) {
             const profit = selling - cost;
             const margin = (profit / selling) * 100;
-            profitEl.textContent = `₹${profit.toFixed(2)}`;
-            marginEl.textContent = `${margin.toFixed(1)}%`;
+            profitEl.textContent = `₹${profit.toFixed(0)} profit`;
+            marginEl.textContent = `${margin.toFixed(0)}% Margin`;
         }
     }
 

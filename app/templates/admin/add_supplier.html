@@ -1,91 +1,64 @@
 {% extends 'admin/admin_base.html' %}
 
-{% block title %}Add Supplier - Jay Goga Kirana Store Management{% endblock %}
+{% block title %}Add Supplier — Jay Goga Admin{% endblock %}
 
 {% block content %}
-<div class="container px-4 py-4">
-    <div class="row mb-5">
-        <div class="col">
-            <h1 class="h2 fw-bold text-ss-primary mb-1">
-                <i class="bi bi-person-plus me-2"></i>Register Supplier
-            </h1>
-            <p class="text-muted mb-0">Add a new provider to your directory.</p>
+<div class="container-fluid px-3 px-md-4 py-4 page-transition">
+    <div class="row mb-4 animate-fade-in">
+        <div class="col-12">
+            <div class="d-flex align-items-center gap-3">
+                <div class="bg-ss-primary bg-opacity-10 p-3 rounded-4">
+                    <i class="bi bi-person-plus fs-3 text-ss-primary d-block"></i>
+                </div>
+                <div>
+                    <h1 class="h3 fw-900 text-ss-main mb-0">Add Supplier</h1>
+                    <p class="text-muted smallest fw-900 text-uppercase tracking-widest opacity-50 mb-0">Enter details for a new vendor</p>
+                </div>
+            </div>
         </div>
     </div>
 
     <div class="row justify-content-center">
         <div class="col-lg-8">
-            <div class="ss-detail-container border-0 shadow-sm p-4 p-md-5">
+            <div class="ss-card border-0 shadow-lg p-4 p-md-5">
                 <form method="POST" class="needs-validation" novalidate>
                     {{ form.hidden_tag() }}
                     <div class="row g-4">
-                        <div class="col-md-12">
-                            <label class="form-label small fw-bold text-ss-primary">
-                                <i class="bi bi-building me-1"></i>{{ form.name.label }} *
-                            </label>
-                            {{ form.name(class="form-control ss-input", placeholder="Company or Supplier Name") }}
-                            {% if form.name.errors %}
-                                {% for error in form.name.errors %}
-                                    <div class="text-danger small">{{ error }}</div>
-                                {% endfor %}
-                            {% endif %}
+                        <div class="col-12">
+                            {{ form.name.label(class="ss-form-label") }}
+                            {{ form.name(class="ss-input w-100", placeholder="Supplier Name") }}
+                            {% for error in form.name.errors %}
+                                <div class="text-danger smallest mt-1 fw-bold">{{ error }}</div>
+                            {% endfor %}
                         </div>
 
                         <div class="col-md-6">
-                            <label class="form-label small fw-bold text-ss-primary">
-                                <i class="bi bi-person me-1"></i>{{ form.contact_person.label }}
-                            </label>
-                            {{ form.contact_person(class="form-control ss-input", placeholder="Name of primary contact") }}
-                            {% if form.contact_person.errors %}
-                                {% for error in form.contact_person.errors %}
-                                    <div class="text-danger small">{{ error }}</div>
-                                {% endfor %}
-                            {% endif %}
+                            {{ form.contact_person.label(class="ss-form-label") }}
+                            {{ form.contact_person(class="ss-input w-100", placeholder="Contact Person") }}
                         </div>
 
                         <div class="col-md-6">
-                            <label class="form-label small fw-bold text-ss-primary">
-                                <i class="bi bi-telephone me-1"></i>{{ form.phone.label }}
-                            </label>
-                            {{ form.phone(class="form-control ss-input", placeholder="+91 12345 67890") }}
-                            {% if form.phone.errors %}
-                                {% for error in form.phone.errors %}
-                                    <div class="text-danger small">{{ error }}</div>
-                                {% endfor %}
-                            {% endif %}
+                            {{ form.phone.label(class="ss-form-label") }}
+                            {{ form.phone(class="ss-input w-100", placeholder="Phone Number") }}
                         </div>
 
-                        <div class="col-md-12">
-                            <label class="form-label small fw-bold text-ss-primary">
-                                <i class="bi bi-envelope me-1"></i>{{ form.email.label }}
-                            </label>
-                            {{ form.email(class="form-control ss-input", placeholder="contact@supplier.com") }}
-                            {% if form.email.errors %}
-                                {% for error in form.email.errors %}
-                                    <div class="text-danger small">{{ error }}</div>
-                                {% endfor %}
-                            {% endif %}
+                        <div class="col-12">
+                            {{ form.email.label(class="ss-form-label") }}
+                            {{ form.email(class="ss-input w-100", placeholder="Email Address") }}
                         </div>
 
-                        <div class="col-md-12">
-                            <label class="form-label small fw-bold text-ss-primary">
-                                <i class="bi bi-geo-alt me-1"></i>{{ form.address.label }}
-                            </label>
-                            {{ form.address(class="form-control ss-input", rows="3", placeholder="Full registered address") }}
-                            {% if form.address.errors %}
-                                {% for error in form.address.errors %}
-                                    <div class="text-danger small">{{ error }}</div>
-                                {% endfor %}
-                            {% endif %}
+                        <div class="col-12">
+                            {{ form.address.label(class="ss-form-label") }}
+                            {{ form.address(class="ss-input w-100", rows="3", placeholder="Full Address") }}
                         </div>
                     </div>
 
-                    <div class="d-flex gap-3 mt-5">
-                        <a href="{{ url_for('admin.suppliers') }}" class="btn btn-ss-outline px-4 py-2">
-                            <i class="bi bi-arrow-left me-2"></i>Back to Directory
+                    <div class="d-flex flex-column flex-sm-row align-items-center gap-3 mt-5">
+                        <a href="{{ url_for('admin.suppliers') }}" class="btn btn-ss-ghost w-100 w-sm-auto px-4 py-3 smallest fw-900 tracking-widest order-2 order-sm-1">
+                            CANCEL
                         </a>
-                        <button type="submit" class="btn btn-ss-primary px-5 py-2 flex-grow-1">
-                            <i class="bi bi-check2-circle me-2"></i>Save Supplier
+                        <button type="submit" class="btn btn-ss-primary w-100 w-sm-auto px-5 py-3 shadow-xl sparkle-hover flex-grow-1 fw-900 tracking-widest order-1 order-sm-2">
+                            ADD SUPPLIER
                         </button>
                     </div>
                 </form>

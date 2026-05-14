@@ -1,90 +1,80 @@
 {% extends 'admin/admin_base.html' %}
 
-{% block title %}Purchases (Stock In) - Jay Goga Kirana Store{% endblock %}
+{% block title %}Stock In — Jay Goga Admin{% endblock %}
 
 {% block content %}
-<div class="container-fluid px-4 py-4">
-    <div class="d-flex justify-content-between align-items-center mb-5">
-        <div>
-            <h1 class="h3 fw-900 text-ss-primary mb-1 text-uppercase tracking-wider">
-                <i class="bi bi-bag-plus me-2"></i>Purchases
-            </h1>
-            <p class="text-muted smallest fw-bold text-uppercase tracking-widest opacity-75 mb-0">Track inventory restocking and supplier invoices</p>
+<div class="container-fluid px-3 px-md-4 py-4 page-transition">
+    <div class="row align-items-center mb-4 animate-fade-in">
+        <div class="col-md-7">
+            <div class="d-flex align-items-center mb-1">
+                <div class="bg-ss-primary rounded-pill me-3" style="width: 5px; height: 32px;"></div>
+                <h1 class="h2 fw-900 text-ss-main mb-0">Stock In</h1>
+            </div>
+            <p class="text-muted mb-0 ps-4 smallest fw-900 text-uppercase tracking-widest opacity-50">View history of stock updates</p>
         </div>
-        <a href="{{ url_for('admin.add_purchase') }}" class="btn btn-ss-primary px-4 py-2 rounded-pill fw-900 tracking-widest shadow-lg sparkle-hover">
-            <i class="bi bi-plus-lg me-2"></i>Record New Purchase
-        </a>
+        <div class="col-md-5 text-md-end mt-3 mt-md-0">
+            <a href="{{ url_for('admin.add_purchase') }}" class="btn btn-ss-primary shadow-xl px-4 py-3 sparkle-hover w-100 w-md-auto">
+                <i class="bi bi-plus-lg me-2"></i> ADD STOCK
+            </a>
+        </div>
     </div>
 
-    <div class="admin-table-container">
+    <div class="ss-card p-0 shadow-2xl overflow-hidden mb-5 animate-fade-in">
         <div class="table-responsive">
-            <table class="table table-hover align-middle admin-table">
-                <thead>
+            <table class="table table-hover align-middle mb-0 mobile-table-card-mode">
+                <thead class="bg-ss-main bg-opacity-5">
                     <tr>
-                        <th class="ps-5 py-4">Identifier / Date</th>
-                        <th class="py-4">Supplier</th>
-                        <th class="py-4">Product</th>
-                        <th class="py-4 text-center">Quantity</th>
-                        <th class="py-4 text-end">Price / Unit</th>
-                        <th class="pe-5 py-4 text-end">Total Cost</th>
+                        <th class="ps-4 py-3 smallest fw-900 text-muted text-uppercase">ID / Date</th>
+                        <th class="py-3 smallest fw-900 text-muted text-uppercase">Supplier</th>
+                        <th class="py-3 smallest fw-900 text-muted text-uppercase">Product</th>
+                        <th class="text-center py-3 smallest fw-900 text-muted text-uppercase">Qty</th>
+                        <th class="text-end py-3 smallest fw-900 text-muted text-uppercase">Price/Unit</th>
+                        <th class="text-end pe-4 py-3 smallest fw-900 text-muted text-uppercase">Total</th>
                     </tr>
                 </thead>
-                <tbody class="border-0">
+                <tbody>
                     {% if purchases %}
                     {% for purchase in purchases %}
-                    <tr class="transition-all">
-                        <td class="ps-5">
-                            <div class="fw-900 text-ss-main text-uppercase tracking-wider">#PUR-{{ '{:04d}'.format(purchase.id) }}</div>
+                    <tr class="border-bottom border-ss-main border-opacity-5">
+                        <td class="ps-4 py-3" data-label="ID / Date">
+                            <div class="fw-900 text-ss-main small text-uppercase tracking-wider">#PUR-{{ '{:04d}'.format(purchase.id) }}</div>
                             <div class="smallest fw-bold text-muted opacity-50">{{ purchase.purchase_date.strftime('%b %d, %H:%M') }}</div>
                         </td>
-                        <td>
+                        <td class="py-3" data-label="Supplier">
                             <div class="d-flex align-items-center gap-2">
-                                <div class="bg-ss-primary bg-opacity-10 p-2 rounded-circle">
-                                    <i class="bi bi-truck text-ss-primary smallest"></i>
-                                </div>
-                                <span class="smallest fw-900 text-ss-main text-uppercase tracking-widest">
-                                    {{ purchase.supplier.name if purchase.supplier else 'DELETED SUPPLIER' }}
+                                <span class="smallest fw-900 text-ss-main text-uppercase tracking-widest text-truncate" style="max-width: 150px;">
+                                    {{ purchase.supplier.name if purchase.supplier else 'Deleted' }}
                                 </span>
                             </div>
                         </td>
-                        <td>
-                            <div class="d-flex align-items-center gap-3">
+                        <td class="py-3" data-label="Product">
+                            <div class="d-flex align-items-center gap-2">
                                 {% if purchase.product and purchase.product.image_path %}
-                                <div class="bg-white p-1 rounded-3 shadow-sm border border-opacity-10">
-                                    <img src="{{ url_for('static', filename=purchase.product.image_path) }}" 
-                                        alt="{{ purchase.product.name }}" class="rounded-2" style="width: 32px; height: 32px; object-fit: cover;">
-                                </div>
-                                {% else %}
-                                <div class="bg-ss-secondary bg-opacity-10 rounded-3 d-flex align-items-center justify-content-center" style="width: 32px; height: 32px;">
-                                    <i class="bi bi-box text-ss-secondary smallest"></i>
-                                </div>
+                                <img src="{{ url_for('static', filename=purchase.product.image_path) }}" 
+                                    alt="{{ purchase.product.name }}" class="rounded-2" style="width: 24px; height: 24px; object-fit: cover;">
                                 {% endif %}
-                                <span class="fw-900 text-ss-primary smallest text-uppercase tracking-wider">{{ purchase.product.name if purchase.product else 'DELETED PRODUCT' }}</span>
+                                <span class="fw-900 text-ss-primary smallest text-uppercase tracking-wider text-truncate" style="max-width: 150px;">
+                                    {{ purchase.product.name if purchase.product else 'Deleted' }}
+                                </span>
                             </div>
                         </td>
-                        <td class="text-center">
-                            <span class="badge bg-ss-secondary bg-opacity-10 text-ss-secondary rounded-pill smallest fw-900 tracking-widest px-3">
-                                {{ purchase.quantity }} UNITS
+                        <td class="text-center py-3" data-label="Qty">
+                            <span class="ss-badge ss-badge-info smallest">
+                                {{ purchase.quantity }} units
                             </span>
                         </td>
-                        <td class="text-end fw-bold text-muted smallest">₹{{ '{:,.2f}'.format(purchase.purchase_price) }}</td>
-                        <td class="pe-5 text-end">
-                            <div class="fw-900 text-ss-primary h6 mb-0">₹{{ '{:,.2f}'.format(purchase.total_cost) }}</div>
+                        <td class="text-end py-3 smallest fw-900 text-muted" data-label="Price/Unit">₹{{ '{:,.0f}'.format(purchase.purchase_price) }}</td>
+                        <td class="text-end pe-4 py-3" data-label="Total">
+                            <div class="fw-900 text-ss-main small">₹{{ '{:,.0f}'.format(purchase.total_cost) }}</div>
                         </td>
                     </tr>
                     {% endfor %}
                     {% else %}
                     <tr>
                         <td colspan="6" class="text-center py-5">
-                            <div class="py-5">
-                                <div class="bg-ss-primary bg-opacity-10 d-inline-block p-4 rounded-circle mb-4">
-                                    <i class="bi bi-bag-x display-4 text-ss-primary opacity-50"></i>
-                                </div>
-                                <p class="smallest fw-900 text-uppercase tracking-widest text-muted">No Purchase Records Found</p>
-                                <a href="{{ url_for('admin.add_purchase') }}" class="btn btn-ss-primary btn-sm rounded-pill px-4 mt-3 fw-900 tracking-widest">
-                                    <i class="bi bi-plus-lg me-1"></i>Record Purchase
-                                </a>
-                            </div>
+                            <i class="bi bi-bag-plus display-4 text-muted opacity-10 d-block mb-3"></i>
+                            <h5 class="fw-900 text-ss-main">No Purchase History</h5>
+                            <p class="text-muted smallest fw-900 text-uppercase tracking-widest opacity-50">Stock update records will appear here</p>
                         </td>
                     </tr>
                     {% endif %}

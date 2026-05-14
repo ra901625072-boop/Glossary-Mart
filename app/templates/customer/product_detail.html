@@ -1,107 +1,117 @@
 {% extends 'base.html' %}
 
-{% block title %}{{ product.name }} - Fresh Essentials | Jay Goga Kirana Store{% endblock %}
+{% block title %}{{ product.name }} — Jay Goga Kirana Store{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{{ url_for('static', filename='css/customer/product_detail.css') }}">
+{% endblock %}
 
 {% block content %}
-<div class="container my-5 page-transition">
+<div class="container my-4 my-md-5 page-transition">
     <!-- Breadcrumb -->
     <nav aria-label="breadcrumb" class="mb-4">
-        <ol class="breadcrumb">
-            <li class="breadcrumb-item"><a href="{{ url_for('customer.shop') }}"
-                    class="text-decoration-none text-muted">Shop</a></li>
-            <li class="breadcrumb-item active" aria-current="page">{{ product.name }}</li>
+        <ol class="breadcrumb smallest fw-900 text-uppercase tracking-widest">
+            <li class="breadcrumb-item"><a href="{{ url_for('customer.shop') }}" class="text-decoration-none text-muted">Shop</a></li>
+            <li class="breadcrumb-item"><a href="{{ url_for('customer.shop', category=product.category_rel.name) }}" class="text-decoration-none text-muted">{{ product.category_rel.name if product.category_rel else 'General' }}</a></li>
+            <li class="breadcrumb-item active text-ss-primary" aria-current="page">{{ product.name }}</li>
         </ol>
     </nav>
 
-    <div class="product-detail-glass shadow-lg">
+    <div class="glass-panel border-0 shadow-2xl overflow-hidden animate-fade-in">
         <div class="row g-0">
             <!-- Product Image Section -->
-            <div class="col-lg-6 p-4 p-md-5 bg-light">
-                <div class="ss-product-gallery glass-panel border-0 h-100">
+            <div class="col-lg-6 p-3 p-md-5 d-flex align-items-center justify-content-center" style="background: var(--bg-alt);">
+                <div class="ss-detail-gallery shadow-xl">
                     {% if product.image_path %}
-                    <img src="{{ url_for('static', filename=product.image_path) }}" alt="{{ product.name }}"
-                        class="img-fluid rounded-4 shadow-sm">
+                    <img src="{{ url_for('static', filename=product.image_path) }}" alt="{{ product.name }}">
                     {% else %}
-                    <div class="text-center opacity-25 py-5">
-                        <i class="bi bi-basket display-1 mb-3 d-block"></i>
-                        <span class="fs-4 fw-bold">No Image Available</span>
+                    <div class="text-center opacity-10">
+                        <i class="bi bi-box-seam display-1 mb-3 d-block"></i>
+                        <span class="fs-4 fw-900 text-uppercase tracking-widest">No Image</span>
                     </div>
                     {% endif %}
                 </div>
             </div>
 
             <!-- Product Info Section -->
-            <div class="col-lg-6 p-4 p-md-5 bg-white">
+            <div class="col-lg-6 p-4 p-md-5">
                 <div class="d-flex align-items-center gap-3 mb-4">
-                    <span class="badge bg-ss-primary-light bg-opacity-10 text-ss-primary rounded-pill px-3 py-2 fw-700">
-                        {{ product.category_rel.name if product.category_rel else 'Premium Essential' }}
+                    <span class="ss-badge ss-badge-info">
+                        {{ product.category_rel.name if product.category_rel else 'Essentials' }}
                     </span>
                     <div class="ss-rating-badge">
                         <i class="bi bi-star-fill me-1"></i> 4.8
                     </div>
                 </div>
 
-                <h1 class="display-5 fw-900 mb-3">{{ product.name }}</h1>
-                <p class="text-muted fs-5 mb-5">{{ product.description }}</p>
+                <h1 class="fw-900 mb-3 text-ss-main">{{ product.name }}</h1>
+                <p class="text-muted fs-6 mb-4 opacity-75">{{ product.description or 'No description available for this premium product.' }}</p>
 
-                <div class="mb-5">
-                    <div class="d-flex align-items-end gap-2">
+                <div class="mb-4">
+                    <div class="d-flex align-items-end gap-2 mb-2">
                         <span class="product-price-large">₹{{ "{:,.0f}".format(product.selling_price) }}</span>
-                        <span class="text-muted mb-2 fs-5">/ Unit</span>
+                        <span class="text-muted mb-2 fs-6 fw-600">/ unit</span>
                     </div>
-                    <p class="small text-success fw-bold"><i class="bi bi-check-circle-fill me-1"></i> In stock and
-                        ready to ship</p>
+                    {% if product.stock_quantity > 0 %}
+                    <div class="d-flex align-items-center gap-2 text-success smallest fw-900 text-uppercase tracking-widest">
+                        <span class="pulse-dot bg-success"></span>
+                        In Stock
+                    </div>
+                    {% else %}
+                    <div class="d-flex align-items-center gap-2 text-danger smallest fw-900 text-uppercase tracking-widest">
+                        <span class="pulse-dot bg-danger"></span>
+                        Currently Depleted
+                    </div>
+                    {% endif %}
                 </div>
 
-                <hr class="my-5 opacity-10">
+                <hr class="my-4 opacity-5">
 
                 {% if current_user.is_authenticated and current_user.role == 'admin' %}
-                <div class="d-grid gap-3">
+                <div class="d-grid">
                     <a href="{{ url_for('admin.edit_product', product_id=product.id) }}"
-                        class="btn btn-ss-primary btn-lg py-3 rounded-4">
-                        <i class="bi bi-pencil-square me-2"></i> Edit Product Details
+                        class="btn btn-ss-primary py-3 shadow-xl">
+                        <i class="bi bi-pencil-square me-2"></i> EDIT PRODUCT
                     </a>
                 </div>
                 {% elif product.stock_quantity > 0 %}
-                <form method="POST" action="{{ url_for('customer.add_to_cart', product_id=product.id) }}">
+                <form method="POST" action="{{ url_for('customer.add_to_cart', product_id=product.id) }}" id="addToCartForm">
                     <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
                     <div class="row g-3">
-                        <div class="col-sm-4">
-                            <label class="form-label small fw-bold text-muted text-uppercase">Quantity</label>
-                            <div class="qty-input-group d-flex align-items-center">
-                                <button type="button" class="btn btn-link text-dark" onclick="decrementQty()"><i
-                                        class="bi bi-dash-lg"></i></button>
-                                <input type="number" name="quantity" id="prodQuantity" class="form-control" value="1"
-                                    min="1" max="{{ product.stock_quantity }}">
-                                <button type="button" class="btn btn-link text-dark" onclick="incrementQty()"><i
-                                        class="bi bi-plus-lg"></i></button>
+                        <div class="col-auto">
+                            <label class="ss-form-label">Quantity</label>
+                            <div class="ss-qty-selector">
+                                <button type="button" class="ss-qty-btn" onclick="decrementQty()"><i class="bi bi-dash"></i></button>
+                                <input type="number" name="quantity" id="prodQuantity" class="ss-qty-input" value="1" min="1" max="{{ product.stock_quantity }}">
+                                <button type="button" class="ss-qty-btn" onclick="incrementQty()"><i class="bi bi-plus"></i></button>
                             </div>
                         </div>
-                        <div class="col-sm-8 d-flex align-items-end">
-                            <button type="submit" class="btn btn-ss-primary btn-lg w-100 py-3 rounded-4 shadow-lg">
-                                <i class="bi bi-cart-plus-fill me-2"></i> ADD TO BASKET
+                        <div class="col">
+                            <label class="ss-form-label">&nbsp;</label>
+                            <button type="submit" class="btn btn-ss-primary w-100 py-3 shadow-xl sparkle-hover">
+                                <i class="bi bi-bag-plus-fill me-2 fs-5"></i> ADD TO CART
                             </button>
                         </div>
                     </div>
                 </form>
                 {% else %}
-                <div class="alert alert-warning rounded-4 border-0 py-3">
-                    <i class="bi bi-exclamation-triangle-fill me-2"></i> This item is currently unavailable.
+                <div class="ss-badge ss-badge-danger w-100 text-center py-3 fs-6">
+                    <i class="bi bi-exclamation-triangle-fill me-2"></i> Out of Stock
                 </div>
                 {% endif %}
 
-                <!-- Product Features Mini -->
-                <div class="row g-3 mt-5">
+                <!-- Product Features -->
+                <div class="row g-3 mt-4">
                     <div class="col-6">
-                        <div class="d-flex align-items-center gap-3">
-                            <div class="text-ss-secondary fs-3"><i class="bi bi-truck"></i></div>
-                            <span class="small fw-bold">Fast Local Delivery</span>
+                        <div class="feature-pill">
+                            <i class="bi bi-truck fs-3 text-ss-primary"></i>
+                            <span class="smallest fw-900 text-uppercase tracking-widest">Free Delivery</span>
                         </div>
                     </div>
                     <div class="col-6">
-                        <div class="d-flex align-items-center gap-3">
-                            <div class="text-ss-secondary fs-3"><i class="bi bi-shield-lock"></i></div>
-                            <span class="small fw-bold">Secure Checkout</span>
+                        <div class="feature-pill">
+                            <i class="bi bi-shield-lock fs-3 text-ss-primary"></i>
+                            <span class="smallest fw-900 text-uppercase tracking-widest">Secure Payment</span>
                         </div>
                     </div>
                 </div>
@@ -110,69 +120,100 @@
     </div>
 
     <!-- Reviews Section -->
-    <div class="mt-5 pt-5">
-        <h3 class="fw-900 mb-5 d-flex align-items-center gap-3">
-            Customer Reviews <span class="badge bg-light text-muted fs-6 rounded-pill px-3">{{ product.reviews|length
-                }}</span>
-        </h3>
+    <div class="mt-5 pt-4">
+        <div class="d-flex justify-content-between align-items-end mb-4">
+            <div>
+                <h3 class="fw-900 text-ss-main mb-1">Customer Reviews</h3>
+                <p class="text-muted smallest fw-900 text-uppercase tracking-widest opacity-50">What our customers say</p>
+            </div>
+            <span class="badge bg-ss-primary bg-opacity-10 text-ss-primary rounded-pill px-4 py-2 fw-900 smallest">
+                {{ product.reviews|length }} REVIEWS
+            </span>
+        </div>
 
-        <div class="row g-4 mb-5">
+        <div class="row g-3 g-md-4 mb-5">
             {% if product.reviews %}
             {% for review in product.reviews|sort(attribute='created_at', reverse=True) %}
-            <div class="col-md-6 page-transition delay-1">
-                <div class="ss-review-card h-100">
+            <div class="col-md-6">
+                <div class="ss-review-card h-100 animate-fade-in">
                     <div class="d-flex justify-content-between align-items-start mb-3">
-                        <div>
-                            <h6 class="fw-bold mb-1">{{ review.user.username }}</h6>
-                            <div class="text-ss-accent small">
-                                {% for i in range(review.rating) %}<i class="bi bi-star-fill"></i>{% endfor %}
-                                {% for i in range(5 - review.rating) %}<i class="bi bi-star text-muted"></i>{% endfor %}
+                        <div class="d-flex align-items-center gap-3">
+                            <div class="rounded-circle bg-ss-primary bg-opacity-10 text-ss-primary d-flex align-items-center justify-content-center fw-900" style="width: 40px; height: 40px;">
+                                {{ review.user.username[0]|upper }}
+                            </div>
+                            <div>
+                                <h6 class="fw-900 mb-0 text-ss-main small">{{ review.user.username }}</h6>
+                                <div class="text-ss-primary" style="font-size: 0.65rem;">
+                                    {% for i in range(review.rating) %}<i class="bi bi-star-fill"></i>{% endfor %}
+                                    {% for i in range(5 - review.rating) %}<i class="bi bi-star opacity-20"></i>{% endfor %}
+                                </div>
                             </div>
                         </div>
-                        <span class="smallest text-muted">{{ review.created_at.strftime('%d %b %Y') }}</span>
+                        <span class="smallest fw-800 text-muted opacity-50">{{ review.created_at.strftime('%d %b %Y') }}</span>
                     </div>
-                    <p class="text-muted mb-0 small">{{ review.comment }}</p>
+                    <p class="text-muted mb-0 small fw-500">{{ review.comment }}</p>
                 </div>
             </div>
             {% endfor %}
             {% else %}
             <div class="col-12">
-                <div class="glass-panel p-5 text-center rounded-4 border-dashed">
-                    <p class="text-muted mb-0">No reviews yet. Be the first to share your experience!</p>
+                <div class="glass-panel p-5 text-center rounded-4 border-dashed opacity-40">
+                    <i class="bi bi-chat-left-dots fs-1 mb-3 d-block"></i>
+                    <p class="fw-900 text-uppercase tracking-widest smallest">No reviews yet.</p>
                 </div>
             </div>
             {% endif %}
         </div>
 
         {% if current_user.is_authenticated and current_user.role == 'customer' %}
-        <div class="card border-0 glass-panel p-4 rounded-4 shadow-sm mb-5">
-            <h4 class="fw-bold mb-4">Write a Review</h4>
+        <div class="ss-card p-4 p-md-5 mt-5">
+            <h4 class="fw-900 text-ss-main mb-4">Write a Review</h4>
             <form action="{{ url_for('customer.submit_review', product_id=product.id) }}" method="POST">
                 <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
-                <div class="mb-3">
-                    <label class="form-label small fw-bold text-muted">Rating</label>
-                    <div class="d-flex gap-2">
+                <div class="mb-4">
+                    <label class="ss-form-label">Rating</label>
+                    <div class="d-flex gap-3 bg-ss-main bg-opacity-10 p-2 rounded-pill justify-content-center border border-ss-main border-opacity-10">
                         {% for i in range(1, 6) %}
-                        <div class="form-check form-check-inline">
-                            <input class="form-check-input" type="radio" name="rating" id="rating{{ i }}"
-                                value="{{ i }}" required>
-                            <label class="form-check-label" for="rating{{ i }}">{{ i }} <i
-                                    class="bi bi-star-fill text-ss-accent"></i></label>
+                        <div class="form-check form-check-inline m-0">
+                            <input class="form-check-input d-none" type="radio" name="rating" id="rating{{ i }}" value="{{ i }}" required>
+                            <label class="form-check-label fw-900 smallest text-ss-main py-2 px-3 rounded-pill cursor-pointer rating-label" for="rating{{ i }}">
+                                {{ i }} <i class="bi bi-star-fill text-ss-primary"></i>
+                            </label>
                         </div>
                         {% endfor %}
                     </div>
                 </div>
                 <div class="mb-4">
-                    <label class="form-label small fw-bold text-muted">Your Comment</label>
-                    <textarea name="comment" class="form-control rounded-3" rows="3"
-                        placeholder="What do you think about this product?"></textarea>
+                    <label class="ss-form-label">Your Review</label>
+                    <textarea name="comment" class="ss-input w-100" rows="4" placeholder="Share your experience with this product..."></textarea>
                 </div>
-                <button type="submit" class="btn btn-ss-primary px-5 py-2">Submit Review</button>
+                <button type="submit" class="btn btn-ss-primary px-5 py-3 shadow-xl sparkle-hover">
+                    SUBMIT REVIEW <i class="bi bi-send-fill ms-2"></i>
+                </button>
             </form>
         </div>
         {% endif %}
     </div>
 </div>
+
+<!-- Mobile Sticky Add to Cart -->
+{% if not current_user.is_authenticated or current_user.role == 'customer' %}
+    {% if product.stock_quantity > 0 %}
+    <div class="sticky-mobile-cta d-lg-none" id="stickyAddToCart">
+        <div class="d-flex align-items-center justify-content-between gap-3">
+            <div>
+                <small class="smallest fw-900 text-muted d-block opacity-60">TOTAL</small>
+                <div class="fw-900 text-ss-main h4 mb-0">₹{{ "{:,.0f}".format(product.selling_price) }}</div>
+            </div>
+            <button type="button" onclick="document.getElementById('addToCartForm').submit()" class="btn btn-ss-primary flex-grow-1 py-3 shadow-xl">
+                <i class="bi bi-cart-plus-fill me-2 fs-5"></i> ADD TO CART
+            </button>
+        </div>
+    </div>
+    {% endif %}
+{% endif %}
+
+
 
 <script>
     function incrementQty() {
@@ -188,9 +229,19 @@
             input.value = parseInt(input.value) - 1;
         }
     }
-</script>
-{% endblock %}
 
-{% block extra_css %}
-<link rel="stylesheet" href="{{ url_for('static', filename='css/customer/product_detail.css') }}">
+    // Scroll listener for sticky CTA
+    window.addEventListener('scroll', function() {
+        const sticky = document.getElementById('stickyAddToCart');
+        const mainForm = document.getElementById('addToCartForm');
+        if (!sticky || !mainForm) return;
+
+        const formRect = mainForm.getBoundingClientRect();
+        if (formRect.bottom < 0) {
+            sticky.style.display = 'block';
+        } else {
+            sticky.style.display = 'none';
+        }
+    });
+</script>
 {% endblock %}

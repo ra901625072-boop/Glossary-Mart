@@ -3,17 +3,60 @@ from datetime import datetime, timedelta
 from flask import (Response, current_app, flash, jsonify, make_response,
                    redirect, render_template, request, url_for)
 
-from app.models import Category, Coupon, Order, Product, Purchase, Sale, Supplier, User, db
+from app.models import db
+from app.models.user import ActivityLog, User
+from app.models.product import Category, Product, Sale
+from app.models.order import Order, OrderItem
+from app.models.inventory import Supplier, Purchase
+from app.models.promotion import Coupon, Notification
+from app.services.inventory_service import InventoryService
 from app.services.storage_service import StorageService
-from app.utils import (allowed_file, get_chart_data, get_monthly_comparison,
-                   get_sales_stats, get_stock_stats, get_yearly_comparison)
+from app.services.stats_service import (
+    get_chart_data, get_monthly_comparison, get_sales_stats, 
+    get_stock_stats, get_yearly_comparison
+)
+from app.services.export_service import generate_sales_csv, generate_sales_pdf
+from app.utils.files import allowed_file
 
 from . import admin_bp
 from .decorators import admin_required
-from .forms import CategoryForm, ProductForm, PurchaseForm, SupplierForm
+from app.forms.admin import CategoryForm, ProductForm, PurchaseForm, SupplierForm
 
 
-@admin_bp.route('/admin')
+# ---------------------------------------------------------------------------
+# Helpers
+# ---------------------------------------------------------------------------
+
+def _log_action(action: str, entity_type: str, entity_id: int, details: str = "") -> None:
+    """Persist an audit log entry for a critical admin action."""
+    from flask import request as flask_request
+    from flask_login import current_user
+    try:
+        ip = flask_request.remote_addr
+    except RuntimeError:
+        ip = None
+    db.session.add(ActivityLog(
+        user_id=current_user.id if current_user and current_user.is_authenticated else None,
+        action=action,
+        entity_type=entity_type,
+        entity_id=entity_id,
+        details=details,
+        ip_address=ip,
+    ))
+
+
+def _create_notification(title: str, message: str, notif_type: str = "info", link: str = None) -> None:
+    """Create a broadcast admin notification (not user-specific)."""
+    db.session.add(Notification(
+        user_id=None,
+        title=title,
+        message=message,
+        notif_type=notif_type,
+        link=link,
+    ))
+
+
+@admin_bp.route('/')
 @admin_required
 def admin_base():
     """Redirect /admin to /admin/dashboard"""
@@ -43,7 +86,7 @@ def dashboard():
     ).scalar() or 0
     
     # Calculate total order profit via OrderItem (since Order.total_profit is a property)
-    from app.models import OrderItem
+    # OrderItem already imported at module level
     total_order_profit = db.session.query(
         func.coalesce(func.sum(OrderItem.profit), 0)
     ).join(Order).filter(
@@ -158,15 +201,17 @@ def delete_product(product_id):
         return redirect(url_for('admin.products'))
         
     name = product.name
-    
+
     try:
         product.is_active = False
+        _log_action('DEACTIVATE_PRODUCT', 'Product', product_id,
+                    details=f'Product "{name}" soft-deleted.')
         db.session.commit()
         flash(f'Product "{name}" has been disabled.', 'success')
     except Exception as e:
         db.session.rollback()
         flash(f'Error disabling product: {str(e)}', 'danger')
-    
+
     return redirect(url_for('admin.products'))
 
 @admin_bp.route('/sales', methods=['GET', 'POST'])
@@ -189,23 +234,26 @@ def sales():
         if not product:
             flash("Product not found.", "danger")
             return redirect(url_for('admin.sales'))
-        
+
         if product.stock_quantity < quantity:
             flash(f'Insufficient stock! Only {product.stock_quantity} units available.', 'danger')
             return redirect(url_for('admin.sales'))
-        
+
         total_price = product.selling_price * quantity
         profit = (product.selling_price - product.cost_price) * quantity
-        
+
         sale = Sale(
             product_id=product_id,
             quantity=quantity,
             total_price=total_price,
             profit=profit
         )
-        
-        product.stock_quantity -= quantity
-        
+
+        ok, msg = InventoryService.deduct_stock(product_id, quantity, triggered_by='manual_sale')
+        if not ok:
+            flash(msg, 'danger')
+            return redirect(url_for('admin.sales'))
+
         try:
             db.session.add(sale)
             db.session.commit()
@@ -214,7 +262,7 @@ def sales():
         except Exception as e:
             db.session.rollback()
             flash(f'Error recording sale: {str(e)}', 'danger')
-        
+
         return redirect(url_for('admin.sales'))
     
     products = db.session.query(Product).filter(Product.stock_quantity > 0).order_by(Product.name).all()
@@ -231,7 +279,7 @@ def sales_history():
 @admin_required
 def export_sales():
     """Export sales data as CSV or PDF"""
-    from app.utils import generate_sales_csv, generate_sales_pdf
+    # Services already imported at module level
     
     start_date_str = request.args.get('start_date')
     end_date_str = request.args.get('end_date')
@@ -319,43 +367,76 @@ def admin_order_detail(order_id):
 @admin_required
 def update_order_status(order_id):
     """Update order status"""
-    ALLOWED_ORDER_STATUS = ['Pending', 'Processing', 'Shipped', 'Delivered', 'Cancelled']
-    ALLOWED_PAYMENT_STATUS = ['Pending', 'Paid', 'Failed']
-    
+    ALLOWED_ORDER_STATUS = [
+        'Pending', 'Processing', 'Packed',
+        'Out for Delivery', 'Delivered', 'Cancelled', 'Returned'
+    ]
+    ALLOWED_PAYMENT_STATUS = ['Pending', 'Paid', 'Failed', 'Refunded']
+
+    # State-machine: defines valid forward transitions
+    VALID_TRANSITIONS = {
+        'Pending':          {'Processing', 'Cancelled'},
+        'Processing':       {'Packed', 'Cancelled'},
+        'Packed':           {'Out for Delivery', 'Cancelled'},
+        'Out for Delivery': {'Delivered', 'Returned'},
+        'Delivered':        {'Returned'},
+        'Cancelled':        set(),  # Terminal
+        'Returned':         set(),  # Terminal
+    }
+
     order = db.session.get(Order, order_id)
     if not order:
         flash("Order not found.", "danger")
         return redirect(url_for('admin.admin_orders'))
-        
+
     new_status = request.form.get('order_status')
     payment_status = request.form.get('payment_status')
-    
+
     if new_status and new_status not in ALLOWED_ORDER_STATUS:
-        flash(f'Invalid order status. Allowed: {", ".join(ALLOWED_ORDER_STATUS)}', 'danger')
+        flash(f'Invalid order status.', 'danger')
         return redirect(url_for('admin.admin_order_detail', order_id=order_id))
-    
+
     if payment_status and payment_status not in ALLOWED_PAYMENT_STATUS:
-        flash(f'Invalid payment status. Allowed: {", ".join(ALLOWED_PAYMENT_STATUS)}', 'danger')
+        flash(f'Invalid payment status.', 'danger')
         return redirect(url_for('admin.admin_order_detail', order_id=order_id))
-    
-    # Restore stock if order is being cancelled
-    if new_status == 'Cancelled' and order.order_status != 'Cancelled':
-        for item in order.order_items:
-            if item.product:
-                item.product.stock_quantity += item.quantity
-    
+
+    if new_status and new_status != order.order_status:
+        allowed = VALID_TRANSITIONS.get(order.order_status, set())
+        if new_status not in allowed:
+            flash(
+                f'Invalid transition: cannot move order from "{order.order_status}" '
+                f'to "{new_status}". Allowed next states: {", ".join(allowed) or "None"}.',
+                'danger'
+            )
+            return redirect(url_for('admin.admin_order_detail', order_id=order_id))
+
+    # Restore stock on Cancellation or Return (only on first transition)
+    if new_status in ('Cancelled', 'Returned') and order.order_status not in ('Cancelled', 'Returned'):
+        InventoryService.restore_order_stock(order)
+
+    prev_status = order.order_status
+    prev_payment = order.payment_status
+
     if new_status:
         order.order_status = new_status
     if payment_status:
         order.payment_status = payment_status
-    
+
+    _log_action(
+        'UPDATE_ORDER_STATUS', 'Order', order_id,
+        details=(
+            f'Status: {prev_status} → {order.order_status} | '
+            f'Payment: {prev_payment} → {order.payment_status}'
+        )
+    )
+
     try:
         db.session.commit()
-        flash(f'Order #{order.id} status updated successfully!', 'success')
+        flash(f'Order #{order.id} updated: {order.order_status} / {order.payment_status}', 'success')
     except Exception as e:
         db.session.rollback()
         flash(f'Error updating order: {str(e)}', 'danger')
-    
+
     return redirect(url_for('admin.admin_order_detail', order_id=order_id))
 
 @admin_bp.route('/api/product/<int:product_id>')
@@ -664,10 +745,17 @@ def pos_checkout():
             if product and product.stock_quantity >= item['qty']:
                 qty = item['qty']
                 profit = (product.selling_price - product.cost_price) * qty
+                ok, msg = InventoryService.deduct_stock(product.id, qty, triggered_by='pos')
+                if not ok:
+                    db.session.rollback()
+                    return jsonify({'success': False, 'error': msg})
                 sale = Sale(product_id=product.id, quantity=qty, total_price=product.selling_price * qty, profit=profit)
-                product.stock_quantity -= qty
                 db.session.add(sale)
                 total_paid += float(product.selling_price * qty)
+            else:
+                db.session.rollback()
+                name = product.name if product else f'Product #{item["id"]}'
+                return jsonify({'success': False, 'error': f'Insufficient stock for {name}.'})
         db.session.commit()
         return jsonify({'success': True, 'total': total_paid})
     except Exception as e:
@@ -679,3 +767,79 @@ def pos_checkout():
 def coupons():
     coupons = db.session.query(Coupon).all()
     return render_template('admin/coupons.html', coupons=coupons)
+
+
+# ---------------------------------------------------------------------------
+# Notification API
+# ---------------------------------------------------------------------------
+
+@admin_bp.route('/api/notifications')
+@admin_required
+def api_notifications():
+    """Return the 20 most recent admin notifications with unread count."""
+    notifications = (
+        db.session.query(Notification)
+        .filter(Notification.user_id.is_(None))   # Broadcast notifications
+        .order_by(Notification.created_at.desc())
+        .limit(20)
+        .all()
+    )
+    unread_count = db.session.query(Notification).filter(
+        Notification.user_id.is_(None),
+        Notification.is_read == False
+    ).count()
+
+    return jsonify({
+        'unread_count': unread_count,
+        'notifications': [
+            {
+                'id': n.id,
+                'title': n.title,
+                'message': n.message,
+                'notif_type': n.notif_type,
+                'is_read': n.is_read,
+                'link': n.link or '',
+                'created_at': n.created_at.strftime('%d %b %Y, %I:%M %p'),
+            }
+            for n in notifications
+        ],
+    })
+
+
+@admin_bp.route('/api/notifications/mark-read', methods=['POST'])
+@admin_required
+def api_notifications_mark_read():
+    """Mark all broadcast notifications as read."""
+    db.session.query(Notification).filter(
+        Notification.user_id.is_(None),
+        Notification.is_read == False
+    ).update({'is_read': True}, synchronize_session=False)
+    db.session.commit()
+    return jsonify({'success': True})
+
+
+# ---------------------------------------------------------------------------
+# Activity Log Viewer
+# ---------------------------------------------------------------------------
+
+@admin_bp.route('/activity-log')
+@admin_required
+def activity_log():
+    """Admin audit log viewer — last 200 entries, filterable by action."""
+    action_filter = request.args.get('action', '')
+    query = db.session.query(ActivityLog).order_by(ActivityLog.created_at.desc())
+    if action_filter:
+        query = query.filter(ActivityLog.action == action_filter)
+    logs = query.limit(200).all()
+
+    # Distinct action types for filter dropdown
+    action_types = [
+        row[0] for row in
+        db.session.query(ActivityLog.action).distinct().order_by(ActivityLog.action).all()
+    ]
+    return render_template(
+        'admin/activity_log.html',
+        logs=logs,
+        action_types=action_types,
+        action_filter=action_filter,
+    )

@@ -1,81 +1,93 @@
 {% extends 'base.html' %}
 
-{% block title %}Order Synopsis - Jay Goga Kirana Store{% endblock %}
+{% block title %}My Orders — Jay Goga Kirana Store{% endblock %}
 
 {% block content %}
-<div class="container my-5 orders-container">
+<div class="container my-4 my-md-5">
     <!-- Header -->
-    <div class="row align-items-center mb-5">
-        <div class="col-md-8">
-            <div class="d-flex align-items-center mb-2">
-                <div class="bg-ss-accent rounded-pill me-3" style="width: 5px; height: 32px;"></div>
-                <h1 class="display-5 fw-900 text-ss-main mb-0">Order Synopsis</h1>
+    <div class="row align-items-center mb-4">
+        <div class="col">
+            <div class="d-flex align-items-center mb-1">
+                <div class="bg-ss-accent rounded-pill me-3" style="width:4px;height:28px;"></div>
+                <h1 class="fw-900 text-ss-main mb-0">My Orders</h1>
             </div>
-            <p class="text-muted mb-0 ps-4 fs-5">{{ orders|length }} acquisitions recorded in your artisanal history.</p>
+            <p class="text-muted mb-0 ps-4 small">
+                {{ orders|length }} order{% if orders|length != 1 %}s{% endif %} placed
+            </p>
+        </div>
+        <div class="col-auto">
+            <a href="{{ url_for('customer.shop') }}" class="btn btn-ss-ghost btn-sm">
+                <i class="bi bi-shop me-1"></i>Shop More
+            </a>
         </div>
     </div>
 
     {% if orders %}
-    <div class="row g-4">
+    <div class="row g-3 g-md-4">
         {% for order in orders %}
-        <div class="col-lg-6">
-            <div class="ss-order-card">
-                <div class="d-flex justify-content-between align-items-start mb-4">
+        <div class="col-12 col-md-6">
+            <div class="ss-card border-0 shadow-lg p-4 h-100 ss-order-card">
+                <!-- Order ID + Status -->
+                <div class="d-flex justify-content-between align-items-start mb-3">
                     <div>
-                        <span class="smallest fw-900 text-ss-primary text-uppercase tracking-widest opacity-50 d-block mb-1">Acquisition Reference</span>
-                        <h3 class="fw-900 text-ss-main mb-1">#JG-{{ order.id }}</h3>
-                        <p class="text-muted small mb-0 fw-600">
-                            <i class="bi bi-calendar3 me-2 text-ss-primary"></i> {{ order.created_at.strftime('%B %d, %Y') }}
+                        <span class="smallest fw-900 text-ss-primary text-uppercase tracking-widest opacity-60 d-block mb-1">Order</span>
+                        <h4 class="fw-900 text-ss-main mb-0">#JG-{{ order.id }}</h4>
+                        <p class="text-muted small mb-0 mt-1">
+                            <i class="bi bi-calendar3 me-1 text-ss-primary"></i>
+                            {{ order.created_at.strftime('%d %B %Y') }}
                         </p>
                     </div>
-                    <span class="status-badge-premium {% if order.order_status == 'Delivered' %}bg-ss-success text-white{% elif order.order_status == 'Cancelled' %}bg-danger text-white{% else %}bg-ss-primary text-white{% endif %}">
-                        {{ order.order_status|upper }}
+                    <span class="ss-badge {% if order.order_status == 'Delivered' %}ss-badge-success{% elif order.order_status == 'Cancelled' %}ss-badge-danger{% else %}ss-badge-info{% endif %}">
+                        {{ order.order_status }}
                     </span>
                 </div>
 
-                <div class="order-meta-box mb-4">
+                <!-- Meta -->
+                <div class="glass-panel p-3 mb-3 border-opacity-10">
                     <div class="row g-0">
-                        <div class="col-6 border-end border-ss-main border-opacity-10 px-3">
-                            <span class="order-meta-label">Collection Size</span>
-                            <span class="order-meta-value">{{ order.order_items|length }} Discrete Assets</span>
+                        <div class="col-6 border-end border-opacity-10 pe-3">
+                            <span class="smallest fw-900 text-muted text-uppercase d-block">Items</span>
+                            <span class="fw-900 text-ss-main">{{ order.order_items|length }}</span>
                         </div>
-                        <div class="col-6 px-3">
-                            <span class="order-meta-label text-end d-block">Net Valuation</span>
-                            <span class="order-meta-value text-ss-primary text-end d-block">₹{{ "{:,.0f}".format(order.total_amount) }}</span>
+                        <div class="col-6 ps-3">
+                            <span class="smallest fw-900 text-muted text-uppercase d-block text-end">Total</span>
+                            <span class="fw-900 text-ss-primary d-block text-end">₹{{ "{:,.0f}".format(order.total_amount) }}</span>
                         </div>
                     </div>
                 </div>
 
+                <!-- Footer -->
                 <div class="d-flex justify-content-between align-items-center">
-                    <div class="d-flex align-items-center">
-                        <div class="bg-ss-primary bg-opacity-10 p-2 rounded-circle me-3">
-                            <i class="bi bi-shield-lock text-ss-primary fs-5"></i>
+                    <div class="d-flex align-items-center gap-2">
+                        <div class="bg-ss-primary bg-opacity-10 p-2 rounded-circle">
+                            <i class="bi bi-shield-lock text-ss-primary"></i>
                         </div>
                         <div>
-                            <span class="smallest fw-900 text-muted text-uppercase tracking-widest d-block">{{ order.payment_method }}</span>
-                            <span class="smallest fw-800 {% if order.payment_status == 'Paid' %}text-ss-success{% else %}text-warning{% endif %}">
-                                {{ order.payment_status|upper }}
+                            <span class="smallest fw-900 text-muted text-uppercase d-block">{{ order.payment_method }}</span>
+                            <span class="smallest fw-800 {% if order.payment_status == 'Paid' %}text-success{% else %}text-warning{% endif %}">
+                                {{ order.payment_status }}
                             </span>
                         </div>
                     </div>
                     <a href="{{ url_for('customer.order_detail', order_id=order.id) }}"
                         class="btn btn-ss-primary btn-sm px-4 rounded-pill shadow-lg">
-                        EXAMINE DETAILS
+                        View Details
                     </a>
                 </div>
             </div>
         </div>
         {% endfor %}
     </div>
+
     {% else %}
     <div class="glass-panel text-center py-5 shadow-2xl border-opacity-10">
-        <div class="mb-5 d-inline-flex p-5 rounded-circle bg-ss-primary bg-opacity-5 text-ss-primary">
-            <i class="bi bi-journal-x" style="font-size: 6rem;"></i>
+        <div class="mb-4 d-inline-flex p-4 rounded-circle" style="background:rgba(var(--accent-rgb),0.07);">
+            <i class="bi bi-bag text-ss-primary" style="font-size:4rem;"></i>
         </div>
-        <h2 class="fw-900 text-ss-main mb-3">No History Recorded</h2>
-        <p class="text-muted fs-5 mb-5">Your artisanal journey begins with your first selection.</p>
-        <a href="{{ url_for('customer.shop') }}" class="btn btn-ss-primary btn-lg px-5 py-3 shadow-xl">
-            BEGIN DISCOVERY
+        <h2 class="fw-900 text-ss-main mb-3">No Orders Yet</h2>
+        <p class="text-muted mb-5">Your order history will appear here once you make a purchase.</p>
+        <a href="{{ url_for('customer.shop') }}" class="btn btn-ss-primary btn-lg px-5">
+            <i class="bi bi-shop me-2"></i>Start Shopping
         </a>
     </div>
     {% endif %}

@@ -17,9 +17,10 @@ from flask import (
 from flask_login import current_user, login_user
 from flask_mail import Message
 
-from app.extensions import limiter
-from app.models import User, db
-from app.utils import hash_token
+from app.core.extensions import limiter
+from app.models import db
+from app.models.user import User
+from app.utils.security import hash_token
 
 security_bp = Blueprint("security", __name__, url_prefix="/security")
 

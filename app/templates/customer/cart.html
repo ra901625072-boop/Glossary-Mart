@@ -1,92 +1,96 @@
 {% extends 'base.html' %}
 
-{% block title %}Your Collection - Jay Goga Kirana Store{% endblock %}
+{% block title %}Your Cart — Jay Goga Kirana Store{% endblock %}
 
 {% block extra_css %}
 <link rel="stylesheet" href="{{ url_for('static', filename='css/customer/cart.css') }}">
-<style>
-/* Hide standard number input arrows */
-input[type=number]::-webkit-inner-spin-button, 
-input[type=number]::-webkit-outer-spin-button { 
-  -webkit-appearance: none; 
-  margin: 0; 
-}
-input[type=number] {
-  appearance: textfield;
-  -moz-appearance: textfield;
-}
-</style>
 {% endblock %}
 
 {% block content %}
-<div class="container my-5 cart-container">
+<div class="container my-4 my-md-5">
     <!-- Header -->
-    <div class="row align-items-center mb-5">
-        <div class="col-md-8">
-            <div class="d-flex align-items-center mb-2">
-                <div class="bg-ss-accent rounded-pill me-3" style="width: 5px; height: 32px;"></div>
-                <h1 class="display-5 fw-900 text-ss-main mb-0">Your Collection</h1>
+    <div class="row align-items-center mb-4 animate-fade-in">
+        <div class="col">
+            <div class="d-flex align-items-center mb-1">
+                <div class="bg-ss-primary rounded-pill me-3" style="width:4px;height:28px;"></div>
+                <h1 class="fw-900 text-ss-main mb-0">Your Cart</h1>
             </div>
-            <p class="text-muted mb-0 ps-4 fs-5">{{ cart_items|length }} items curated in your personal selection.</p>
+            <p class="text-muted mb-0 ps-4 smallest fw-700 text-uppercase tracking-widest">
+                {{ cart_items|length }} item{% if cart_items|length != 1 %}s{% endif %} in your cart
+            </p>
+        </div>
+        <div class="col-auto">
+            <a href="{{ url_for('customer.shop') }}" class="btn btn-ss-ghost btn-sm">
+                <i class="bi bi-arrow-left me-1"></i>Continue Shopping
+            </a>
         </div>
     </div>
 
     {% if cart_items %}
-    <div class="row g-5">
-        <!-- Items List -->
-        <div class="col-lg-8">
-            <div class="cart-items-grid">
+    <div class="row g-4">
+        <!-- Cart Items -->
+        <div class="col-lg-8 animate-fade-in">
+            <div class="d-flex flex-column gap-3">
                 {% for item in cart_items %}
-                <div class="ss-cart-card">
-                    <div class="row align-items-center">
-                        <!-- Product Image -->
-                        <div class="col-auto">
-                            <div class="cart-img-box">
-                                {% if item.product.image_path %}
-                                <img src="{{ url_for('static', filename=item.product.image_path) }}"
-                                    alt="{{ item.product.name }}">
-                                {% else %}
-                                <i class="bi bi-box-seam display-6 text-ss-primary opacity-20"></i>
-                                {% endif %}
-                            </div>
+                <div class="ss-card border-0 shadow-lg p-3 p-md-4">
+                    <!-- Mobile-friendly layout: image + info row, then controls row -->
+                    <div class="d-flex align-items-start gap-3">
+                        <!-- Image -->
+                        <div class="cart-img-box">
+                            {% if item.product.image_path %}
+                            <img src="{{ url_for('static', filename=item.product.image_path) }}" alt="{{ item.product.name }}">
+                            {% else %}
+                            <i class="bi bi-box-seam fs-3 text-ss-primary opacity-20"></i>
+                            {% endif %}
                         </div>
 
                         <!-- Product Info -->
-                        <div class="col-md-4 flex-grow-1 px-4 py-3 py-md-0">
-                            <span class="smallest fw-900 text-ss-primary text-uppercase tracking-widest opacity-50 mb-1 d-block">
+                        <div class="flex-grow-1 min-w-0">
+                            <span class="smallest fw-800 text-ss-primary text-uppercase tracking-widest opacity-60 mb-1 d-block">
                                 {{ item.product.category_rel.name if item.product.category_rel else 'Essentials' }}
                             </span>
-                            <h4 class="fw-900 text-ss-main mb-1">{{ item.product.name }}</h4>
-                            <div class="d-flex align-items-center gap-2">
-                                <span class="badge bg-ss-success-subtle text-ss-success px-2 py-1 smallest fw-900">VERIFIED QUALITY</span>
-                                <span class="text-muted small fw-600">₹{{ "{:,.2f}".format(item.product.selling_price) }} / unit</span>
-                            </div>
+                            <h5 class="fw-900 text-ss-main mb-1 text-truncate">{{ item.product.name }}</h5>
+                            <span class="text-muted small">₹{{ "{:,.2f}".format(item.product.selling_price) }} / unit</span>
                         </div>
 
-                        <!-- Quantity Selector -->
-                        <div class="col-md-auto py-2 py-md-0">
-                            <div class="cart-qty-pill">
-                                <form method="POST" action="{{ url_for('customer.update_cart', cart_id=item.id) }}" class="d-flex align-items-center m-0">
-                                    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
-                                    <button type="button" class="btn btn-link text-muted p-0 ms-2" onclick="this.nextElementSibling.stepDown(); this.nextElementSibling.dispatchEvent(new Event('change'));">
-                                        <i class="bi bi-dash-circle fs-4"></i>
-                                    </button>
-                                    <input type="number" name="quantity" class="form-control-sm" value="{{ item.quantity }}" min="1" max="{{ item.product.stock_quantity }}" onchange="this.form.submit()">
-                                    <button type="button" class="btn btn-link text-muted p-0 me-2" onclick="this.previousElementSibling.stepUp(); this.previousElementSibling.dispatchEvent(new Event('change'));">
-                                        <i class="bi bi-plus-circle-fill text-ss-primary fs-4"></i>
-                                    </button>
-                                </form>
-                            </div>
-                        </div>
-
-                        <!-- Price & Remove -->
-                        <div class="col-md-auto text-md-end ps-md-4">
-                            <div class="smallest fw-900 text-muted text-uppercase tracking-widest mb-1 opacity-50">Subtotal</div>
-                            <div class="h4 fw-900 text-ss-main mb-2">₹{{ "{:,.0f}".format(item.subtotal) }}</div>
+                        <!-- Desktop: subtotal + remove (hidden on mobile) -->
+                        <div class="d-none d-md-block text-end flex-shrink-0">
+                            <div class="smallest fw-900 text-muted text-uppercase tracking-widest mb-1">Subtotal</div>
+                            <div class="h5 fw-900 text-ss-main mb-2">₹{{ "{:,.0f}".format(item.subtotal) }}</div>
                             <form method="POST" action="{{ url_for('customer.remove_from_cart', cart_id=item.id) }}">
                                 <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
-                                <button type="submit" class="btn btn-link text-danger p-0 smallest fw-900 text-decoration-none tracking-widest">
-                                    <i class="bi bi-trash3 me-1"></i> REMOVE
+                                <button type="submit" class="btn btn-link text-danger p-0 smallest fw-900 text-decoration-none">
+                                    <i class="bi bi-trash3 me-1"></i>Remove
+                                </button>
+                            </form>
+                        </div>
+                    </div>
+
+                    <!-- Controls row (qty + mobile subtotal/remove) -->
+                    <div class="d-flex align-items-center justify-content-between mt-3 pt-3 border-top border-opacity-10">
+                        <!-- Quantity -->
+                        <div class="ss-qty-selector">
+                            <form method="POST" action="{{ url_for('customer.update_cart', cart_id=item.id) }}" class="d-flex align-items-center m-0">
+                                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                                <button type="button" class="ss-qty-btn" onclick="this.nextElementSibling.stepDown();this.nextElementSibling.dispatchEvent(new Event('change'));" aria-label="Decrease quantity">
+                                    <i class="bi bi-dash"></i>
+                                </button>
+                                <input type="number" name="quantity" class="ss-qty-input"
+                                    value="{{ item.quantity }}" min="1" max="{{ item.product.stock_quantity }}"
+                                    onchange="this.form.submit()" aria-label="Quantity">
+                                <button type="button" class="ss-qty-btn" onclick="this.previousElementSibling.stepUp();this.previousElementSibling.dispatchEvent(new Event('change'));" aria-label="Increase quantity">
+                                    <i class="bi bi-plus"></i>
+                                </button>
+                            </form>
+                        </div>
+
+                        <!-- Mobile: subtotal + remove -->
+                        <div class="d-md-none d-flex align-items-center gap-3">
+                            <div class="h6 fw-900 text-ss-main mb-0">₹{{ "{:,.0f}".format(item.subtotal) }}</div>
+                            <form method="POST" action="{{ url_for('customer.remove_from_cart', cart_id=item.id) }}">
+                                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                                <button type="submit" class="btn btn-link text-danger p-0 smallest fw-900 text-decoration-none">
+                                    <i class="bi bi-trash3"></i>
                                 </button>
                             </form>
                         </div>
@@ -94,69 +98,60 @@ input[type=number] {
                 </div>
                 {% endfor %}
             </div>
-
-            <!-- Shop Link -->
-            <div class="mt-5">
-                <a href="{{ url_for('customer.shop') }}" class="btn btn-ss-low px-5 py-3 shadow-sm">
-                    <i class="bi bi-arrow-left me-3"></i> CONTINUE EXPLORING
-                </a>
-            </div>
         </div>
 
-        <!-- Sidebar Summary -->
+        <!-- Order Summary Sidebar -->
         <div class="col-lg-4">
-            <div class="cart-summary-card shadow-2xl">
-                <h3 class="fw-900 text-ss-main mb-5">Order Synopsis</h3>
+            <div class="ss-card border-0 shadow-2xl p-4 checkout-sticky-summary" style="position:sticky;top:90px;">
+                <h4 class="fw-900 text-ss-main mb-4 text-uppercase tracking-widest border-bottom border-opacity-10 pb-3">
+                    Order Summary
+                </h4>
 
-                <div class="space-y-4 mb-5">
+                <div class="mb-4 d-flex flex-column gap-2">
                     <div class="d-flex justify-content-between">
-                        <span class="text-muted fw-500">Items ({{ cart_items|length }})</span>
+                        <span class="smallest fw-800 text-muted text-uppercase">Items ({{ cart_items|length }})</span>
                         <span class="fw-800 text-ss-main">₹{{ "{:,.2f}".format(total) }}</span>
                     </div>
                     <div class="d-flex justify-content-between">
-                        <span class="text-muted fw-500">Service & Handling</span>
-                        <span class="text-ss-success fw-900">COMPLIMENTARY</span>
-                    </div>
-                    <div class="d-flex justify-content-between">
-                        <span class="text-muted fw-500">Priority Tax (GST)</span>
-                        <span class="fw-800 text-ss-main">INCLUSIVE</span>
+                        <span class="smallest fw-800 text-muted text-uppercase">Delivery</span>
+                        <span class="text-ss-primary fw-900 smallest">FREE</span>
                     </div>
                 </div>
 
-                <div class="cart-total-display mb-5">
-                    <div class="d-flex justify-content-between align-items-end">
+                <div class="ss-card border-0 p-4 mb-4" style="background:rgba(var(--accent-rgb),0.07);">
+                    <div class="d-flex justify-content-between align-items-center">
                         <div>
-                            <small class="smallest fw-900 text-uppercase tracking-widest text-muted d-block mb-1">TOTAL VALUATION</small>
-                            <h1 class="display-4 fw-900 text-ss-main mb-0">₹{{ "{:,.0f}".format(total) }}</h1>
+                            <small class="smallest fw-900 text-uppercase text-muted d-block mb-1">Total</small>
+                            <h2 class="fw-900 text-ss-main mb-0">₹{{ "{:,.0f}".format(total) }}</h2>
                         </div>
-                        <div class="bg-ss-accent-subtle p-2 rounded-circle mb-2">
-                            <i class="bi bi-shield-check text-ss-accent fs-3"></i>
+                        <div class="bg-ss-primary bg-opacity-10 p-3 rounded-circle">
+                            <i class="bi bi-shield-check text-ss-primary fs-4"></i>
                         </div>
                     </div>
                 </div>
 
-                <a href="{{ url_for('customer.checkout') }}" class="btn btn-ss-primary btn-lg w-100 py-4 shadow-xl fs-5">
-                    PROCEED TO CHECKOUT <i class="bi bi-chevron-right ms-2"></i>
+                <a href="{{ url_for('customer.checkout') }}" class="btn btn-ss-primary btn-lg w-100 py-3 shadow-xl sparkle-hover mb-3">
+                    <i class="bi bi-bag-check me-2"></i>PROCEED TO CHECKOUT
                 </a>
-
-                <div class="mt-4 text-center">
-                    <p class="smallest fw-800 text-muted text-uppercase tracking-widest mb-0">
-                        <i class="bi bi-lock-fill me-2 text-ss-primary"></i> Secure Artisanal Transaction
-                    </p>
-                </div>
+                <p class="smallest fw-800 text-muted text-uppercase text-center tracking-widest mb-0 opacity-60">
+                    <i class="bi bi-lock-fill me-1 text-ss-primary"></i>Secure Transaction
+                </p>
             </div>
         </div>
     </div>
+
     {% else %}
     <!-- Empty State -->
-    <div class="glass-panel text-center py-5 shadow-2xl border-opacity-10 mt-5">
-        <div class="mb-5 d-inline-flex p-5 rounded-circle bg-ss-primary bg-opacity-5 text-ss-primary">
-            <i class="bi bi-bag-plus" style="font-size: 6rem;"></i>
+    <div class="ss-card text-center py-5 shadow-2xl border-0 mt-4 animate-fade-in">
+        <div class="mb-4 d-inline-flex p-5 rounded-circle" style="background:rgba(var(--accent-rgb),0.07);">
+            <i class="bi bi-bag-plus text-ss-primary" style="font-size:5rem;"></i>
         </div>
-        <h2 class="fw-900 text-ss-main mb-3">Your Collection is Waiting</h2>
-        <p class="text-muted fs-5 mb-5">Discover our curated selection of fresh essentials and artisan goods.</p>
-        <a href="{{ url_for('customer.shop') }}" class="btn btn-ss-primary btn-lg px-5 py-3 shadow-xl">
-            BEGIN DISCOVERY
+        <h2 class="fw-900 text-ss-main mb-3">Your Cart is Empty</h2>
+        <p class="text-muted smallest fw-800 text-uppercase tracking-widest mb-5 opacity-60">
+            Browse our fresh selection and add items to get started
+        </p>
+        <a href="{{ url_for('customer.shop') }}" class="btn btn-ss-primary btn-lg px-5 shadow-xl sparkle-hover">
+            <i class="bi bi-shop me-2"></i>Start Shopping
         </a>
     </div>
     {% endif %}

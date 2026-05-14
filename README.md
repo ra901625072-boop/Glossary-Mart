@@ -151,20 +151,28 @@ Visit **http://localhost:5000** in your web browser.
 ```
 mart/
 │
-├── app.py                      # Main Flask application entry point
+├── run.py                      # Main Flask application entry point
 ├── config.py                   # Configuration (loads from .env)
-├── models.py                   # SQLAlchemy database models (8 models)
-├── utils.py                    # Analytics, PDF/CSV generation, helpers
+├── app/                        # Application package
+│   ├── __init__.py             # Blueprint registration & app factory
+│   ├── models.py               # SQLAlchemy database models (12 models)
+│   ├── utils.py                # Analytics, PDF/CSV generation, helpers
+│   ├── extensions.py           # Flask extensions (Limiter, etc.)
+│   ├── services/               # Business logic (Cart, Order, Storage)
+│   ├── routes/                 # Flask Blueprints (modular routing)
+│   │   ├── auth.py             # Authentication routes
+│   │   ├── admin.py            # Admin routes
+│   │   ├── customer.py         # Customer routes
+│   │   ├── security.py         # 2FA & Security routes
+│   │   └── decorators.py       # Role-based access decorators
+│   └── templates/              # Jinja2 HTML templates
+│       ├── admin/              # Admin panel templates
+│       ├── customer/           # Customer storefront templates
+│       └── base.html           # Main layout
+├── static/                     # Static assets (CSS, JS, Images)
 ├── requirements.txt            # Python dependencies
 ├── .env                        # Environment variables
-├── .gitignore                  # Git ignore rules
-│
-├── routes/                     # Flask Blueprints (modular routing)
-│   ├── __init__.py             # Blueprint registration (auth, admin, customer)
-│   ├── auth.py                 # Authentication routes (login, register, logout)
-│   ├── admin.py                # Admin routes (dashboard, products, sales, orders)
-│   ├── customer.py             # Customer routes (shop, cart, checkout, orders)
-│   └── decorators.py           # Role-based access decorators
+└── .gitignore                  # Git ignore rules
 │
 ├── templates/                  # Jinja2 HTML templates
 │   ├── base.html               # Customer-facing base layout

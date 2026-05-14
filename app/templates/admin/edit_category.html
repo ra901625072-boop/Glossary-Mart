@@ -1,59 +1,48 @@
 {% extends 'admin/admin_base.html' %}
 
-{% block title %}Edit Category - Jay Goga Admin{% endblock %}
+{% block title %}Edit Category — Jay Goga Admin{% endblock %}
 
 {% block content %}
-<div class="container-fluid px-4 py-4">
-    <div class="row mb-5">
+<div class="container-fluid px-3 px-md-4 py-4 page-transition">
+    <div class="row mb-4 animate-fade-in">
         <div class="col-12 text-center">
-            <div class="bg-ss-secondary bg-opacity-10 d-inline-block p-4 rounded-circle mb-4">
-                <i class="bi bi-pencil-square display-4 text-ss-secondary opacity-50"></i>
+            <div class="bg-ss-primary bg-opacity-10 d-inline-block p-3 rounded-circle mb-3">
+                <i class="bi bi-pencil-square h1 text-ss-primary opacity-30"></i>
             </div>
-            <h1 class="h3 fw-900 text-ss-primary mb-1 text-uppercase tracking-wider">
-                Update Category
-            </h1>
-            <p class="text-muted smallest fw-bold text-uppercase tracking-widest opacity-75 mb-0">Modify category details for "{{ category.name }}"</p>
+            <h1 class="h3 fw-900 text-ss-main mb-1">Edit Category</h1>
+            <p class="text-muted smallest fw-900 text-uppercase tracking-widest opacity-50 mb-0">Update details for "{{ category.name }}"</p>
         </div>
     </div>
 
     <div class="row justify-content-center">
-        <div class="col-xl-6">
-            <div class="glass-panel border-0 shadow-2xl p-5">
+        <div class="col-lg-6 col-xl-5">
+            <div class="ss-card border-0 shadow-lg p-4 p-md-5">
                 <form method="POST" class="needs-validation" novalidate>
                     {{ form.hidden_tag() }}
 
                     <div class="mb-4">
-                        <label class="form-label smallest fw-900 text-ss-primary text-uppercase tracking-wider">
-                            Category Name <span class="text-danger">*</span>
-                        </label>
-                        {{ form.name(class="form-control bg-light border-0 py-3 px-4 rounded-4 shadow-none", placeholder="e.g. ORGANIC PRODUCE") }}
-                        <div class="smallest fw-bold text-muted text-uppercase tracking-widest opacity-50 mt-1">Unique directory identifier.</div>
-                        {% if form.name.errors %}
-                            {% for error in form.name.errors %}
-                                <div class="text-danger smallest mt-1 fw-bold">{{ error }}</div>
-                            {% endfor %}
-                        {% endif %}
+                        {{ form.name.label(class="ss-form-label") }}
+                        {{ form.name(class="ss-input w-100") }}
+                        {% for error in form.name.errors %}
+                            <div class="text-danger smallest mt-1 fw-bold">{{ error }}</div>
+                        {% endfor %}
                     </div>
 
                     <div class="mb-5">
-                        <label class="form-label smallest fw-900 text-ss-primary text-uppercase tracking-wider">
-                            Description
-                        </label>
-                        {{ form.description(class="form-control bg-light border-0 py-3 px-4 rounded-4 shadow-none", rows="4", placeholder="Specify what goes into this grouping...") }}
-                        {% if form.description.errors %}
-                            {% for error in form.description.errors %}
-                                <div class="text-danger smallest mt-1 fw-bold">{{ error }}</div>
-                            {% endfor %}
-                        {% endif %}
+                        {{ form.description.label(class="ss-form-label") }}
+                        {{ form.description(class="ss-input w-100", rows="3") }}
+                        {% for error in form.description.errors %}
+                            <div class="text-danger smallest mt-1 fw-bold">{{ error }}</div>
+                        {% endfor %}
                     </div>
 
-                    <div class="d-flex align-items-center gap-4">
+                    <div class="d-flex flex-column flex-sm-row align-items-center gap-3">
                         <a href="{{ url_for('admin.categories') }}"
-                            class="btn btn-ss-outline px-4 py-3 rounded-pill fw-900 tracking-widest flex-grow-1">
-                            Cancel
+                            class="btn btn-ss-ghost w-100 w-sm-auto px-4 py-3 smallest fw-900 tracking-widest order-2 order-sm-1">
+                            CANCEL
                         </a>
-                        <button type="submit" class="btn btn-ss-primary px-5 py-3 rounded-pill flex-grow-1 fw-900 tracking-widest shadow-xl sparkle-hover">
-                            <i class="bi bi-shield-check me-2 fs-5"></i> Update Category
+                        <button type="submit" class="btn btn-ss-primary w-100 w-sm-auto px-5 py-3 shadow-xl sparkle-hover flex-grow-1 fw-900 tracking-widest order-1 order-sm-2">
+                            UPDATE CATEGORY
                         </button>
                     </div>
                 </form>
@@ -61,8 +50,4 @@
         </div>
     </div>
 </div>
-{% endblock %}
-
-{% block extra_css %}
-<link rel="stylesheet" href="{{ url_for('static', filename='css/admin/categories.css') }}">
 {% endblock %}

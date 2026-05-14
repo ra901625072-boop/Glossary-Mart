@@ -9,10 +9,13 @@ __pycache__/
 *$py.class
 *.so
 
-# Database
+# Database & Instance
 *.db
 *.sqlite
 *.sqlite3
+instance/
+logs/
+*.log
 
 # Uploads
 static/uploads/*

@@ -6,11 +6,14 @@ from flask_login import current_user, login_required, login_user, logout_user
 from werkzeug.security import check_password_hash, generate_password_hash
 from flask_mail import Message
 
-from app.extensions import limiter
-from app.models import User, db, Cart, Product
+from app.core.extensions import limiter
+from app.models import db
+from app.models.user import User
+from app.models.order import Cart
+from app.models.product import Product
+from app.forms.auth import LoginForm, RegistrationForm
+from app.utils.security import hash_token
 from . import auth_bp
-from .forms import LoginForm, RegistrationForm
-from app.utils import hash_token
 
 def merge_session_cart(user):
     """Merge guest session cart into user's DB cart"""

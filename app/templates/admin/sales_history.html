@@ -1,158 +1,124 @@
 {% extends 'admin/admin_base.html' %}
 
-{% block title %}Sales History - Jay Goga Kirana Store Management{% endblock %}
+{% block title %}Sales History — Jay Goga Admin{% endblock %}
 
 {% block content %}
-<div class="container-fluid px-4 py-4">
-    <div class="d-flex justify-content-between align-items-center mb-5">
-        <div>
-            <h1 class="h3 fw-900 text-ss-primary mb-1 text-uppercase tracking-wider">
-                <i class="bi bi-clock-history me-2"></i>Sales History
-            </h1>
-            <p class="text-muted smallest fw-bold text-uppercase tracking-widest opacity-75 mb-0">Auditable record of all direct counter transactions</p>
+<div class="container-fluid px-3 px-md-4 py-4 page-transition">
+    <div class="row align-items-center mb-4 animate-fade-in">
+        <div class="col-md-7">
+            <div class="d-flex align-items-center mb-1">
+                <div class="bg-ss-primary rounded-pill me-3" style="width: 5px; height: 32px;"></div>
+                <h1 class="h2 fw-900 text-ss-main mb-0">Sales History</h1>
+            </div>
+            <p class="text-muted mb-0 ps-4 smallest fw-900 text-uppercase tracking-widest opacity-50">View all manual walk-in sales</p>
         </div>
-        <div class="d-flex gap-3">
+        <div class="col-md-5 text-md-end mt-3 mt-md-0 d-flex gap-2 justify-content-md-end">
             <div class="dropdown">
-                <button class="btn btn-ss-outline px-4 py-2 rounded-pill smallest fw-900 tracking-widest shadow-sm dropdown-toggle" type="button" data-bs-toggle="dropdown">
-                    <i class="bi bi-download me-2"></i>Export Report
+                <button class="btn btn-ss-outline px-4 py-3 dropdown-toggle smallest fw-900 tracking-widest" type="button" data-bs-toggle="dropdown">
+                    <i class="bi bi-download me-2"></i> EXPORT
                 </button>
-                <ul class="dropdown-menu dropdown-menu-end glass-panel border-0 shadow-2xl p-2 mt-2">
-                    <li>
-                        <a class="dropdown-item rounded-3 py-2 smallest fw-900 text-uppercase tracking-widest" href="#" onclick="exportData('csv')">
-                            <i class="bi bi-filetype-csv me-2 text-primary"></i>Export as CSV
-                        </a>
-                    </li>
-                    <li>
-                        <a class="dropdown-item rounded-3 py-2 smallest fw-900 text-uppercase tracking-widest" href="#" onclick="exportData('pdf')">
-                            <i class="bi bi-file-pdf me-2 text-danger"></i>Export as PDF
-                        </a>
-                    </li>
+                <ul class="dropdown-menu dropdown-menu-end shadow-2xl border-0 p-2 mt-2">
+                    <li><a class="dropdown-item rounded-3 py-2 smallest fw-900 text-uppercase" href="#" onclick="exportData('csv')">CSV</a></li>
+                    <li><a class="dropdown-item rounded-3 py-2 smallest fw-900 text-uppercase" href="#" onclick="exportData('pdf')">PDF</a></li>
                 </ul>
             </div>
-            <a href="{{ url_for('admin.sales') }}" class="btn btn-ss-primary px-4 py-2 rounded-pill smallest fw-900 tracking-widest shadow-lg sparkle-hover">
-                <i class="bi bi-plus-lg me-2"></i>Record New Sale
+            <a href="{{ url_for('admin.sales') }}" class="btn btn-ss-primary px-4 py-3 shadow-xl sparkle-hover">
+                <i class="bi bi-plus-lg me-2"></i> NEW SALE
             </a>
         </div>
     </div>
 
-    <!-- Analytics Filter Blade -->
-    <div class="glass-panel border-0 shadow-xl p-5 mb-5 rounded-4 border-start border-4 border-ss-primary">
-        <form id="filterForm" class="row g-4 align-items-end">
+    <!-- Filters -->
+    <div class="ss-card p-4 mb-4 animate-fade-in">
+        <form id="filterForm" class="row g-3 align-items-end">
             <div class="col-md-4">
-                <label class="smallest fw-900 text-ss-primary text-uppercase tracking-widest mb-2 px-1">Start Date</label>
-                <div class="input-group">
-                    <span class="input-group-text bg-light border-0 rounded-start-4 px-3"><i class="bi bi-calendar-event text-ss-primary"></i></span>
-                    <input type="date" class="form-control bg-light border-0 py-2 py-md-3 px-3 rounded-end-4 shadow-none fw-bold smallest text-uppercase tracking-widest" 
-                        id="start_date" name="start_date" value="{{ request.args.get('start_date', '') }}">
-                </div>
+                <label class="ss-form-label">From</label>
+                <input type="date" class="ss-input w-100" id="start_date" name="start_date" value="{{ request.args.get('start_date', '') }}">
             </div>
             <div class="col-md-4">
-                <label class="smallest fw-900 text-ss-primary text-uppercase tracking-widest mb-2 px-1">End Date</label>
-                <div class="input-group">
-                    <span class="input-group-text bg-light border-0 rounded-start-4 px-3"><i class="bi bi-calendar-check text-ss-primary"></i></span>
-                    <input type="date" class="form-control bg-light border-0 py-2 py-md-3 px-3 rounded-end-4 shadow-none fw-bold smallest text-uppercase tracking-widest" 
-                        id="end_date" name="end_date" value="{{ request.args.get('end_date', '') }}">
-                </div>
+                <label class="ss-form-label">To</label>
+                <input type="date" class="ss-input w-100" id="end_date" name="end_date" value="{{ request.args.get('end_date', '') }}">
             </div>
-            <div class="col-md-4 d-flex gap-3">
-                <button type="submit" class="btn btn-ss-primary flex-grow-1 rounded-pill py-3 fw-900 tracking-widest shadow-lg sparkle-hover">
-                    <i class="bi bi-filter me-2 fs-5"></i> Apply Filters
+            <div class="col-md-4 d-flex gap-2">
+                <button type="submit" class="btn btn-ss-primary flex-grow-1 py-3 fw-900 tracking-widest">
+                    FILTER
                 </button>
-                <a href="{{ url_for('admin.sales_history') }}" class="btn btn-ss-outline rounded-circle p-0 d-flex align-items-center justify-content-center shadow-sm" style="width: 52px; height: 52px;">
-                    <i class="bi bi-arrow-counterclockwise fs-4"></i>
+                <a href="{{ url_for('admin.sales_history') }}" class="btn btn-ss-outline p-0 d-flex align-items-center justify-content-center" style="width: 52px; height: 52px;">
+                    <i class="bi bi-arrow-counterclockwise"></i>
                 </a>
             </div>
         </form>
     </div>
 
     {% if sales %}
-    <div class="admin-table-container">
+    <div class="ss-card p-0 shadow-2xl overflow-hidden mb-5 animate-fade-in">
         <div class="table-responsive">
-            <table class="table table-hover align-middle admin-table">
-                <thead class="bg-ss-primary bg-opacity-5 border-bottom border-ss-primary border-opacity-10">
+            <table class="table table-hover align-middle mb-0 mobile-table-card-mode">
+                <thead class="bg-ss-main bg-opacity-5">
                     <tr>
-                        <th class="ps-5 py-4 smallest fw-900 text-ss-primary text-uppercase tracking-widest">Transaction ID</th>
-                        <th class="py-4 smallest fw-900 text-ss-primary text-uppercase tracking-widest">Product</th>
-                        <th class="py-4 smallest fw-900 text-ss-primary text-uppercase tracking-widest text-center">Quantity</th>
-                        <th class="py-4 smallest fw-900 text-ss-primary text-uppercase tracking-widest">Total Price</th>
-                        <th class="py-4 smallest fw-900 text-ss-primary text-uppercase tracking-widest">Profit</th>
-                        <th class="py-4 smallest fw-900 text-ss-primary text-uppercase tracking-widest">Timestamp</th>
-                        <th class="pe-5 py-4 smallest fw-900 text-ss-primary text-uppercase tracking-widest text-end">Operations</th>
+                        <th class="ps-4 py-3 smallest fw-900 text-muted text-uppercase">ID</th>
+                        <th class="py-3 smallest fw-900 text-muted text-uppercase">Product</th>
+                        <th class="text-center py-3 smallest fw-900 text-muted text-uppercase">Qty</th>
+                        <th class="py-3 smallest fw-900 text-muted text-uppercase">Total</th>
+                        <th class="py-3 smallest fw-900 text-muted text-uppercase">Profit</th>
+                        <th class="py-3 smallest fw-900 text-muted text-uppercase">Date</th>
+                        <th class="text-end pe-4 py-3 smallest fw-900 text-muted text-uppercase">Action</th>
                     </tr>
                 </thead>
-                <tbody class="border-0">
+                <tbody>
                     {% for sale in sales %}
-                    <tr class="transition-all">
-                        <td class="ps-5">
-                            <span class="badge bg-ss-primary bg-opacity-10 text-ss-primary rounded-pill smallest fw-900 tracking-widest px-3 border-0">
-                                #SAL-{{ "%04d"|format(sale.id) }}
-                            </span>
+                    <tr class="border-bottom border-ss-main border-opacity-5">
+                        <td class="ps-4 py-3" data-label="ID">
+                            <span class="smallest fw-900 text-ss-main opacity-50">#SAL-{{ "%04d"|format(sale.id) }}</span>
                         </td>
-                        <td>
-                            <div class="fw-900 text-ss-main text-uppercase tracking-wider mb-1">{{ sale.product.name if sale.product else 'DELETED PRODUCT' }}</div>
-                            {% if sale.product and sale.product.category %}
-                            <div class="smallest text-muted text-uppercase fw-bold opacity-50">
-                                <i class="bi bi-tag-fill me-1"></i>{{ sale.product.category_rel.name if sale.product.category_rel else sale.product.category }}
-                            </div>
-                            {% endif %}
+                        <td class="py-3" data-label="Product">
+                            <div class="fw-900 text-ss-main small text-uppercase">{{ sale.product.name if sale.product else 'Deleted' }}</div>
                         </td>
-                        <td class="text-center">
-                            <span class="badge bg-ss-secondary bg-opacity-10 text-ss-secondary rounded-pill smallest fw-900 tracking-widest px-3">
-                                {{ sale.quantity }} UNITS
-                            </span>
+                        <td class="text-center py-3" data-label="Qty">
+                            <span class="ss-badge ss-badge-info smallest">{{ sale.quantity }} units</span>
                         </td>
-                        <td>
-                            <div class="fw-900 text-ss-primary tracking-wider">₹{{ "{:,.2f}".format(sale.total_price) }}</div>
+                        <td class="py-3" data-label="Total">
+                            <div class="fw-900 text-ss-primary small">₹{{ "{:,.0f}".format(sale.total_price) }}</div>
                         </td>
-                        <td>
-                            <div class="d-flex align-items-center gap-1">
-                                <div class="text-success fw-900 smallest">₹{{ "{:,.2f}".format(sale.profit) }}</div>
-                                <i class="bi bi-arrow-up-right text-success smallest"></i>
-                            </div>
-                            <div class="smallest text-muted fw-bold text-uppercase tracking-widest opacity-50">Margin</div>
+                        <td class="py-3" data-label="Profit">
+                            <div class="text-success fw-900 small">₹{{ "{:,.0f}".format(sale.profit) }}</div>
                         </td>
-                        <td>
-                            <div class="smallest fw-900 text-ss-main text-uppercase tracking-widest">{{ sale.sale_date.strftime('%b %d, %Y') }}</div>
+                        <td class="py-3" data-label="Date">
+                            <div class="smallest fw-900 text-ss-main">{{ sale.sale_date.strftime('%b %d, %Y') }}</div>
                             <div class="smallest text-muted opacity-50">{{ sale.sale_date.strftime('%I:%M %p') }}</div>
                         </td>
-                        <td class="pe-5 text-end">
+                        <td class="text-end pe-4 py-3" data-label="Action">
                             <a href="{{ url_for('admin.view_bill', sale_id=sale.id) }}"
-                                class="btn btn-ss-outline btn-sm rounded-circle p-0 d-flex align-items-center justify-content-center shadow-sm ms-auto sparkle-hover" 
-                                style="width: 40px; height: 40px;" title="Initialize Receipt Node">
-                                <i class="bi bi-printer-fill fs-5"></i>
+                                class="btn btn-ss-outline rounded-circle p-0 d-flex align-items-center justify-content-center mx-auto mx-md-0 ms-md-auto" 
+                                style="width: 36px; height: 36px;">
+                                <i class="bi bi-printer-fill smallest"></i>
                             </a>
                         </td>
                     </tr>
                     {% endfor %}
                 </tbody>
-                <tfoot class="bg-ss-primary bg-opacity-10 border-top border-4 border-ss-primary">
-                    <tr>
-                        <td colspan="3" class="ps-5 py-5 smallest fw-900 text-ss-primary text-uppercase tracking-widest">Total Sales Summary</td>
-                        <td class="py-5">
-                            <div class="smallest fw-900 text-muted text-uppercase tracking-widest opacity-50 mb-1">Total Sales</div>
-                            <div class="fw-900 h3 text-ss-primary mb-0 tracking-tighter">₹{{ "{:,.2f}".format(sales|sum(attribute='total_price')) }}</div>
-                        </td>
-                        <td class="py-5" colspan="3">
-                            <div class="smallest fw-900 text-muted text-uppercase tracking-widest opacity-50 mb-1">Total Profit</div>
-                            <div class="fw-900 h3 text-ss-secondary mb-0 tracking-tighter">₹{{ "{:,.2f}".format(sales|sum(attribute='profit')) }}</div>
-                        </td>
-                    </tr>
-                </tfoot>
             </table>
+        </div>
+        
+        <!-- Summary Footer -->
+        <div class="bg-ss-main bg-opacity-5 p-4 border-top border-ss-main border-opacity-10">
+            <div class="row g-4 text-center text-md-start">
+                <div class="col-md-6">
+                    <span class="smallest fw-900 text-muted text-uppercase tracking-widest opacity-50 d-block mb-1">Total Sales</span>
+                    <h2 class="fw-950 text-ss-primary mb-0">₹{{ "{:,.0f}".format(sales|sum(attribute='total_price')) }}</h2>
+                </div>
+                <div class="col-md-6">
+                    <span class="smallest fw-900 text-muted text-uppercase tracking-widest opacity-50 d-block mb-1">Total Profit</span>
+                    <h2 class="fw-950 text-success mb-0">₹{{ "{:,.0f}".format(sales|sum(attribute='profit')) }}</h2>
+                </div>
+            </div>
         </div>
     </div>
     {% else %}
-    <div class="glass-panel border-0 shadow-2xl text-center py-5 my-5">
-        <div class="py-5">
-            <div class="bg-ss-primary bg-opacity-10 d-inline-block p-4 rounded-circle mb-4">
-                <i class="bi bi-receipt-cutoff display-2 text-ss-primary opacity-25"></i>
-            </div>
-            <h3 class="fw-900 text-ss-primary text-uppercase tracking-widest mb-3">No Sales Records Found</h3>
-            <p class="smallest fw-bold text-muted text-uppercase tracking-widest opacity-75 mb-4">Execute sales in the terminal to generate records</p>
-            <a href="{{ url_for('admin.sales') }}" class="btn btn-ss-primary px-5 py-3 rounded-pill fw-900 tracking-widest shadow-xl sparkle-hover">
-                <i class="bi bi-plus-lg me-2"></i>Record First Sale
-            </a>
-        </div>
+    <div class="ss-card text-center py-5 animate-fade-in">
+        <i class="bi bi-receipt-cutoff display-4 text-muted opacity-10 d-block mb-3"></i>
+        <h5 class="fw-900 text-ss-main">No Sales Records Found</h5>
+        <p class="text-muted smallest fw-900 text-uppercase tracking-widest opacity-50">Sales history will appear here</p>
     </div>
     {% endif %}
 </div>
@@ -163,16 +129,10 @@
     function exportData(format) {
         const startDate = document.getElementById('start_date').value;
         const endDate = document.getElementById('end_date').value;
-
         let url = "{{ url_for('admin.export_sales') }}?format=" + format;
         if (startDate) url += "&start_date=" + startDate;
         if (endDate) url += "&end_date=" + endDate;
-
         window.location.href = url;
     }
 </script>
-{% endblock %}
-
-{% block extra_css %}
-<link rel="stylesheet" href="{{ url_for('static', filename='css/admin/sales_history.css') }}">
 {% endblock %}

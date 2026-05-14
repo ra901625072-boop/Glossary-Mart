@@ -4,20 +4,23 @@ from flask import (current_app, flash, jsonify, redirect, render_template,
 from flask_login import current_user
 from flask_mail import Message
 
-from app.models import Category, Order, Product, Review, db, Wishlist
+from app.models import db
+from app.models.product import Category, Product, Review
+from app.models.order import Order, Wishlist
 from app.services.cart_service import CartService
 from app.services.order_service import OrderService
 
 from . import customer_bp
 from .decorators import customer_required
-from .forms import ProfileForm
+from app.forms.customer import ProfileForm
 
 @customer_bp.route('/')
 def index():
-    """Landing page"""
+    """Public landing page — visible to all visitors"""
     return render_template('landing.html')
 
 @customer_bp.route('/shop')
+@customer_required
 def shop():
     """Customer shop page with products"""
     search = request.args.get('search', '')
@@ -63,6 +66,7 @@ def shop():
                          sort_by=sort_by)
 
 @customer_bp.route('/product/<int:product_id>')
+@customer_required
 def product_detail(product_id):
     """Product detail page"""
     product = db.session.query(Product).filter_by(id=product_id, is_active=True).first_or_404()
@@ -207,7 +211,28 @@ def payment_success(order_id):
     if not order or order.user_id != current_user.id:
         return redirect(url_for('customer.shop'))
     
-    order.payment_status = 'Paid'
+    # Verify Stripe Session if API key is configured
+    session_id = request.args.get('session_id')
+    stripe_key = current_app.config.get('STRIPE_SECRET_KEY')
+    
+    if stripe_key and session_id:
+        try:
+            stripe.api_key = stripe_key
+            session = stripe.checkout.Session.retrieve(session_id)
+            if session.payment_status == 'paid':
+                order.payment_status = 'Paid'
+                # Record transaction ID if needed
+                # order.transaction_id = session.payment_intent
+            else:
+                flash('Payment verification failed. Please contact support.', 'danger')
+                return redirect(url_for('customer.order_confirmation', order_id=order.id))
+        except Exception as e:
+            current_app.logger.error(f"Stripe verification error: {str(e)}")
+            flash('Error verifying payment. We will update your order status once confirmed.', 'warning')
+    else:
+        # Fallback for demo mode or UPI simulation
+        order.payment_status = 'Paid'
+    
     db.session.commit()
     
     # Send order confirmation email
@@ -301,6 +326,7 @@ def order_detail(order_id):
     return render_template('customer/order_detail.html', order=order)
 
 @customer_bp.route('/api/search')
+@customer_required
 def api_search():
     """API endpoint for live search suggestions"""
     query = request.args.get('q', '')
@@ -326,6 +352,7 @@ def api_search():
     return jsonify(results)
 
 @customer_bp.route('/api/cart')
+@customer_required
 def api_get_cart():
     """API endpoint to get current cart items and total for the Mini-Cart drawer"""
     cart_items, total = CartService.get_cart_items()
@@ -396,7 +423,7 @@ def create_checkout_session(order_id):
                 'quantity': 1,
             }],
             mode='payment',
-            success_url=url_for('customer.payment_success', order_id=order.id, _external=True),
+            success_url=url_for('customer.payment_success', order_id=order.id, _external=True) + "?session_id={CHECKOUT_SESSION_ID}",
             cancel_url=url_for('customer.order_confirmation', order_id=order.id, _external=True),
         )
         return jsonify({'id': checkout_session.id})

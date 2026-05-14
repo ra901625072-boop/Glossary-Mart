@@ -1,0 +1,102 @@
+/* ========== Admin Inventory — Modular Assets ========== */
+
+.inventory-container {
+    animation: fadeIn 0.6s var(--ease-smooth);
+}
+
+/* Product Cards */
+.inventory-card {
+    background: var(--sur-low);
+    border: 1px solid var(--border-subtle);
+    border-radius: var(--ss-radius-xl);
+    transition: var(--ss-transition-bounce);
+    overflow: hidden;
+    height: 100%;
+}
+
+.inventory-card:hover {
+    transform: translateY(-8px);
+    box-shadow: var(--ss-shadow-xl);
+    border-color: var(--accent);
+}
+
+.inventory-thumb-container {
+    height: 180px;
+    background: var(--bg-alt);
+    position: relative;
+    overflow: hidden;
+}
+
+.inventory-thumb {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    transition: transform 0.5s ease;
+}
+
+.inventory-card:hover .inventory-thumb {
+    transform: scale(1.1);
+}
+
+.stock-badge {
+    position: absolute;
+    top: 1rem;
+    right: 1rem;
+    background: rgba(var(--primary-rgb), 0.8);
+    backdrop-filter: blur(8px);
+    padding: 0.35rem 0.75rem;
+    border-radius: var(--ss-radius-full);
+    font-weight: 900;
+    font-size: 0.6rem;
+    color: var(--text-main);
+    z-index: 2;
+    border: 1px solid var(--border-subtle);
+}
+
+/* Search and Filters Bar */
+.filter-bar {
+    background: var(--sur-low);
+    backdrop-filter: blur(20px);
+    border: 1px solid var(--border-subtle);
+    border-radius: var(--ss-radius-xl);
+    padding: 1.25rem;
+    margin-bottom: 2.5rem;
+}
+
+/* Form Controls */
+.inventory-search {
+    background: var(--sur-mid) !important;
+    border: 1.5px solid var(--border-subtle) !important;
+    color: var(--text-main) !important;
+    border-radius: var(--ss-radius-lg) !important;
+    padding: 0.75rem 1.25rem !important;
+}
+
+.inventory-search:focus {
+    border-color: var(--accent) !important;
+    box-shadow: var(--ss-shadow-gold) !important;
+}
+
+/* Categories List */
+.category-item {
+    background: var(--sur-low);
+    border: 1px solid var(--border-subtle);
+    border-radius: var(--ss-radius-lg);
+    padding: 1rem 1.5rem;
+    margin-bottom: 0.75rem;
+    transition: var(--ss-transition);
+}
+
+.category-item:hover {
+    background: var(--sur-mid);
+    border-color: var(--accent);
+    transform: translateX(10px);
+}
+
+/* Modal styling */
+.modal-content {
+    background: var(--sur-high) !important;
+    border: 1px solid var(--border-subtle) !important;
+    border-radius: var(--ss-radius-2xl) !important;
+    backdrop-filter: blur(25px);
+}

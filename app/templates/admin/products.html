@@ -1,102 +1,105 @@
 {% extends 'admin/admin_base.html' %}
 
-{% block title %}Inventory Intelligence - Jay Goga Kirana Store{% endblock %}
+{% block title %}Inventory — Jay Goga Admin{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{{ url_for('static', filename='css/admin/inventory.css') }}">
+{% endblock %}
 
 {% block content %}
-<div class="container-fluid px-4 py-4">
+<div class="container-fluid px-3 px-md-4 py-4 page-transition">
     <!-- Header Section -->
-    <div class="row align-items-center mb-5">
+    <div class="row align-items-center mb-4 animate-fade-in">
         <div class="col-md-7">
             <div class="d-flex align-items-center mb-2">
-                <div class="bg-ss-accent rounded-pill me-3" style="width: 5px; height: 32px;"></div>
-                <h1 class="display-6 fw-900 text-ss-main mb-0">Inventory Master</h1>
+                <div class="bg-ss-primary rounded-pill me-3" style="width: 5px; height: 32px;"></div>
+                <h1 class="h2 fw-900 text-ss-main mb-0">Inventory</h1>
             </div>
-            <p class="text-muted mb-0 ps-4 fs-5">Precise stock control, margin analysis, and catalog management.</p>
+            <p class="text-muted mb-0 ps-4 smallest fw-900 text-uppercase tracking-widest opacity-50">Manage your products and stock levels</p>
         </div>
-        <div class="col-md-5 text-md-end mt-4 mt-md-0">
-            <a href="{{ url_for('admin.add_product') }}" class="btn btn-ss-primary shadow-xl px-5 py-3">
-                <i class="bi bi-plus-lg me-2"></i>Add Artisan Product
+        <div class="col-md-5 text-md-end mt-3 mt-md-0">
+            <a href="{{ url_for('admin.add_product') }}" class="btn btn-ss-primary shadow-xl px-4 py-3 sparkle-hover w-100 w-md-auto">
+                <i class="bi bi-plus-lg me-2"></i> ADD PRODUCT
             </a>
         </div>
     </div>
 
     <!-- Inventory Grid -->
     {% if products %}
-    <div class="row g-4 inventory-grid">
+    <div class="row g-3 g-md-4 inventory-grid animate-fade-in">
         {% for product in products %}
-        <div class="col-md-6 col-lg-4 col-xl-3">
-            <div class="ss-inventory-card">
+        <div class="col-6 col-md-4 col-xl-3">
+            <div class="ss-card border-0 shadow-lg h-100 overflow-hidden hover-lift">
                 <!-- Image Wrapper -->
-                <div class="inventory-img-wrapper">
+                <div class="position-relative overflow-hidden" style="height: 160px; background: var(--bg-alt);">
                     {% if product.image_path %}
                     <img src="{{ url_for('static', filename=product.image_path) }}" alt="{{ product.name }}"
-                        class="inventory-img">
+                        class="w-100 h-100 object-fit-cover">
                     {% else %}
-                    <div class="w-100 h-100 d-flex align-items-center justify-content-center bg-ss-primary bg-opacity-5">
-                        <i class="bi bi-box-seam display-4 text-ss-primary opacity-20"></i>
+                    <div class="w-100 h-100 d-flex align-items-center justify-content-center opacity-20">
+                        <i class="bi bi-box-seam h1"></i>
                     </div>
                     {% endif %}
                     
                     <!-- Badges -->
-                    <div class="position-absolute top-0 end-0 p-3">
+                    <div class="position-absolute top-0 end-0 p-2">
                         {% if product.stock_quantity == 0 %}
-                        <span class="badge bg-danger rounded-pill shadow-lg px-3 py-2 fw-900 smallest">OUT OF STOCK</span>
+                        <span class="ss-badge ss-badge-danger smallest">OUT OF STOCK</span>
                         {% elif product.stock_quantity <= 5 %} 
-                        <span class="badge bg-warning text-dark rounded-pill shadow-lg px-3 py-2 fw-900 smallest">LOW STOCK</span>
+                        <span class="ss-badge ss-badge-warning smallest">LOW STOCK</span>
                         {% else %}
-                        <span class="badge bg-ss-success rounded-pill shadow-lg px-3 py-2 fw-900 smallest">IN STOCK</span>
+                        <span class="ss-badge ss-badge-success smallest">IN STOCK</span>
                         {% endif %}
                     </div>
                 </div>
 
                 <!-- Content Body -->
-                <div class="p-4">
-                    <div class="mb-4">
-                        <span class="smallest text-uppercase fw-900 text-ss-primary tracking-widest opacity-50 mb-1 d-block">
-                            {{ product.category_rel.name if product.category_rel else 'Essential Collection' }}
+                <div class="p-3">
+                    <div class="mb-3">
+                        <span class="smallest text-uppercase fw-900 text-ss-primary tracking-widest opacity-60 mb-1 d-block">
+                            {{ product.category_rel.name if product.category_rel else 'General' }}
                         </span>
-                        <h5 class="fw-900 text-ss-main mb-0 text-truncate" title="{{ product.name }}">{{ product.name }}</h5>
+                        <h6 class="fw-900 text-ss-main mb-0 text-truncate" title="{{ product.name }}">{{ product.name }}</h6>
                     </div>
 
                     <!-- Stats Box -->
-                    <div class="inventory-stats-box mb-4">
-                        <div class="inventory-stat-row">
-                            <span class="inventory-stat-label">Cost Price</span>
-                            <span class="inventory-stat-value">₹{{ "{:,.2f}".format(product.cost_price) }}</span>
+                    <div class="bg-ss-main bg-opacity-5 p-2 rounded-3 mb-3 border border-white border-opacity-5">
+                        <div class="d-flex justify-content-between mb-1">
+                            <span class="smallest fw-800 text-muted text-uppercase opacity-50">Cost</span>
+                            <span class="smallest fw-900 text-ss-main">₹{{ "{:,.0f}".format(product.cost_price) }}</span>
                         </div>
-                        <div class="inventory-stat-row">
-                            <span class="inventory-stat-label">Retail Value</span>
-                            <span class="inventory-stat-value text-ss-primary">₹{{ "{:,.2f}".format(product.selling_price) }}</span>
+                        <div class="d-flex justify-content-between mb-1">
+                            <span class="smallest fw-800 text-muted text-uppercase opacity-50">Price</span>
+                            <span class="smallest fw-900 text-ss-primary">₹{{ "{:,.0f}".format(product.selling_price) }}</span>
                         </div>
-                        <div class="inventory-stat-row">
-                            <span class="inventory-stat-label">Current Stock</span>
-                            <span class="inventory-stat-value {{ 'text-danger' if product.stock_quantity <= 5 else 'text-ss-success' }}">
-                                {{ product.stock_quantity }} Units
+                        <div class="d-flex justify-content-between">
+                            <span class="smallest fw-800 text-muted text-uppercase opacity-50">Stock</span>
+                            <span class="smallest fw-900 {{ 'text-danger' if product.stock_quantity <= 5 else 'text-ss-success' }}">
+                                {{ product.stock_quantity }} units
                             </span>
                         </div>
                     </div>
 
                     <!-- Footer Actions -->
-                    <div class="d-flex align-items-center justify-content-between pt-2">
-                        <div class="glass-panel py-1 px-3 border-opacity-10 d-flex align-items-center">
-                            <span class="pulse-dot me-2" style="width: 6px; height: 6px;"></span>
-                            <span class="smallest fw-900 text-ss-primary">{{ "%.1f"|format(product.profit_margin) }}% MARGIN</span>
+                    <div class="d-flex align-items-center justify-content-between pt-1">
+                        <div class="smallest fw-900 text-ss-primary text-uppercase tracking-widest opacity-60">
+                            {{ "%.0f"|format(product.profit_margin) }}% Profit
                         </div>
                         
                         <div class="d-flex gap-2">
                             <a href="{{ url_for('admin.edit_product', product_id=product.id) }}"
-                                class="btn btn-ss-outline rounded-pill p-0 d-flex align-items-center justify-content-center shadow-sm" 
-                                style="width: 42px; height: 42px;" title="Edit Product">
-                                <i class="bi bi-pencil-fill fs-6"></i>
+                                class="btn btn-ss-outline rounded-circle p-0 d-flex align-items-center justify-content-center shadow-sm" 
+                                style="width: 36px; height: 36px;" title="Edit Product">
+                                <i class="bi bi-pencil-fill smallest"></i>
                             </a>
-                            <button class="btn btn-ss-primary rounded-pill p-0 d-flex align-items-center justify-content-center shadow-sm status-toggle-btn"
-                                style="width: 42px; height: 42px;"
+                            <button class="btn btn-ss-primary rounded-circle p-0 d-flex align-items-center justify-content-center shadow-sm status-toggle-btn"
+                                style="width: 36px; height: 36px;"
                                 data-bs-id="{{ product.id }}"
                                 data-bs-name="{{ product.name }}"
                                 data-bs-active="{{ 'true' if product.is_active else 'false' }}"
                                 onclick="toggleProductStatus(this)"
-                                title="{{ 'Hide from Store' if product.is_active else 'Show in Store' }}">
-                                <i class="bi bi-eye{{ '' if product.is_active else '-slash' }} fs-5"></i>
+                                title="{{ 'Hide' if product.is_active else 'Show' }}">
+                                <i class="bi bi-eye{{ '' if product.is_active else '-slash' }} small"></i>
                             </button>
                         </div>
                     </div>
@@ -106,11 +109,15 @@
         {% endfor %}
     </div>
     {% else %}
-    <div class="glass-panel text-center py-5 shadow-2xl border-opacity-10">
-        <i class="bi bi-inbox display-1 text-muted opacity-10"></i>
-        <h3 class="mt-4 text-ss-main fw-900">Your Vault is Empty</h3>
-        <p class="text-muted fs-5">Begin curate your smart inventory by adding your first premium product.</p>
-        <a href="{{ url_for('admin.add_product') }}" class="btn btn-ss-primary btn-lg mt-4 px-5 py-3">Add First Product</a>
+    <div class="ss-card text-center py-5 shadow-2xl border-0 animate-fade-in">
+        <div class="mb-4 d-inline-flex p-5 rounded-circle bg-ss-primary bg-opacity-5 text-ss-primary">
+            <i class="bi bi-inbox" style="font-size: 5rem;"></i>
+        </div>
+        <h3 class="fw-900 text-ss-main mb-2">No products found</h3>
+        <p class="text-muted smallest fw-900 text-uppercase tracking-widest opacity-50 mb-4">Add your first product to get started</p>
+        <a href="{{ url_for('admin.add_product') }}" class="btn btn-ss-primary btn-lg px-5 py-3 shadow-xl sparkle-hover">
+            ADD PRODUCT
+        </a>
     </div>
     {% endif %}
 </div>
@@ -118,30 +125,26 @@
 <!-- Status Toggle Modal -->
 <div class="modal fade" id="statusModal" tabindex="-1">
     <div class="modal-dialog modal-dialog-centered">
-        <div class="modal-content">
-            <div id="modalHeader" class="modal-header border-0 py-4 px-5">
-                <h5 class="modal-title fw-900 text-ss-main"><i class="bi bi-info-circle me-3"></i>Visibility Control</h5>
-                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+        <div class="modal-content ss-modal rounded-4 overflow-hidden">
+            <div id="modalHeader" class="modal-header border-0 bg-ss-primary bg-opacity-10">
+                <h5 class="modal-title fw-900 text-ss-primary text-uppercase tracking-widest small"><i class="bi bi-eye-fill me-2"></i>Product Visibility</h5>
+                <button type="button" class="btn-close shadow-none" data-bs-dismiss="modal"></button>
             </div>
-            <div class="modal-body p-5 text-center">
-                <div id="modalIcon" class="mb-4"><i class="bi bi-eye display-3"></i></div>
-                <h4 class="fw-900 text-ss-main mb-3"><span id="actionName">Toggle</span> visibility for <br>"<span id="productName"></span>"?</h4>
-                <p id="modalDescription" class="text-muted fs-6 mb-0"></p>
+            <div class="modal-body p-4 text-center">
+                <div id="modalIcon" class="mb-3 d-inline-block p-3 rounded-circle bg-ss-primary bg-opacity-10 text-ss-primary"><i class="bi bi-eye h1"></i></div>
+                <h5 class="fw-900 text-ss-main mb-2"><span id="actionName">Toggle</span> visibility for<br>"<span id="productName"></span>"?</h5>
+                <p id="modalDescription" class="smallest fw-800 text-muted text-uppercase tracking-widest opacity-60 mb-0"></p>
             </div>
-            <div class="modal-footer border-0 p-4 justify-content-center">
-                <button type="button" class="btn btn-ss-outline px-4 py-2" data-bs-dismiss="modal">Keep Current</button>
-                <form id="statusForm" method="POST" class="d-inline">
+            <div class="modal-footer border-0 p-3 gap-2">
+                <button type="button" class="btn btn-ss-ghost flex-grow-1 py-3 smallest fw-900" data-bs-dismiss="modal">CANCEL</button>
+                <form id="statusForm" method="POST" class="d-inline flex-grow-1">
                     <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
-                    <button type="submit" id="confirmBtn" class="btn px-5 py-2 fw-900 shadow-xl">Confirm Change</button>
+                    <button type="submit" id="confirmBtn" class="btn btn-ss-primary py-3 w-100 shadow-xl smallest fw-900">CONFIRM</button>
                 </form>
             </div>
         </div>
     </div>
 </div>
-{% endblock %}
-
-{% block extra_css %}
-<link rel="stylesheet" href="{{ url_for('static', filename='css/admin/products.css') }}">
 {% endblock %}
 
 {% block extra_js %}
@@ -155,19 +158,18 @@
         const form = document.getElementById('statusForm');
         const actionText = isActive ? 'Disable' : 'Enable';
         const confirmBtn = document.getElementById('confirmBtn');
-        const header = document.getElementById('modalHeader');
         const icon = document.getElementById('modalIcon');
         
         document.getElementById('productName').textContent = name;
         document.getElementById('actionName').textContent = actionText;
         document.getElementById('modalDescription').textContent = isActive 
-            ? 'This will hide the product from your marketplace but preserve all historical data and inventory records.'
-            : 'This will restore the product visibility in your customer marketplace.';
+            ? 'This will hide the product from the storefront.'
+            : 'This will make the product visible in the storefront.';
         
-        confirmBtn.className = 'btn px-5 py-2 fw-900 shadow-xl ' + (isActive ? 'btn-danger' : 'btn-success');
-        confirmBtn.textContent = isActive ? 'Hide Product' : 'Show Product';
-        icon.className = 'mb-4 ' + (isActive ? 'text-danger' : 'text-success');
-        icon.innerHTML = isActive ? '<i class="bi bi-eye-slash display-3"></i>' : '<i class="bi bi-eye display-3"></i>';
+        confirmBtn.className = 'btn py-3 w-100 shadow-xl smallest fw-900 ' + (isActive ? 'btn-danger' : 'btn-success');
+        confirmBtn.textContent = isActive ? 'HIDE PRODUCT' : 'SHOW PRODUCT';
+        icon.className = 'mb-3 d-inline-block p-3 rounded-circle ' + (isActive ? 'bg-danger bg-opacity-10 text-danger' : 'bg-success bg-opacity-10 text-success');
+        icon.innerHTML = isActive ? '<i class="bi bi-eye-slash h1"></i>' : '<i class="bi bi-eye h1"></i>';
         
         form.action = '/products/delete/' + id; 
         modal.show();

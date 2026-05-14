@@ -1,117 +1,114 @@
 {% extends 'admin/admin_base.html' %}
 
-{% block title %}Sales Intelligence Terminal - Jay Goga Admin{% endblock %}
+{% block title %}Record Sale — Jay Goga Admin{% endblock %}
 
 {% block content %}
-<div class="container-fluid px-4 py-4 pos-container">
-    <div class="row align-items-center mb-5">
+<div class="container-fluid px-3 px-md-4 py-4 page-transition">
+    <div class="row align-items-center mb-4 animate-fade-in">
         <div class="col-md-7">
-            <div class="d-flex align-items-center mb-2">
-                <div class="bg-ss-accent rounded-pill me-3" style="width: 5px; height: 32px;"></div>
-                <h1 class="display-6 fw-900 text-ss-main mb-0">Sales Terminal</h1>
+            <div class="d-flex align-items-center mb-1">
+                <div class="bg-ss-primary rounded-pill me-3" style="width: 5px; height: 32px;"></div>
+                <h1 class="h2 fw-900 text-ss-main mb-0">Record Sale</h1>
             </div>
-            <p class="text-muted mb-0 ps-4 fs-5">Point of Sale (POS) interface for real-time inventory synchronization.</p>
+            <p class="text-muted mb-0 ps-4 smallest fw-900 text-uppercase tracking-widest opacity-50">Manually record a walk-in sale</p>
         </div>
-        <div class="col-md-5 text-md-end mt-4 mt-md-0">
-            <a href="{{ url_for('admin.sales_history') }}" class="btn btn-ss-outline px-4 py-2">
-                <i class="bi bi-journal-text me-2"></i>Historical Ledger
+        <div class="col-md-5 text-md-end mt-3 mt-md-0">
+            <a href="{{ url_for('admin.sales_history') }}" class="btn btn-ss-ghost px-4 py-2 smallest fw-900 tracking-widest">
+                <i class="bi bi-journal-text me-2"></i> HISTORY
             </a>
         </div>
     </div>
 
     <div class="row justify-content-center">
         <div class="col-xl-11">
-            <div class="glass-panel p-0 overflow-hidden shadow-2xl">
+            <div class="ss-card p-0 overflow-hidden shadow-2xl border-0 animate-fade-in">
                 {% if products %}
                 <form method="POST" class="needs-validation" novalidate>
                     <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
                     <div class="row g-0">
-                        <!-- Left Panel: Input -->
-                        <div class="col-lg-7 p-5 border-end border-white border-opacity-5">
-                            <h6 class="smallest fw-900 text-ss-primary text-uppercase tracking-widest mb-5">Transaction Input</h6>
-
-                            <div class="mb-5">
-                                <label class="smallest fw-900 text-muted text-uppercase tracking-widest mb-3 d-block">Select Asset</label>
-                                <div class="pos-input-group">
-                                    <select class="form-select bg-transparent border-0 text-ss-main fw-800 fs-5 shadow-none" 
-                                        id="product_id" name="product_id" required onchange="updateProductDetails()">
-                                        <option value="">SCAN OR SELECT PRODUCT...</option>
-                                        {% for product in products %}
-                                        <option value="{{ product.id }}" data-cost="{{ product.cost_price }}"
-                                            data-selling="{{ product.selling_price }}"
-                                            data-stock="{{ product.stock_quantity }}"
-                                            data-image="{% if product.image_path %}{{ url_for('static', filename=product.image_path) }}{% endif %}">
-                                            {{ product.name|upper }} ({{ product.stock_quantity }} IN STOCK)
-                                        </option>
-                                        {% endfor %}
-                                    </select>
-                                </div>
+                        <!-- Input Panel -->
+                        <div class="col-lg-7 p-4 p-md-5 border-bottom border-lg-0 border-end-lg border-ss-main border-opacity-5">
+                            <h6 class="ss-form-label mb-4 opacity-50">Item Selection</h6>
+ 
+                            <div class="mb-4">
+                                <label class="ss-form-label">Select Product</label>
+                                <select class="ss-input w-100 py-3" id="product_id" name="product_id" required onchange="updateProductDetails()">
+                                    <option value="">SELECT PRODUCT...</option>
+                                    {% for product in products %}
+                                    <option value="{{ product.id }}" data-cost="{{ product.cost_price }}"
+                                        data-selling="{{ product.selling_price }}"
+                                        data-stock="{{ product.stock_quantity }}"
+                                        data-image="{% if product.image_path %}{{ url_for('static', filename=product.image_path) }}{% endif %}">
+                                        {{ product.name }} ({{ product.stock_quantity }} in stock)
+                                    </option>
+                                    {% endfor %}
+                                </select>
                             </div>
-
-                            <div class="mb-5">
-                                <label class="smallest fw-900 text-muted text-uppercase tracking-widest mb-3 d-block">Quantity Control</label>
-                                <div class="pos-qty-control shadow-inner">
-                                    <button class="btn btn-ss-low rounded-pill p-0 d-flex align-items-center justify-content-center" 
-                                        type="button" onclick="adjustQty(-1)" style="width: 56px; height: 56px;">
-                                        <i class="bi bi-dash-lg fs-4"></i>
+ 
+                            <div class="mb-4">
+                                <label class="ss-form-label">Quantity</label>
+                                <div class="d-flex align-items-center bg-ss-main bg-opacity-5 rounded-4 p-2">
+                                    <button class="btn btn-ss-primary rounded-circle p-0 d-flex align-items-center justify-content-center" 
+                                        type="button" onclick="adjustQty(-1)" style="width: 48px; height: 48px;">
+                                        <i class="bi bi-dash-lg"></i>
                                     </button>
-                                    <input type="number" class="form-control bg-transparent border-0 text-center fw-900 fs-2 mb-0 shadow-none text-ss-main"
+                                    <input type="number" class="form-control bg-transparent border-0 text-center fw-950 h2 mb-0 shadow-none text-ss-main"
                                         id="quantity" name="quantity" required min="1" value="1" oninput="calculateTotal()">
-                                    <button class="btn btn-ss-primary rounded-pill p-0 d-flex align-items-center justify-content-center shadow-lg" 
-                                        type="button" onclick="adjustQty(1)" style="width: 56px; height: 56px;">
-                                        <i class="bi bi-plus-lg fs-4"></i>
+                                    <button class="btn btn-ss-primary rounded-circle p-0 d-flex align-items-center justify-content-center" 
+                                        type="button" onclick="adjustQty(1)" style="width: 48px; height: 48px;">
+                                        <i class="bi bi-plus-lg"></i>
                                     </button>
                                 </div>
-                                <div id="stockWarning" class="mt-3 text-danger smallest fw-800 text-uppercase tracking-widest d-none">
-                                    <i class="bi bi-exclamation-triangle-fill me-2"></i>Insufficient liquidity in inventory
+                                <div id="stockWarning" class="mt-3 text-danger smallest fw-900 text-uppercase tracking-widest d-none">
+                                    <i class="bi bi-exclamation-triangle-fill me-1"></i> Not enough stock available
                                 </div>
                             </div>
-
-                            <div class="mt-5 pt-4">
-                                <button type="submit" class="btn btn-ss-primary w-100 py-4 fs-5 fw-900 tracking-widest shadow-xl"
+ 
+                            <div class="mt-5">
+                                <button type="submit" class="btn btn-ss-primary w-100 py-3 fs-6 fw-900 tracking-widest shadow-xl sparkle-hover"
                                     id="submitBtn" disabled>
-                                    EXECUTE TRANSACTION <i class="bi bi-arrow-right ms-2"></i>
+                                    RECORD SALE <i class="bi bi-check-circle-fill ms-2"></i>
                                 </button>
                             </div>
                         </div>
-
-                        <!-- Right Panel: Summary -->
-                        <div class="col-lg-5 p-5 bg-white bg-opacity-5">
-                            <h6 class="smallest fw-900 text-ss-primary text-uppercase tracking-widest mb-5">Asset Valuation</h6>
-
-                            <div id="emptyPreview" class="text-center py-5 my-auto opacity-20">
-                                <i class="bi bi-receipt-cutoff display-1 d-block mb-4"></i>
-                                <p class="smallest fw-900 text-uppercase tracking-widest">Awaiting Input</p>
+ 
+                        <!-- Summary Panel -->
+                        <div class="col-lg-5 p-4 p-md-5 bg-ss-main bg-opacity-5">
+                            <h6 class="ss-form-label mb-4 opacity-50">Summary</h6>
+ 
+                            <div id="emptyPreview" class="text-center py-5 opacity-20">
+                                <i class="bi bi-receipt-cutoff display-1 d-block mb-3"></i>
+                                <p class="smallest fw-900 text-uppercase tracking-widest">Select a product</p>
                             </div>
-
-                            <div id="activePreview" class="d-none h-100 d-flex flex-column">
-                                <div class="glass-panel p-4 mb-5 border-opacity-10 d-flex align-items-center">
-                                    <div id="previewImgContainer" class="me-4 flex-shrink-0">
+ 
+                            <div id="activePreview" class="d-none">
+                                <div class="ss-card p-3 mb-4 d-flex align-items-center bg-surface">
+                                    <div id="previewImgContainer" class="me-3 flex-shrink-0" style="width: 60px; height: 60px;">
                                         <!-- Image Placeholder -->
                                     </div>
-                                    <div class="overflow-hidden">
-                                        <h5 id="previewLabel" class="fw-900 text-ss-main mb-1 text-truncate"></h5>
-                                        <span id="previewPricePer" class="smallest fw-900 text-ss-primary tracking-widest"></span>
+                                    <div class="min-w-0">
+                                        <h5 id="previewLabel" class="fw-950 text-ss-main mb-0 small text-truncate"></h5>
+                                        <span id="previewPricePer" class="smallest fw-900 text-ss-primary text-uppercase"></span>
                                     </div>
                                 </div>
-
-                                <div class="mt-auto">
-                                    <div class="pos-summary-row">
-                                        <span class="pos-summary-label">Cost Basis (x<span id="summaryUnits">1</span>)</span>
-                                        <span id="summaryCostTotal" class="pos-summary-value">₹0.00</span>
+ 
+                                <div class="space-y-2">
+                                    <div class="d-flex justify-content-between">
+                                        <span class="smallest fw-900 text-muted text-uppercase tracking-widest">Cost Price (x<span id="summaryUnits">1</span>)</span>
+                                        <span id="summaryCostTotal" class="fw-900 text-ss-main">₹0</span>
                                     </div>
-                                    <div class="pos-summary-row">
-                                        <span class="pos-summary-label">Projected Margin</span>
-                                        <span id="summaryProfit" class="pos-summary-value text-ss-success">+₹0.00</span>
+                                    <div class="d-flex justify-content-between">
+                                        <span class="smallest fw-900 text-muted text-uppercase tracking-widest">Profit</span>
+                                        <span id="summaryProfit" class="fw-900 text-success">₹0</span>
                                     </div>
                                     
-                                    <div class="pos-total-panel mt-4">
+                                    <div class="bg-ss-primary bg-opacity-10 p-3 rounded-4 mt-4 border border-ss-primary border-opacity-10">
                                         <div class="d-flex justify-content-between align-items-end">
                                             <div>
-                                                <small class="smallest fw-900 text-uppercase tracking-widest opacity-80 d-block mb-1">TOTAL PAYABLE</small>
-                                                <h1 class="display-5 fw-900 mb-0">₹<span id="summaryTotal">0.00</span></h1>
+                                                <small class="smallest fw-900 text-ss-primary text-uppercase tracking-widest d-block mb-1">Grand Total</small>
+                                                <h1 class="fw-950 mb-0 h2 text-ss-primary">₹<span id="summaryTotal">0</span></h1>
                                             </div>
-                                            <i class="bi bi-shield-check display-5 opacity-50"></i>
+                                            <i class="bi bi-shield-check h1 text-ss-primary opacity-20"></i>
                                         </div>
                                     </div>
                                 </div>
@@ -122,10 +119,10 @@
                 {% else %}
                 <div class="text-center py-5 my-5">
                     <i class="bi bi-inbox display-1 text-muted opacity-10 d-block mb-4"></i>
-                    <h3 class="fw-900 text-ss-main">No Assets Available</h3>
-                    <p class="text-muted mb-4">Populate your inventory to begin recording transactions.</p>
+                    <h5 class="fw-900 text-ss-main">No Products Found</h5>
+                    <p class="text-muted smallest fw-900 text-uppercase tracking-widest opacity-50 mb-4">Add products to inventory to start selling</p>
                     <a href="{{ url_for('admin.add_product') }}" class="btn btn-ss-primary px-5 py-3 shadow-xl">
-                        <i class="bi bi-plus-lg me-2"></i>Add Asset
+                        <i class="bi bi-plus-lg me-2"></i> ADD PRODUCT
                     </a>
                 </div>
                 {% endif %}
@@ -133,10 +130,6 @@
         </div>
     </div>
 </div>
-{% endblock %}
-
-{% block extra_css %}
-<link rel="stylesheet" href="{{ url_for('static', filename='css/admin/sales.css') }}">
 {% endblock %}
 
 {% block extra_js %}
@@ -166,13 +159,13 @@
             select.dataset.currentStock = stock;
 
             document.getElementById('previewLabel').textContent = option.text.split(' (')[0].trim();
-            document.getElementById('previewPricePer').textContent = '₹' + selling.toFixed(2) + ' RETAIL';
+            document.getElementById('previewPricePer').textContent = '₹' + selling.toFixed(0) + ' per unit';
 
             const imgContainer = document.getElementById('previewImgContainer');
             if (image) {
-                imgContainer.innerHTML = `<img src="${image}" class="pos-asset-thumb">`;
+                imgContainer.innerHTML = `<img src="${image}" class="img-fluid rounded-3 w-100 h-100 object-fit-cover shadow-sm">`;
             } else {
-                imgContainer.innerHTML = `<div class="pos-asset-thumb d-flex align-items-center justify-content-center bg-ss-primary bg-opacity-10"><i class="bi bi-image h4 mb-0 opacity-20"></i></div>`;
+                imgContainer.innerHTML = `<div class="bg-ss-primary bg-opacity-10 rounded-3 w-100 h-100 d-flex align-items-center justify-content-center"><i class="bi bi-image smallest text-ss-primary opacity-20"></i></div>`;
             }
 
             empty.classList.add('d-none');
@@ -211,9 +204,9 @@
             const totalProfit = totalPayable - totalCost;
 
             document.getElementById('summaryUnits').textContent = quantity;
-            document.getElementById('summaryCostTotal').textContent = '₹' + totalCost.toFixed(2);
-            document.getElementById('summaryProfit').textContent = '₹' + totalProfit.toFixed(2);
-            document.getElementById('summaryTotal').textContent = totalPayable.toLocaleString('en-IN', { minimumFractionDigits: 2 });
+            document.getElementById('summaryCostTotal').textContent = '₹' + totalCost.toLocaleString(undefined, {maximumFractionDigits: 0});
+            document.getElementById('summaryProfit').textContent = '₹' + totalProfit.toLocaleString(undefined, {maximumFractionDigits: 0});
+            document.getElementById('summaryTotal').textContent = totalPayable.toLocaleString(undefined, {maximumFractionDigits: 0});
 
             document.getElementById('submitBtn').disabled = false;
         } else {

@@ -14,8 +14,14 @@
     <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
     <link rel="stylesheet" href="{{ url_for('static', filename='css/landing.css') }}">
     <script>
-        const savedTheme = localStorage.getItem('ss-theme') || 'dark';
-        if (savedTheme === 'light') document.documentElement.setAttribute('data-theme', 'light');
+        (function() {
+            const savedTheme = localStorage.getItem('ss-theme');
+            if (savedTheme === 'light') {
+                document.documentElement.setAttribute('data-theme', 'light');
+            } else if (!savedTheme && window.matchMedia('(prefers-color-scheme: light)').matches) {
+                document.documentElement.setAttribute('data-theme', 'light');
+            }
+        })();
     </script>
     <style>
         body { font-family: 'Outfit', sans-serif; }
@@ -185,6 +191,7 @@
             const root = document.documentElement;
             
             function updateIcon(isLight) {
+                if (!themeIcon) return;
                 if (isLight) {
                     themeIcon.className = 'bi bi-sun-fill text-warning fs-4';
                 } else {
@@ -192,23 +199,38 @@
                 }
             }
 
-            const currentTheme = localStorage.getItem('ss-theme') || 'dark';
-            updateIcon(currentTheme === 'light');
+            function applyTheme(isLight) {
+                if (isLight) {
+                    root.setAttribute('data-theme', 'light');
+                } else {
+                    root.removeAttribute('data-theme');
+                }
+                updateIcon(isLight);
+            }
 
+            // Initialize on load
+            const savedTheme = localStorage.getItem('ss-theme');
+            const systemLight = window.matchMedia('(prefers-color-scheme: light)');
+            
+            const currentIsLight = savedTheme === 'light' || (!savedTheme && systemLight.matches);
+            applyTheme(currentIsLight);
+
+            // Handle toggle click
             if (themeToggle) {
                 themeToggle.addEventListener('click', () => {
                     const isLight = root.getAttribute('data-theme') === 'light';
-                    if (isLight) {
-                        root.removeAttribute('data-theme');
-                        localStorage.setItem('ss-theme', 'dark');
-                        updateIcon(false);
-                    } else {
-                        root.setAttribute('data-theme', 'light');
-                        localStorage.setItem('ss-theme', 'light');
-                        updateIcon(true);
-                    }
+                    const newTheme = isLight ? 'dark' : 'light';
+                    localStorage.setItem('ss-theme', newTheme);
+                    applyTheme(!isLight);
                 });
             }
+
+            // Sync with system changes if no manual preference
+            systemLight.addEventListener('change', (e) => {
+                if (!localStorage.getItem('ss-theme')) {
+                    applyTheme(e.matches);
+                }
+            });
         });
     </script>
 </body>

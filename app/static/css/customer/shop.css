@@ -1,102 +1,69 @@
-/* ========== Shop Page - Midnight Gold Theme - Premium Refinement ========== */
+/* ========== Customer Shop — Premium Marketplace Aesthetic ========== */
 
-.ss-sidebar {
+.shop-container {
+    animation: fadeIn 0.8s var(--ease-smooth);
+}
+
+/* Category Navigation */
+.ss-nav-pills {
+    display: flex;
+    gap: 0.75rem;
+    overflow-x: auto;
+    padding-bottom: 1rem;
+    scrollbar-width: none;
+}
+
+.ss-nav-pills::-webkit-scrollbar {
+    display: none;
+}
+
+.ss-nav-pill {
+    white-space: nowrap;
+    padding: 0.6rem 1.25rem;
+    border-radius: var(--ss-radius-full);
     background: var(--sur-low);
-    backdrop-filter: blur(20px);
-    border-radius: var(--ss-radius-xl);
-    padding: 2.5rem;
-    border: 1.5px solid var(--border-subtle);
-    position: sticky;
-    top: 110px;
-    box-shadow: var(--ss-shadow-xl);
-}
-
-.shop-cat-filter {
-    padding: 0.85rem 1.5rem !important;
-    border-radius: var(--ss-radius-lg) !important;
-    font-weight: 600;
-    font-size: 0.95rem;
-    color: var(--text-muted) !important;
-    transition: var(--ss-transition-bounce);
-    margin-bottom: 6px;
-    background: transparent !important;
-    border: 1px solid transparent !important;
-    text-decoration: none !important;
-}
-
-.shop-cat-filter:hover {
-    background: var(--ss-gradient-soft) !important;
-    color: var(--accent) !important;
-    transform: translateX(8px);
-    border-color: var(--border-subtle) !important;
-}
-
-.shop-cat-filter.active {
-    background: var(--ss-gradient-accent) !important;
-    color: var(--text-on-accent) !important;
-    box-shadow: var(--ss-shadow-gold);
+    color: var(--text-muted);
     font-weight: 800;
-    transform: scale(1.02);
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    font-size: 0.7rem;
+    text-decoration: none;
+    border: 1px solid var(--border-subtle);
+    transition: var(--ss-transition-bounce);
 }
 
-.product-rating-badge {
-    position: absolute;
-    bottom: 15px;
-    left: 15px;
+.ss-nav-pill.active {
     background: var(--ss-gradient-accent);
     color: var(--text-on-accent);
-    padding: 5px 12px;
-    border-radius: var(--ss-radius-full);
-    font-size: 0.75rem;
-    font-weight: 900;
-    z-index: 2;
-    display: flex;
-    align-items: center;
-    box-shadow: var(--ss-shadow-md);
-    letter-spacing: 0.05em;
+    border-color: transparent;
+    box-shadow: var(--ss-shadow-gold);
 }
 
-.ss-img-placeholder {
-    background: var(--bg-alt) !important;
-}
-
-@media (max-width: 768px) {
-    .ss-product-card {
-        padding: 0.85rem !important;
-        border-radius: var(--ss-radius-lg) !important;
-    }
-    
-    .ss-img-container {
-        border-radius: var(--ss-radius) !important;
-    }
-
-    .ss-product-title {
-        font-size: 0.9rem !important;
-        margin-top: 1rem !important;
-    }
-
-    .ss-price-current {
-        font-size: 1.15rem !important;
-    }
-}
-
-/* Animations for Grid Items */
-#productGrid .page-transition {
-    animation: fadeInUp 0.8s cubic-bezier(0.22, 1, 0.36, 1) both;
-}
-
-@keyframes fadeInUp {
-    from { opacity: 0; transform: translateY(30px); }
-    to { opacity: 1; transform: translateY(0); }
-}
-
-#productGrid .page-transition:nth-child(n) { animation-delay: calc(0.05s * var(--item-index, 1)); }
-.ss-product-title {
-    transition: var(--ss-transition);
+.ss-nav-pill:hover:not(.active) {
+    background: var(--sur-mid);
     color: var(--text-main);
+    transform: translateY(-2px);
 }
 
-.ss-product-card:hover .ss-product-title {
-    color: var(--accent) !important;
+/* Product Cards */
+.ss-product-card {
+    height: 100%;
+    display: flex;
+    flex-direction: column;
 }
 
+/* Success Button Animation */
+.btn-ss-success {
+    background: var(--success) !important;
+    color: white !important;
+    box-shadow: 0 0 20px rgba(16,185,129,0.4) !important;
+}
+
+.disabled-btn {
+    background: var(--sur-low) !important;
+    border: 1px solid var(--border-subtle) !important;
+    color: var(--text-muted) !important;
+    opacity: 0.6;
+    border-radius: var(--ss-radius-full);
+    min-height: var(--min-tap);
+}

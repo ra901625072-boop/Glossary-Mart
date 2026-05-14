@@ -1,0 +1,1129 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Jay Goga Kirana Store — Project Documentation</title>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=Fira+Mono:wght@400;500&display=swap" rel="stylesheet">
+  <script src="https://cdn.jsdelivr.net/npm/mermaid/dist/mermaid.min.js"></script>
+  <script>
+    window.onload = function() {
+      mermaid.initialize({
+        startOnLoad: true,
+        theme: 'neutral',
+        flowchart: { useMaxWidth: true, htmlLabels: true, curve: 'basis' },
+        securityLevel: 'loose'
+      });
+    };
+  </script>
+  <style>
+    :root {
+      --primary: #c5a059; /* Sophisticated Gold */
+      --primary-light: #d4b483;
+      --accent: #1e3a8a; /* Deep Royal Blue */
+      --text: #1e293b;
+      --text-muted: #64748b;
+      --bg: #ffffff;
+      --bg-alt: #f1f5f9;
+      --border: #e2e8f0;
+      --code-bg: #0f172a;
+      --code-text: #e2e8f0;
+      --success: #10b981;
+      --warning: #f59e0b;
+      --dark-navy: #0f172a;
+      --glass: rgba(255, 255, 255, 0.7);
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: 'Inter', sans-serif;
+      color: var(--text);
+      background: var(--bg);
+      line-height: 1.75;
+      font-size: 15px;
+    }
+
+    /* ======= COVER PAGE ======= */
+    .cover {
+      min-height: 100vh;
+      background: linear-gradient(135deg, #020617 0%, #0f172a 40%, #1e293b 100%);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      text-align: center;
+      padding: 4rem 2rem;
+      page-break-after: always;
+    }
+    .cover-logo {
+      font-size: 3.5rem;
+      font-weight: 900;
+      color: white;
+      letter-spacing: -0.04em;
+      margin-bottom: 0.5rem;
+    }
+    .cover-logo span { color: var(--primary); }
+    .cover-logo .sub { color: #ffffff; opacity: 0.8; }
+    .cover-badge {
+      display: inline-block;
+      background: rgba(251, 191, 36, 0.1);
+      border: 1px solid rgba(251, 191, 36, 0.3);
+      color: var(--primary);
+      padding: 0.4rem 1.2rem;
+      border-radius: 100px;
+      font-size: 0.85rem;
+      font-weight: 500;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      margin-bottom: 3rem;
+    }
+    .cover h1 {
+      font-size: 2.8rem;
+      font-weight: 800;
+      color: white;
+      letter-spacing: -0.03em;
+      max-width: 800px;
+      margin-bottom: 1rem;
+    }
+    .cover p {
+      font-size: 1.1rem;
+      color: #94a3b8;
+      max-width: 600px;
+      margin: 0 auto 3rem;
+    }
+    .cover-meta {
+      display: flex;
+      gap: 3rem;
+      margin-top: 3rem;
+      flex-wrap: wrap;
+      justify-content: center;
+    }
+    .cover-meta-item { text-align: left; }
+    .cover-meta-item .label { color: #64748b; font-size: 0.75rem; text-transform: uppercase; letter-spacing: 0.1em; }
+    .cover-meta-item .value { color: white; font-weight: 600; font-size: 0.95rem; margin-top: 0.25rem; }
+    
+    .team-list {
+      background: rgba(255,255,255,0.05);
+      border: 1px solid rgba(255,255,255,0.1);
+      border-radius: 16px;
+      padding: 2rem 3rem;
+      margin-top: 3rem;
+    }
+    .team-list h3 { color: var(--primary); font-size: 0.75rem; text-transform: uppercase; letter-spacing: 0.12em; margin-bottom: 1rem; }
+    .team-list ul { list-style: none; }
+    .team-list li { color: white; font-weight: 500; padding: 0.25rem 0; }
+    .team-list li::before { content: "✦ "; color: var(--primary); }
+
+    /* ======= LAYOUT ======= */
+    .container { max-width: 950px; margin: 0 auto; padding: 3rem 2rem; }
+
+    /* ======= TABLE OF CONTENTS ======= */
+    .toc {
+      background: var(--bg-alt);
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      padding: 2.5rem;
+      margin-bottom: 3rem;
+      page-break-after: always;
+    }
+    .toc h2 { font-size: 1.2rem; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.1em; margin-bottom: 1.5rem; }
+    
+    /* ======= INDEX TABLE ======= */
+    .index-table { 
+      width: 100%;
+      border-collapse: collapse;
+      margin: 0;
+    }
+    .index-table thead th { 
+      color: var(--text) !important; 
+      text-align: left; 
+      padding: 0.75rem 1rem; 
+      border: 1px solid var(--text); 
+      font-size: 1rem;
+      background: transparent !important;
+    }
+    .index-table tbody td { 
+      border: 1px solid var(--text) !important; 
+      padding: 0.75rem 1rem; 
+      vertical-align: top; 
+    }
+    .index-table .col-no { width: 10%; text-align: center; }
+    .index-table .col-title { width: 70%; }
+    .index-table .col-page { width: 20%; text-align: center; }
+    .index-table a { color: inherit; text-decoration: none; font-weight: inherit; }
+    .index-table a:hover { text-decoration: underline; }
+
+    /* ======= SECTIONS ======= */
+    .doc-section { margin-bottom: 4rem; page-break-inside: avoid; }
+    .section-divider { border: none; border-top: 2px solid var(--border); margin: 3rem 0; }
+
+    .section-title {
+      display: flex;
+      align-items: center;
+      gap: 1rem;
+      margin-bottom: 1.5rem;
+    }
+    .section-num {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      width: 44px; height: 44px;
+      background: linear-gradient(135deg, var(--dark-navy), var(--primary));
+      border-radius: 12px;
+      color: white;
+      font-weight: 800;
+      font-size: 1rem;
+      flex-shrink: 0;
+    }
+    .section-title h2 { font-size: 1.9rem; font-weight: 800; color: var(--text); }
+
+    h3 { font-size: 1.2rem; font-weight: 700; color: var(--text); margin: 2rem 0 0.75rem; }
+    h4 { font-size: 1rem; font-weight: 600; color: var(--accent); margin: 1.5rem 0 0.5rem; }
+    p { margin-bottom: 1rem; color: var(--text); }
+
+    /* ======= TABLES ======= */
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin: 1.25rem 0;
+      font-size: 0.9rem;
+      border-radius: 12px;
+      overflow: hidden;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.08);
+    }
+    thead { background: linear-gradient(135deg, var(--dark-navy), #1e293b); }
+    thead th { color: white; padding: 0.85rem 1rem; font-weight: 600; text-align: left; }
+    tbody tr { border-bottom: 1px solid var(--border); }
+    tbody tr:nth-child(even) { background: var(--bg-alt); }
+    tbody td { padding: 0.75rem 1rem; }
+
+    /* ======= CODE BLOCKS ======= */
+    pre {
+      background: var(--code-bg);
+      color: var(--code-text);
+      padding: 1.5rem;
+      border-radius: 12px;
+      overflow-x: auto;
+      font-size: 0.85rem;
+      line-height: 1.6;
+      margin: 1.25rem 0;
+      font-family: 'Fira Mono', monospace;
+    }
+    code {
+      font-family: 'Fira Mono', monospace;
+      background: rgba(251, 191, 36, 0.1);
+      color: var(--warning);
+      padding: 0.15em 0.4em;
+      border-radius: 4px;
+      font-size: 0.875em;
+    }
+    pre code { background: none; color: inherit; padding: 0; }
+
+    /* ======= CALLOUT BOXES ======= */
+    .callout {
+      border-radius: 12px;
+      padding: 1.25rem 1.5rem;
+      margin: 1.25rem 0;
+      border-left: 4px solid;
+    }
+    .callout.info { background: rgba(251, 191, 36, 0.05); border-color: var(--primary); }
+    .callout.success { background: rgba(5, 150, 105, 0.05); border-color: var(--success); }
+    .callout p { margin: 0; }
+
+    /* ======= LIST STYLES ======= */
+    ul, ol { padding-left: 1.5rem; margin-bottom: 1rem; }
+    li { margin-bottom: 0.4rem; }
+
+    /* ======= SCREENSHOT BOXES ======= */
+    .screenshot-box {
+      background: var(--bg-alt);
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      padding: 1.5rem;
+      margin: 1.5rem 0;
+    }
+    .screenshot-box h4 { color: var(--dark-navy); margin: 0 0 0.75rem; }
+    .screenshot-box p { color: var(--text-muted); margin: 0.75rem 0 0; }
+    .screenshot-box .placeholder-img {
+        width: 100%;
+        height: 300px;
+        background: #e2e8f0;
+        border-radius: 8px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: #94a3b8;
+        font-style: italic;
+    }
+
+    /* ======= PRINT — A4 Professional ======= */
+    @media print {
+      * { -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important; }
+      body { font-size: 10pt; background: #fff !important; }
+      .container { max-width: 100%; padding: 0; }
+      .cover { height: 100vh; background: #020617 !important; }
+      .print-btn { display: none !important; }
+      #s1, #s4, #s6, #s7, #s10 { page-break-before: always; }
+      pre { white-space: pre-wrap; word-break: break-word; }
+    }
+
+    /* ======= FOOTER ======= */
+    .doc-footer {
+      background: var(--bg-alt);
+      border-top: 1px solid var(--border);
+      padding: 2.5rem;
+      text-align: center;
+      color: var(--text-muted);
+      font-size: 0.9rem;
+      margin-top: 4rem;
+    }
+    .doc-footer strong { color: var(--dark-navy); }
+    
+    .print-btn {
+      position: fixed;
+      bottom: 2rem;
+      right: 2rem;
+      background: var(--dark-navy);
+      color: white;
+      border: none;
+      padding: 1rem 1.75rem;
+      border-radius: 100px;
+      font-family: 'Inter', sans-serif;
+      font-weight: 600;
+      cursor: pointer;
+      box-shadow: 0 8px 25px rgba(0,0,0,0.3);
+      z-index: 100;
+    }
+  </style>
+</head>
+<body>
+
+<!-- ============================
+     COVER PAGE
+============================= -->
+<div class="cover">
+  <div class="cover-logo">JayGoga<span>Mart</span><span class="sub"> Kirana</span></div>
+  <div class="cover-badge">Academic Project Documentation — 2026</div>
+  <h1>Jay Goga Kirana Store Management System</h1>
+  <p>A complete technical reference for the E-Commerce & Inventory Management platform built with Python Flask.</p>
+
+  <div class="cover-meta">
+    <div class="cover-meta-item">
+      <div class="label">Version</div>
+      <div class="value">1.0.4</div>
+    </div>
+    <div class="cover-meta-item">
+      <div class="label">Academic Year</div>
+      <div class="value">2025 - 2026</div>
+    </div>
+    <div class="cover-meta-item">
+      <div class="label">Domain</div>
+      <div class="value">Web Development & ERP</div>
+    </div>
+    <div class="cover-meta-item">
+      <div class="label">Contact</div>
+      <div class="value">support@jaygogamart.com</div>
+    </div>
+  </div>
+
+  <div class="team-list">
+    <h3>Development Team</h3>
+    <ul>
+      <li>Lead Developer (Student Name)</li>
+      <li>Frontend Designer</li>
+      <li>Database Architect</li>
+    </ul>
+    <h3 style="margin-top: 1.5rem;">Guided By</h3>
+    <ul>
+      <li>Prof. Project Guide</li>
+      <li>Department of Computer Science</li>
+    </ul>
+  </div>
+</div>
+
+<!-- ============================
+     MAIN DOCUMENTATION
+============================= -->
+<div class="container">
+
+  <!-- TABLE OF CONTENTS -->
+  <div class="toc" style="padding: 0; background: transparent; border: none; margin-bottom: 1rem;">
+    <div style="text-align: center; margin-bottom: 1.5rem;">
+      <h2 style="font-size: 2.2rem; font-weight: 400; color: var(--dark-navy); letter-spacing: 0.05em; margin: 0; padding-bottom: 0.5rem; text-transform: uppercase;">INDEX</h2>
+      <hr style="border: none; border-top: 2px solid var(--primary); width: 100px; margin: 0 auto;">
+    </div>
+    
+    <table class="index-table">
+      <thead>
+        <tr>
+          <th class="col-no">CH.</th>
+          <th class="col-title">Title / Chapter Name</th>
+          <th class="col-page">Section</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr><td class="col-no">01</td><td><a href="#preface">PREFACE & PROJECT SCOPE</a></td><td class="col-page">S1</td></tr>
+        <tr><td class="col-no">02</td><td>ACKNOWLEDGEMENT</td><td class="col-page">S2</td></tr>
+        <tr><td class="col-no">03</td><td>ABSTRACT (PROBLEM & SOLUTION)</td><td class="col-page">S3</td></tr>
+        <tr><td class="col-no">04</td><td><a href="#ch1">CHAPTER 1: INTRODUCTION</a></td><td class="col-page">S4</td></tr>
+        <tr><td class="col-no">05</td><td><a href="#ch2">CHAPTER 2: SYSTEM ANALYSIS</a></td><td class="col-page">S5</td></tr>
+        <tr><td class="col-no">06</td><td><a href="#ch3">CHAPTER 3: SOFTWARE REQUIREMENT SPECIFICATION</a></td><td class="col-page">S6</td></tr>
+        <tr><td class="col-no">07</td><td><a href="#ch4">CHAPTER 4: SYSTEM DESIGN (UML)</a></td><td class="col-page">S7</td></tr>
+        <tr><td class="col-no">08</td><td><a href="#ch5">CHAPTER 5: DATABASE DESIGN (DATA DICTIONARY)</a></td><td class="col-page">S8</td></tr>
+        <tr><td class="col-no">09</td><td><a href="#ch6">CHAPTER 6: IMPLEMENTATION & CODING</a></td><td class="col-page">S9</td></tr>
+        <tr><td class="col-no">10</td><td><a href="#ch7">CHAPTER 7: TESTING & VALIDATION</a></td><td class="col-page">S10</td></tr>
+        <tr><td class="col-no">11</td><td><a href="#ch8">CHAPTER 8: USER MANUAL</a></td><td class="col-page">S11</td></tr>
+        <tr><td class="col-no">12</td><td><a href="#ch9">CHAPTER 9: DEPLOYMENT & DEVOPS</a></td><td class="col-page">S12</td></tr>
+        <tr><td class="col-no">13</td><td><a href="#ch10">CHAPTER 10: CONCLUSION & FUTURE SCOPE</a></td><td class="col-page">S13</td></tr>
+        <tr><td class="col-no">14</td><td>BIBLIOGRAPHY / REFERENCES</td><td class="col-page">S14</td></tr>
+      </tbody>
+    </table>
+
+    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 2rem; margin-top: 2rem;">
+        <div>
+            <h3 style="font-size: 1rem; text-transform: uppercase; letter-spacing: 0.1em; color: var(--text-muted); margin-bottom: 1rem; border-bottom: 1px solid var(--border); padding-bottom: 0.5rem;">List of Figures</h3>
+            <ul style="list-style: none; padding: 0; font-size: 0.85rem;">
+                <li>Fig 4.1: Use Case Diagram</li>
+                <li>Fig 4.2: Sequence Diagram (Order Flow)</li>
+                <li>Fig 4.3: Entity Relationship Diagram</li>
+                <li>Fig 8.1: Admin Analytics Dashboard</li>
+                <li>Fig 8.2: Customer Shop Page</li>
+            </ul>
+        </div>
+        <div>
+            <h3 style="font-size: 1rem; text-transform: uppercase; letter-spacing: 0.1em; color: var(--text-muted); margin-bottom: 1rem; border-bottom: 1px solid var(--border); padding-bottom: 0.5rem;">List of Tables</h3>
+            <ul style="list-style: none; padding: 0; font-size: 0.85rem;">
+                <li>Table 1.1: Project Scope</li>
+                <li>Table 2.1: System Comparison</li>
+                <li>Table 3.1: Software Requirements</li>
+                <li>Table 5.1: Users Table Dictionary</li>
+                <li>Table 5.2: Products Table Dictionary</li>
+                <li>Table 7.1: Functional Test Cases</li>
+            </ul>
+        </div>
+    </div>
+  </div>
+
+  <!-- ===========================
+       PREFACE
+  =========================== -->
+  <div class="doc-section" id="preface">
+    <div class="section-title">
+      <div class="section-num">P</div>
+      <h2>Preface</h2>
+    </div>
+    <p>This technical report presents the design and implementation of the "Jay Goga Kirana Store Management System," a project developed to modernize local retail operations. The report is structured to provide a deep dive into the system's architecture, database design, and operational workflows. It serves as both a technical reference for developers and a comprehensive guide for stakeholders.</p>
+  </div>
+
+  <hr class="section-divider">
+
+  <!-- ===========================
+       ACKNOWLEDGEMENTS
+  =========================== -->
+  <div class="doc-section">
+    <div class="section-title">
+      <div class="section-num">A</div>
+      <h2>Acknowledgements</h2>
+    </div>
+    <p>I would like to express my sincere gratitude to my project guide, <strong>Prof. Project Guide</strong>, for their invaluable mentorship and guidance throughout the development of this project. Their insights into software engineering principles were instrumental in shaping the architecture of this system.</p>
+    <p>Special thanks to the <strong>Department of Computer Science</strong> for providing the resources and environment necessary to complete this work. Finally, I am grateful to my family and friends for their constant support and encouragement.</p>
+  </div>
+
+  <hr class="section-divider">
+
+  <!-- ===========================
+       ABSTRACT
+  =========================== -->
+  <div class="doc-section">
+    <div class="section-title">
+      <div class="section-num">AB</div>
+      <h2>Abstract</h2>
+    </div>
+    <p>The retail grocery sector, particularly local Kirana stores, remains one of the last frontiers for digitalization. These businesses often struggle with manual inventory tracking, error-prone billing, and limited customer reach. The <strong>Jay Goga Kirana Store Management System</strong> is a full-stack web application built using Python Flask that addresses these challenges.</p>
+    <p>The system features a centralized Admin Panel for real-time inventory management, POS (Point of Sale) billing, and automated sales analytics. Simultaneously, it offers a customer-facing E-commerce storefront with product browsing, cart management, and order tracking. By leveraging modern technologies like SQLAlchemy and Chart.js, the system provides a robust, scalable, and user-friendly solution that empowers local shopkeepers to thrive in the digital age.</p>
+  </div>
+
+  <hr class="section-divider">
+  <div class="doc-section" id="ch1">
+    <div class="section-title">
+      <div class="section-num">1</div>
+      <h2>Introduction</h2>
+    </div>
+
+    <h3>1.1 Project Overview</h3>
+    <p>The <strong>Jay Goga Kirana Store Management System</strong> is an integrated web-based platform designed to revolutionize the traditional grocery retail experience. In an era of rapid digitalization, small and medium-sized Kirana stores often face challenges in managing inventory, tracking sales, and reaching online customers. This project provides a dual-faceted solution: a robust Admin Dashboard for business operations and a premium E-commerce Storefront for customers.</p>
+    
+    <div class="screenshot-box" style="margin-top: 2rem;">
+      <h4 style="color: var(--primary);">Fig 1.1 — Jay Goga Mart Storefront Home</h4>
+      <img src="docs_assets/landing_page_1778315787514.png" alt="Jay Goga Mart Home" style="width:100%; border-radius:12px; border: 1px solid var(--border);">
+      <p>The landing page provides a welcoming entry point for customers, featuring the store's branding and a clear call-to-action for shopping.</p>
+    </div>
+
+    <p>By centralizing data into a single, secure database, the system eliminates the inconsistencies associated with manual bookkeeping. It offers a "Midnight Gold" boutique aesthetic, designed to feel premium and trustworthy, reflecting the quality of the products sold. Whether it's tracking a single item of dairy or analyzing a year's worth of revenue, the system provides the tools necessary for modern retail success.</p>
+    
+    <h3>1.2 Background & Market Context</h3>
+    <p>Traditional Kirana stores are the backbone of the Indian retail economy, yet they remain largely underserved by modern technology. Most off-the-shelf ERP systems are too complex or expensive for a local shop. This project was born from the need to provide a <strong>localized, accessible, and high-performance</strong> solution. It addresses the shift in consumer behavior where customers expect to check availability and order essentials from their smartphones, without sacrificing the personal touch of a neighborhood store.</p>
+
+    <h3>1.3 Objectives of the System</h3>
+    <ul>
+        <li><strong>Automation:</strong> Automate daily sales recording and stock updates to reduce manual labor.</li>
+        <li><strong>Inventory Control:</strong> Maintain accurate stock levels with low-stock alerts and automatic deductions.</li>
+        <li><strong>Online Presence:</strong> Provide a professional digital storefront for customers to browse and order products from home.</li>
+        <li><strong>Financial Analytics:</strong> Generate real-time insights into revenue, profit margins, and sales trends.</li>
+        <li><strong>Enhanced UX:</strong> Offer a modern, high-performance interface with dark/light mode support and smooth animations.</li>
+    </ul>
+
+    <h3>1.4 Scope of the Project</h3>
+    <p>The project encompasses the following key areas:</p>
+    <table>
+      <thead><tr><th>Module</th><th>Scope Description</th></tr></thead>
+      <tbody>
+        <tr><td><strong>Authentication</strong></td><td>Secure role-based access for Admins and Customers with password encryption.</td></tr>
+        <tr><td><strong>Inventory</strong></td><td>Full lifecycle management of products, categories, and stock quantities.</td></tr>
+        <tr><td><strong>Sales (POS)</strong></td><td>Manual billing interface for in-store customers with printable receipts.</td></tr>
+        <tr><td><strong>E-Commerce</strong></td><td>Cart management, order placement, and tracking for online buyers.</td></tr>
+        <tr><td><strong>Reporting</strong></td><td>Automated generation of PDF and CSV sales reports for auditing.</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <hr class="section-divider">
+
+  <!-- ===========================
+       CHAPTER 2: SYSTEM ANALYSIS
+  =========================== -->
+  <div class="doc-section" id="ch2">
+    <div class="section-title">
+      <div class="section-num">2</div>
+      <h2>System Analysis</h2>
+    </div>
+
+    <h3>2.1 Preliminary Investigation</h3>
+    <p>Before development, a detailed investigation was conducted into the existing workflows of local grocery shops in urban and semi-urban areas. The primary findings highlighted that most shopkeepers spend 2-3 hours daily on manual accounting, often leading to discrepancies in stock levels and cash flow. Additionally, many stores expressed a desire to sell online but found the barrier to entry (e.g., listing on major apps) too high due to commission fees and complex logistics.</p>
+
+    <h3>2.2 Problem Definition</h3>
+    <p>The core problems identified during the analysis phase were:</p>
+    <ul>
+        <li><strong>Inventory Leakage:</strong> Unrecorded sales and damaged goods leading to financial loss.</li>
+        <li><strong>Accounting Fatigue:</strong> The physical and mental strain of manual bookkeeping.</li>
+        <li><strong>Limited Visibility:</strong> No way to see which products are most profitable over time.</li>
+        <li><strong>Customer Inconvenience:</strong> Lack of digital ordering options for home delivery.</li>
+    </ul>
+
+    <h3>2.3 Feasibility Study</h3>
+    <p>The project was evaluated across three dimensions of feasibility to ensure long-term viability:</p>
+    <ul>
+        <li><strong>Technical Feasibility:</strong> The system uses Python (Flask) and SQLite, which are mature technologies capable of running on standard hardware without high maintenance costs.</li>
+        <li><strong>Economic Feasibility:</strong> The open-source nature of the tech stack ensures zero licensing costs. The efficiency gained in stock management provides a high Return on Investment (ROI).</li>
+        <li><strong>Operational Feasibility:</strong> The intuitive design ensures that shopkeepers with minimal technical knowledge can operate the POS and Admin panel effectively.</li>
+    </ul>
+
+    <h3>2.3 Existing System vs. Proposed System</h3>
+    <table>
+      <thead><tr><th>Feature</th><th>Existing (Manual) System</th><th>Proposed (Digital) System</th></tr></thead>
+      <tbody>
+        <tr><td><strong>Stock Entry</strong></td><td>Handwritten in notebooks</td><td>Automated via Product Module</td></tr>
+        <tr><td><strong>Sales Calculation</strong></td><td>Mental/Calculator-based</td><td>Instant & Error-free</td></tr>
+        <tr><td><strong>Data Retrieval</strong></td><td>Time-consuming search</td><td>Instant Search & Filter</td></tr>
+        <tr><td><strong>Report Generation</strong></td><td>End of the week/month</td><td>Real-time (1-click Export)</td></tr>
+        <tr><td><strong>Customer Reach</strong></td><td>Physical visitors only</td><td>Local Online Customers</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <hr class="section-divider">
+
+  <!-- ===========================
+       CHAPTER 3: SRS
+  =========================== -->
+  <div class="doc-section" id="ch3">
+    <div class="section-title">
+      <div class="section-num">3</div>
+      <h2>Software Requirement Specification</h2>
+    </div>
+
+    <h3>3.1 Functional Requirements</h3>
+    <h4>3.1.1 Admin Module</h4>
+    <ul>
+        <li>Secure login and logout.</li>
+        <li>CRUD operations on Products and Categories.</li>
+        <li>Stock management with minimum stock alerts.</li>
+        <li>POS interface for manual sales with PDF bill generation.</li>
+        <li>Dashboard with visual sales charts (Chart.js).</li>
+        <li>Order management (Update status: Pending to Delivered).</li>
+    </ul>
+
+    <h4>3.1.2 Customer Module</h4>
+    <ul>
+        <li>User registration and login.</li>
+        <li>Browse products with category and price filters.</li>
+        <li>Manage shopping cart and wishlist.</li>
+        <li>Checkout with shipping details.</li>
+        <li>View order history and status.</li>
+        <li>Submit product reviews and ratings.</li>
+    </ul>
+
+    <h3>3.2 Non-Functional Requirements</h3>
+    <ul>
+        <li><strong>Security:</strong> All passwords hashed using PBKDF2; CSRF protection on all forms.</li>
+        <li><strong>Performance:</strong> Page load time under 2 seconds; optimized database queries.</li>
+        <li><strong>Reliability:</strong> Database integrity maintained through SQLAlchemy transactions.</li>
+        <li><strong>Scalability:</strong> Modular design allows adding new features like multi-store support.</li>
+    </ul>
+
+    <h3>3.3 Hardware & Software Requirements</h3>
+    <table>
+      <thead><tr><th>Requirement</th><th>Specification</th></tr></thead>
+      <tbody>
+        <tr><td><strong>Operating System</strong></td><td>Windows 10/11 or Linux (Ubuntu 20.04+)</td></tr>
+        <tr><td><strong>Programming Language</strong></td><td>Python 3.10+</td></tr>
+        <tr><td><strong>Framework</strong></td><td>Flask 3.0.0</td></tr>
+        <tr><td><strong>Database</strong></td><td>SQLite 3 / SQLAlchemy</td></tr>
+        <tr><td><strong>Frontend</strong></td><td>Bootstrap 5, Jinja2, Vanilla JavaScript</td></tr>
+        <tr><td><strong>RAM</strong></td><td>Minimum 4GB (8GB recommended)</td></tr>
+        <tr><td><strong>Storage</strong></td><td>Minimum 500MB free space</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <hr class="section-divider">
+
+  <!-- ===========================
+       SECTION 3: PROJECT STRUCTURE
+  =========================== -->
+  <div class="doc-section" id="s3">
+    <div class="section-title">
+      <div class="section-num">3</div>
+      <h2>Project Structure</h2>
+    </div>
+
+    <pre>mart/
+├── app/
+│   ├── routes/              ← Modular Routing (Admin, Customer, Auth)
+│   ├── services/            ← Business logic & Storage
+│   ├── templates/           ← Jinja2 HTML Templates
+│   ├── static/              ← CSS, JS, and Image uploads
+│   ├── models.py            ← SQLAlchemy DB Models
+│   └── __init__.py          ← App factory & initialization
+├── instance/                ← SQLite database file
+├── run.py                   ← Application entry point
+├── requirements.txt         ← Project dependencies
+└── .env                     ← Environment variables</pre>
+  </div>
+
+  <hr class="section-divider">
+
+  <!-- ===========================
+       SECTION 4: SYSTEM DESIGN
+  =========================== -->
+  <div class="doc-section" id="ch4">
+    <div class="section-title">
+      <div class="section-num">4</div>
+      <h2>System Design & UML</h2>
+    </div>
+
+    <h3>4.1 System Architecture</h3>
+    <p>The system follows a <strong>Client-Server Architecture</strong> using the <strong>MVC (Model-View-Controller)</strong> pattern. Flask acts as the Controller, SQLAlchemy handles the Model (Database), and Jinja2 templates provide the View (User Interface).</p>
+    
+    <div class="callout info">
+        <p><strong>Design Pattern:</strong> The application uses the <strong>App Factory Pattern</strong> for initialization, ensuring clean separation of configuration and route registration via Blueprints.</p>
+    </div>
+
+    <h3>4.2 Use Case Diagram</h3>
+    <p>The Use Case diagram illustrates the interactions between the two primary actors (Admin and Customer) and the system's core functionalities.</p>
+    
+    <div class="screenshot-box" style="background: #f8fafc;">
+        <div class="mermaid">
+        graph TD
+            subgraph "Kirana Store Management System"
+                UC1(Login / Logout)
+                UC2(Manage Products)
+                UC3(Record Manual Sale)
+                UC4(View Analytics)
+                UC5(Browse Products)
+                UC6(Add to Cart)
+                UC7(Place Order)
+                UC8(Manage User Profile)
+                UC9(Process Orders)
+            end
+
+            Admin((Admin))
+            Customer((Customer))
+
+            Admin --> UC1
+            Admin --> UC2
+            Admin --> UC3
+            Admin --> UC4
+            Admin --> UC9
+
+            Customer --> UC1
+            Customer --> UC5
+            Customer --> UC6
+            Customer --> UC7
+            Customer --> UC8
+        </div>
+        <p style="text-align: center; margin-top: 1rem;"><em>Figure 4.1: Use Case Diagram for Admin and Customer Roles</em></p>
+    </div>
+
+    <h3>4.3 Sequence Diagram: Online Order Placement</h3>
+    <p>This diagram shows the step-by-step process of a customer placing an order and the system's internal response.</p>
+    
+    <div class="screenshot-box" style="background: #f8fafc;">
+        <div class="mermaid">
+        sequenceDiagram
+            participant C as Customer
+            participant S as System (Flask)
+            participant DB as Database (SQLite)
+            
+            C->>S: Add Product to Cart
+            S->>DB: Check Stock Availability
+            DB-->>S: Stock OK
+            S->>S: Update Session Cart
+            C->>S: Click Checkout
+            S->>C: Show Order Summary
+            C->>S: Confirm Payment
+            S->>DB: Create Order & OrderItems
+            S->>DB: Deduct Product Stock
+            DB-->>S: Success
+            S-->>C: Show Order Confirmation
+        </div>
+        <p style="text-align: center; margin-top: 1rem;"><em>Figure 4.2: Sequence Diagram for Order Flow</em></p>
+    </div>
+
+    <h3>4.4 Entity Relationship Diagram (ERD)</h3>
+    <p>The ERD defines the data structure and relationships between various entities like Users, Products, Categories, and Orders.</p>
+
+    <div class="screenshot-box" style="background: #f8fafc;">
+        <div class="mermaid">
+        erDiagram
+            USER ||--o{ CART : "has items"
+            USER ||--o{ ORDER : "places"
+            USER ||--o{ REVIEW : "writes"
+            CATEGORY ||--o{ PRODUCT : "categorizes"
+            PRODUCT ||--o{ SALE : "sold as"
+            PRODUCT ||--o{ CART : "added to"
+            PRODUCT ||--o{ ORDER_ITEM : "included in"
+            ORDER ||--|{ ORDER_ITEM : "contains"
+            
+            USER {
+                int id PK
+                string username
+                string email
+                string role
+                string phone
+            }
+            PRODUCT {
+                int id PK
+                string name
+                float cost_price
+                float selling_price
+                int stock_quantity
+            }
+            ORDER {
+                int id PK
+                float total_amount
+                string order_status
+                datetime created_at
+            }
+        </div>
+        <p style="text-align: center; margin-top: 1rem;"><em>Figure 4.3: Entity Relationship Diagram</em></p>
+    </div>
+
+    <h3>4.5 Data Flow Diagram (Level 0)</h3>
+    <p>The DFD illustrates how data moves from external entities (Admin/Customer) into the system's core processes and database.</p>
+
+    <div class="screenshot-box" style="background: #f8fafc;">
+        <div class="mermaid">
+        graph LR
+            A[Admin] -- Inventory Data --> P((Kirana Store Process))
+            C[Customer] -- Order Details --> P
+            P -- Stock Updates --> D[(Database)]
+            P -- Invoices --> C
+            P -- Reports --> A
+            D -- Analytics --> P
+        </div>
+        <p style="text-align: center; margin-top: 1rem;"><em>Figure 4.4: Data Flow Diagram (Context Level)</em></p>
+    </div>
+  </div>
+
+  <hr class="section-divider">
+
+  <!-- ===========================
+       CHAPTER 5: DATABASE DESIGN
+  =========================== -->
+  <div class="doc-section" id="ch5">
+    <div class="section-title">
+      <div class="section-num">5</div>
+      <h2>Database Design & Data Dictionary</h2>
+    </div>
+
+    <p>The system uses a relational database (SQLite) managed through the SQLAlchemy ORM. Below is the detailed data dictionary for the core tables.</p>
+
+    <h3>5.1 Table: Users</h3>
+    <table>
+        <thead><tr><th>Field</th><th>Type</th><th>Constraint</th><th>Description</th></tr></thead>
+        <tbody>
+            <tr><td>id</td><td>Integer</td><td>PK, AI</td><td>Unique user identifier</td></tr>
+            <tr><td>username</td><td>String(80)</td><td>Unique, Not Null</td><td>Used for login</td></tr>
+            <tr><td>email</td><td>String(120)</td><td>Unique</td><td>User's email address</td></tr>
+            <tr><td>password_hash</td><td>String(200)</td><td>Not Null</td><td>Securely hashed password</td></tr>
+            <tr><td>role</td><td>String(20)</td><td>Default: 'customer'</td><td>'admin' or 'customer'</td></tr>
+            <tr><td>phone</td><td>String(20)</td><td>-</td><td>Contact number</td></tr>
+            <tr><td>address</td><td>Text</td><td>-</td><td>Shipping address</td></tr>
+            <tr><td>credit</td><td>Numeric(10,2)</td><td>Default: 0</td><td>Track unpaid balance (Udhar)</td></tr>
+        </tbody>
+    </table>
+
+    <h3>5.2 Table: Products</h3>
+    <table>
+        <thead><tr><th>Field</th><th>Type</th><th>Constraint</th><th>Description</th></tr></thead>
+        <tbody>
+            <tr><td>id</td><td>Integer</td><td>PK, AI</td><td>Unique product identifier</td></tr>
+            <tr><td>name</td><td>String(100)</td><td>Not Null</td><td>Product name</td></tr>
+            <tr><td>category_id</td><td>Integer</td><td>FK (categories.id)</td><td>Relationship to category</td></tr>
+            <tr><td>cost_price</td><td>Numeric(10,2)</td><td>Not Null</td><td>Wholesale price</td></tr>
+            <tr><td>selling_price</td><td>Numeric(10,2)</td><td>Not Null</td><td>Retail price</td></tr>
+            <tr><td>stock_quantity</td><td>Integer</td><td>Default: 0</td><td>Available stock in units</td></tr>
+            <tr><td>minimum_stock_alert</td><td>Integer</td><td>Default: 10</td><td>Threshold for low-stock warning</td></tr>
+        </tbody>
+    </table>
+
+    <h3>5.3 Table: Orders</h3>
+    <table>
+        <thead><tr><th>Field</th><th>Type</th><th>Constraint</th><th>Description</th></tr></thead>
+        <tbody>
+            <tr><td>id</td><td>Integer</td><td>PK, AI</td><td>Unique order identifier</td></tr>
+            <tr><td>user_id</td><td>Integer</td><td>FK (users.id)</td><td>Customer who placed order</td></tr>
+            <tr><td>total_amount</td><td>Numeric(10,2)</td><td>Not Null</td><td>Final bill amount</td></tr>
+            <tr><td>payment_method</td><td>String(50)</td><td>Default: 'COD'</td><td>COD or Online</td></tr>
+            <tr><td>order_status</td><td>String(20)</td><td>Default: 'Pending'</td><td>Lifecycle: Pending to Delivered</td></tr>
+            <tr><td>created_at</td><td>DateTime</td><td>Default: Now</td><td>Timestamp of order</td></tr>
+        </tbody>
+    </table>
+
+    <h3>5.4 Table: Sales (Manual/POS)</h3>
+    <table>
+        <thead><tr><th>Field</th><th>Type</th><th>Constraint</th><th>Description</th></tr></thead>
+        <tbody>
+            <tr><td>id</td><td>Integer</td><td>PK, AI</td><td>Unique sale identifier</td></tr>
+            <tr><td>product_id</td><td>Integer</td><td>FK (products.id)</td><td>Sold item</td></tr>
+            <tr><td>quantity</td><td>Integer</td><td>Not Null</td><td>Number of items sold</td></tr>
+            <tr><td>total_price</td><td>Numeric(10,2)</td><td>Not Null</td><td>Revenue from this sale</td></tr>
+            <tr><td>profit</td><td>Numeric(10,2)</td><td>Not Null</td><td>Net profit (Price - Cost)</td></tr>
+        </tbody>
+    </table>
+
+    <h3>5.5 Table: Suppliers</h3>
+    <table>
+        <thead><tr><th>Field</th><th>Type</th><th>Constraint</th><th>Description</th></tr></thead>
+        <tbody>
+            <tr><td>id</td><td>Integer</td><td>PK, AI</td><td>Unique supplier identifier</td></tr>
+            <tr><td>name</td><td>String(100)</td><td>Not Null</td><td>Company/Supplier name</td></tr>
+            <tr><td>contact_person</td><td>String(100)</td><td>-</td><td>Primary point of contact</td></tr>
+            <tr><td>phone</td><td>String(20)</td><td>-</td><td>Contact number</td></tr>
+            <tr><td>address</td><td>Text</td><td>-</td><td>Office/Warehouse address</td></tr>
+        </tbody>
+    </table>
+
+    <h3>5.6 Table: Purchases (Restocking)</h3>
+    <table>
+        <thead><tr><th>Field</th><th>Type</th><th>Constraint</th><th>Description</th></tr></thead>
+        <tbody>
+            <tr><td>id</td><td>Integer</td><td>PK, AI</td><td>Unique purchase identifier</td></tr>
+            <tr><td>supplier_id</td><td>Integer</td><td>FK (suppliers.id)</td><td>Source of stock</td></tr>
+            <tr><td>product_id</td><td>Integer</td><td>FK (products.id)</td><td>Item being restocked</td></tr>
+            <tr><td>quantity</td><td>Integer</td><td>Not Null</td><td>Quantity purchased</td></tr>
+            <tr><td>purchase_price</td><td>Numeric(10,2)</td><td>Not Null</td><td>Price paid to supplier</td></tr>
+            <tr><td>purchase_date</td><td>DateTime</td><td>Default: Now</td><td>Date of restock</td></tr>
+        </tbody>
+    </table>
+
+    <h3>5.7 Marketing & Session Tables</h3>
+    <ul>
+        <li><strong>Wishlist:</strong> Maps <code>user_id</code> to <code>product_id</code> for items saved for later.</li>
+        <li><strong>Coupons:</strong> Stores <code>code</code>, <code>discount_type</code> (percent/fixed), <code>value</code>, and <code>usage_limit</code>.</li>
+        <li><strong>Cart:</strong> Temporary session storage for active shopping carts.</li>
+    </ul>
+  </div>
+
+  <hr class="section-divider">
+
+  <!-- ===========================
+       CHAPTER 6: IMPLEMENTATION & CODING
+  =========================== -->
+  <div class="doc-section" id="ch6">
+    <div class="section-title">
+      <div class="section-num">6</div>
+      <h2>Implementation & Coding</h2>
+    </div>
+
+    <h3>6.1 Methodology</h3>
+    <p>The project was developed using an <strong>Agile Development Methodology</strong>, allowing for iterative improvements to the UI/UX based on frequent testing. The backend is built on the <strong>Modular Monolith</strong> principle, where logically grouped features are separated into Flask Blueprints.</p>
+
+    <h3>6.2 Technology Stack</h3>
+    <table>
+      <thead><tr><th>Layer</th><th>Technology</th><th>Selection Rationale</th></tr></thead>
+      <tbody>
+        <tr><td><strong>Backend</strong></td><td>Python / Flask</td><td>Lightweight, flexible, and highly extensible.</td></tr>
+        <tr><td><strong>ORM</strong></td><td>SQLAlchemy</td><td>Allows for database-agnostic development (SQLite for local, PostgreSQL for cloud).</td></tr>
+        <tr><td><strong>Frontend</strong></td><td>Bootstrap 5</td><td>Ensures responsive design across mobile and desktop devices.</td></tr>
+        <tr><td><strong>Charts</strong></td><td>Chart.js</td><td>High-performance rendering of business analytics in the browser.</td></tr>
+        <tr><td><strong>Security</strong></td><td>Werkzeug Security</td><td>Provides industry-standard password hashing (PBKDF2).</td></tr>
+      </tbody>
+    </table>
+
+    <h3>6.3 Project Directory Structure</h3>
+    <pre>mart/
+├── app/
+│   ├── routes/              ← Modular Blueprints (admin.py, customer.py, auth.py)
+│   ├── services/            ← Business logic (order_service.py, cart_service.py)
+│   ├── templates/           ← Jinja2 HTML Layouts (Admin & Customer separate)
+│   ├── static/              ← Assets (style.css, main.js, uploads/)
+│   ├── models.py            ← SQLAlchemy Database Schema
+│   └── utils.py             ← Analytics, CSV/PDF generation logic
+├── instance/                ← Local SQLite Database (store.db)
+├── config.py                ← Environment-based Configuration
+└── run.py                   ← Application Entry Point</pre>
+
+    <h3>6.4 Key Implementation: Authentication</h3>
+    <p>The system implements a robust authentication layer. Below is the core logic for user password hashing and verification found in <code>models.py</code>:</p>
+    <pre>from werkzeug.security import generate_password_hash, check_password_hash
+
+class User(db.Model, UserMixin):
+    # ... fields ...
+    def set_password(self, password):
+        self.password_hash = generate_password_hash(password)
+
+    def check_password(self, password):
+        return check_password_hash(self.password_hash, password)</pre>
+
+    <h3>6.5 Key Implementation: POS Logic</h3>
+    <p>When a manual sale is recorded, the system ensures atomicity. It deducts stock and logs the sale in a single transaction:</p>
+    <pre>@admin.route('/sales', methods=['POST'])
+@admin_required
+def record_sale():
+    product = Product.query.get(product_id)
+    if product.stock_quantity >= quantity:
+        product.stock_quantity -= quantity
+        new_sale = Sale(product_id=product.id, quantity=quantity, 
+                        total_price=total, profit=profit)
+        db.session.add(new_sale)
+        db.session.commit()
+        return redirect(url_for('admin.sales_history'))</pre>
+
+    <h3>6.6 Service Layer Architecture</h3>
+    <p>To keep the route handlers (Blueprints) thin and maintainable, the application utilizes a <strong>Service Layer</strong> (found in <code>app/services/</code>). This layer encapsulates complex business logic:</p>
+    <ul>
+        <li><strong>Cart Service:</strong> Manages item additions, quantity updates, and subtotal calculations.</li>
+        <li><strong>Order Service:</strong> Handles the atomic transition from cart items to confirmed orders, including stock deduction and profit logging.</li>
+        <li><strong>Storage Service:</strong> Manages secure file uploads for product images.</li>
+    </ul>
+
+    <h3>6.7 Advanced Security Implementation</h3>
+    <p>Beyond basic authentication, the system implements several advanced security protocols:</p>
+    <ul>
+        <li><strong>Two-Factor Authentication (2FA):</strong> Users can enable 2FA, which generates a unique secret key stored in the database. During login, the system validates a time-based token.</li>
+        <li><strong>Password Recovery:</strong> Implements a secure token-based reset flow. A unique <code>reset_token</code> is generated, hashed using SHA-256, and sent to the user's verified email.</li>
+        <li><strong>Email Verification:</strong> Ensures new customer accounts are legitimate by requiring a <code>verification_token</code> confirmation.</li>
+    </ul>
+  </div>
+
+  <hr class="section-divider">
+
+  <!-- ===========================
+       CHAPTER 7: TESTING & VALIDATION
+  =========================== -->
+  <div class="doc-section" id="ch7">
+    <div class="section-title">
+      <div class="section-num">7</div>
+      <h2>Testing & Validation</h2>
+    </div>
+
+    <h3>7.1 Testing Strategy</h3>
+    <p>The system underwent rigorous testing to ensure reliability and data integrity. The testing strategy focused on three main levels:</p>
+    <ul>
+        <li><strong>Unit Testing:</strong> Individual functions like password hashing, price calculations, and stock deduction logic were tested in isolation.</li>
+        <li><strong>Integration Testing:</strong> Verified that different modules (e.g., Cart and Inventory) worked together correctly.</li>
+        <li><strong>User Acceptance Testing (UAT):</strong> Tested the system against real-world scenarios to ensure it met shopkeeper and customer needs.</li>
+    </ul>
+
+    <h3>7.2 Test Cases & Results</h3>
+    <table>
+        <thead><tr><th>Test Case ID</th><th>Scenario</th><th>Input Data</th><th>Expected Result</th><th>Status</th></tr></thead>
+        <tbody>
+            <tr><td>TC-01</td><td>Admin Login</td><td>Valid Username/Password</td><td>Redirect to Dashboard</td><td>Passed</td></tr>
+            <tr><td>TC-02</td><td>Add Product</td><td>Name, Price, Stock</td><td>Product visible in list</td><td>Passed</td></tr>
+            <tr><td>TC-03</td><td>Low Stock Alert</td><td>Stock reduced to 5</td><td>Visual warning on dashboard</td><td>Passed</td></tr>
+            <tr><td>TC-04</td><td>Manual Sale</td><td>Product X, Qty 2</td><td>Stock -= 2, Sale logged</td><td>Passed</td></tr>
+            <tr><td>TC-05</td><td>Customer Checkout</td><td>Address, COD selection</td><td>Order created, Cart cleared</td><td>Passed</td></tr>
+            <tr><td>TC-06</td><td>Review Submission</td><td>Rating 4, Comment</td><td>Review visible on product page</td><td>Passed</td></tr>
+            <tr><td>TC-07</td><td>Security Check</td><td>Invalid Admin URL access</td><td>Redirected to login</td><td>Passed</td></tr>
+        </tbody>
+    </table>
+
+    <h3>7.3 Validation Results</h3>
+    <div class="callout success">
+        <p><strong>Validation Summary:</strong> 100% of the core functional requirements defined in the SRS were successfully implemented and verified. The system maintains database consistency even under simulated high-load conditions.</p>
+    </div>
+  </div>
+
+  <hr class="section-divider">
+
+  <!-- ===========================
+       CHAPTER 8: USER MANUAL
+  =========================== -->
+  <div class="doc-section" id="ch8">
+    <div class="section-title">
+      <div class="section-num">8</div>
+      <h2>User Manual</h2>
+    </div>
+
+    <h3>8.1 Admin User Guide</h3>
+    <p>Follow these steps to manage your Kirana store operations efficiently:</p>
+    
+    <h4>Step 1: Accessing the Admin Panel</h4>
+    <p>Navigate to <code>/admin/login</code> and enter the default credentials. You will be redirected to the Analytics Dashboard.</p>
+
+    <div class="screenshot-box">
+      <h4>8.1.1 — Analytics Dashboard</h4>
+      <img src="docs_assets/admin_dashboard_1778315832464.png" alt="Original Admin Dashboard" style="width:100%; border-radius:8px; margin-bottom:1rem; border: 1px solid var(--border);">
+      <p>View real-time charts for revenue and profit. Monitor "Low Stock" alerts to prepare for restocking.</p>
+    </div>
+
+    <h4>Step 2: Managing Products</h4>
+    <p>Go to the <strong>Products</strong> tab to add new items. Enter the Cost Price and Selling Price; the system will automatically track your potential profit.</p>
+
+    <h4>Step 3: Recording a Manual Sale (POS)</h4>
+    <p>In the <strong>Sales</strong> module, select the product and enter the quantity. Click "Record Sale" to deduct stock and generate a printable bill for the customer.</p>
+
+    <h4>Step 4: Credit Management (Udhar)</h4>
+    <p>For trusted customers, you can record sales on credit. Navigate to <strong>Customer Credit</strong> to view outstanding balances and log partial or full payments. The system maintains an atomic ledger for each user.</p>
+
+    <h4>Step 5: Restocking & Supplier Management</h4>
+    <p>Use the <strong>Suppliers</strong> module to add vendors. When stock arrives, record a <strong>Purchase</strong> to automatically increase inventory levels and log the cost for accurate profit analysis.</p>
+
+    <h3>8.2 Customer User Guide</h3>
+    <p>Designed for a seamless online shopping experience:</p>
+
+    <h4>Step 1: Registration & Login</h4>
+    <p>New users can register at <code>/register</code>. Existing users login at <code>/login</code> to access their cart and profile.</p>
+
+    <div class="screenshot-box">
+      <h4>8.2.1 — Customer Shop Page</h4>
+      <img src="docs_assets/customer_shop_page_1778315853765.png" alt="Original Customer Storefront" style="width:100%; border-radius:8px; margin-bottom:1rem; border: 1px solid var(--border);">
+      <p>Customers can filter by category (e.g., Dairy, Spices) and search for specific items using the search bar.</p>
+    </div>
+
+    <h4>Step 2: Shopping Cart & Checkout</h4>
+    <p>Add items to the cart and click "Checkout". Provide the shipping address and choose between Cash on Delivery (COD) or Online Payment simulation.</p>
+
+    <h4>Step 3: Track Orders</h4>
+    <p>In the <strong>Profile</strong> section, customers can view their order history and track the status (e.g., Shipped, Delivered).</p>
+  </div>
+
+  <hr class="section-divider">
+
+  <!-- ===========================
+       CHAPTER 9: DEPLOYMENT & DEVOPS
+  =========================== -->
+  <div class="doc-section" id="ch9">
+    <div class="section-title">
+      <div class="section-num">9</div>
+      <h2>Deployment & Maintenance</h2>
+    </div>
+
+    <h3>10.1 Environment Configuration</h3>
+    <p>The system uses a <code>.env</code> file to manage sensitive credentials and environment-specific settings. Key variables include:</p>
+    <ul>
+        <li><code>SECRET_KEY</code>: Used for session encryption and CSRF protection.</li>
+        <li><code>DATABASE_URL</code>: Path to the SQLite or PostgreSQL database.</li>
+        <li><code>UPLOAD_FOLDER</code>: Directory for storing product images.</li>
+    </ul>
+
+    <h3>10.2 Production Deployment (Render.com)</h3>
+    <p>The application is optimized for deployment on <strong>Render.com</strong> using the <code>render.yaml</code> blueprint. The deployment pipeline includes:</p>
+    <ol>
+        <li><strong>Build Phase:</strong> Execution of <code>build.sh</code> to install dependencies and collect static assets.</li>
+        <li><strong>Database Migration:</strong> Automatic schema updates using Flask-Migrate (if enabled).</li>
+        <li><strong>Server Execution:</strong> The application is served using <code>Gunicorn</code>, a production-grade WSGI HTTP Server.</li>
+    </ol>
+
+    <h3>10.3 Database Maintenance</h3>
+    <p>To ensure data longevity, the following maintenance procedures are recommended:</p>
+    <ul>
+        <li><strong>Backups:</strong> Regular snapshots of the <code>instance/store.db</code> file.</li>
+        <li><strong>Optimization:</strong> Use of <code>VACUUM</code> commands in SQLite to reclaim unused space.</li>
+        <li><strong>Logging:</strong> Monitoring <code>logs/app.log</code> for any runtime exceptions or performance bottlenecks.</li>
+    </ul>
+  </div>
+
+  <hr class="section-divider">
+
+  <!-- ===========================
+       CHAPTER 10: CONCLUSION & FUTURE
+  =========================== -->
+  <div class="doc-section" id="ch10">
+    <div class="section-title">
+      <div class="section-num">10</div>
+      <h2>Conclusion & Future Scope</h2>
+    </div>
+
+    <h3>9.1 Project Summary</h3>
+    <p>The <strong>Jay Goga Kirana Store Management System</strong> successfully addresses the critical need for digitalization in the retail grocery sector. By providing a unified platform for both online sales and offline POS management, the system empowers local shopkeepers to compete with large e-commerce giants. The project demonstrates the power of modern web technologies (Flask, SQLAlchemy, Bootstrap) in solving real-world business problems efficiently.</p>
+
+    <h3>9.2 Key Achievements</h3>
+    <ul>
+        <li>Implemented a secure, role-based multi-user environment.</li>
+        <li>Developed a real-time analytics engine for business intelligence.</li>
+        <li>Created an automated PDF/CSV reporting system to replace manual ledgers.</li>
+        <li>Designed a premium, responsive UI that enhances user engagement.</li>
+    </ul>
+
+    <h3>9.3 Future Enhancements</h3>
+    <table>
+      <thead><tr><th>Feature</th><th>Description</th></tr></thead>
+      <tbody>
+        <tr><td><strong>AI Stock Prediction</strong></td><td>Use Machine Learning to predict future stock requirements based on seasonal trends.</td></tr>
+        <tr><td><strong>Barcode Integration</strong></td><td>Support for barcode scanning in the POS module for faster checkout.</td></tr>
+        <tr><td><strong>WhatsApp Billing</strong></td><td>Send digital receipts and order updates directly to customer WhatsApp numbers.</td></tr>
+        <tr><td><strong>Multi-Store Support</strong></td><td>Allow a single admin to manage multiple Kirana store branches from one dashboard.</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <hr class="section-divider">
+
+  <!-- ===========================
+       BIBLIOGRAPHY
+  =========================== -->
+  <div class="doc-section">
+    <div class="section-title">
+      <div class="section-num">B</div>
+      <h2>Bibliography / References</h2>
+    </div>
+    <ul>
+        <li><strong>Flask Documentation:</strong> https://flask.palletsprojects.com/ (Official Web Framework Guide)</li>
+        <li><strong>SQLAlchemy Documentation:</strong> https://www.sqlalchemy.org/ (ORM & Database Design)</li>
+        <li><strong>Bootstrap 5 Components:</strong> https://getbootstrap.com/ (UI/UX Best Practices)</li>
+        <li><strong>Chart.js Documentation:</strong> https://www.chartjs.org/ (Data Visualization)</li>
+        <li><strong>Python for Data Analysis:</strong> McKinney, W. (O'Reilly Media) - Concept of analytics.</li>
+    </ul>
+  </div>
+
+</div>
+
+<div class="doc-footer">
+  <p>Prepared for the <strong>Jay Goga Kirana Store Management — Academic Project, 2026</strong></p>
+  <p style="margin-top:0.5rem;">Jay Goga Mart &nbsp;|&nbsp; support@jaygogamart.com &nbsp;|&nbsp; Mehsana, Gujarat</p>
+  <p style="margin-top:0.5rem; font-size:0.8rem; color:#94a3b8;">Mentors: Prof. Project Guide<br>Development Team: Project Student Team</p>
+</div>
+
+<button class="print-btn" onclick="window.print()">🖨️ Save as PDF</button>
+
+<script>
+  // Final check to ensure mermaid renders
+  document.addEventListener('DOMContentLoaded', function() {
+    mermaid.run();
+  });
+</script>
+</body>
+</html>

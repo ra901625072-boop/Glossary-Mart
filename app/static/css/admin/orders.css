@@ -1,123 +1,85 @@
-/* ========== Admin Order Management - Premium Refinement ========== */
+/* ========== Admin Orders — Premium Analytics Aesthetic ========== */
 
 .admin-order-container {
-    animation: fadeIn 0.6s ease-out;
+    animation: fadeIn 0.6s var(--ease-smooth);
 }
 
-.order-stat-card {
-    background: var(--sur-low);
-    backdrop-filter: blur(20px);
-    border-radius: var(--ss-radius-xl);
-    border: 1.5px solid var(--border-subtle);
-    padding: 2rem;
-    transition: var(--ss-transition-bounce);
-    height: 100%;
+/* Order Tables */
+.order-table {
+    --bs-table-bg: transparent !important;
+    --bs-table-color: var(--text-main) !important;
+    border-collapse: separate;
+    border-spacing: 0 8px;
 }
 
-.order-stat-card:hover {
-    transform: translateY(-5px);
-    background: var(--sur-mid);
-    border-color: var(--accent);
-    box-shadow: var(--ss-shadow-xl);
-}
-
-.order-list-panel {
-    background: var(--sur-low);
-    backdrop-filter: blur(25px);
-    border-radius: var(--ss-radius-xl);
-    border: 1.5px solid var(--border-subtle);
-    overflow: hidden;
-}
-
-.order-table th {
-    background: rgba(var(--primary-rgb), 0.5) !important;
+.order-table thead th {
+    background: rgba(var(--primary-rgb), 0.4) !important;
     color: var(--accent) !important;
     font-weight: 900 !important;
     text-transform: uppercase;
-    letter-spacing: 0.1em;
-    font-size: 0.75rem;
-    padding: 1.5rem !important;
-    border-bottom: 2px solid var(--border-subtle) !important;
+    letter-spacing: 0.15em;
+    font-size: 0.65rem;
+    padding: 1.25rem 1rem !important;
+    border: none !important;
+    border-radius: var(--ss-radius);
+}
+
+.order-table tbody tr {
+    background: var(--sur-low);
+    transition: var(--ss-transition-bounce);
+    border-radius: var(--ss-radius-lg);
+}
+
+.order-table tbody tr:hover {
+    background: var(--sur-mid) !important;
+    transform: scale(1.005) translateY(-2px);
+    box-shadow: var(--ss-shadow-lg);
 }
 
 .order-table td {
-    padding: 1.5rem !important;
-    border-bottom: 1px solid var(--border-subtle) !important;
-    vertical-align: middle;
+    padding: 1.25rem 1rem !important;
+    border: none !important;
 }
 
-.order-table tr:hover {
-    background: rgba(var(--accent-rgb), 0.05) !important;
-}
+.order-table td:first-child { border-radius: var(--ss-radius-lg) 0 0 var(--ss-radius-lg); }
+.order-table td:last-child { border-radius: 0 var(--ss-radius-lg) var(--ss-radius-lg) 0; }
 
-.process-order-btn {
-    background: var(--ss-gradient-accent);
-    color: var(--text-on-accent);
-    border: none;
-    padding: 0.75rem 1.5rem;
+/* Status Badges */
+.ss-badge {
+    padding: 0.4rem 0.8rem;
     border-radius: var(--ss-radius-full);
     font-weight: 900;
-    font-size: 0.75rem;
-    letter-spacing: 0.1em;
     text-transform: uppercase;
-    transition: var(--ss-transition-bounce);
-    box-shadow: var(--ss-shadow-md);
+    letter-spacing: 0.05em;
+    font-size: 0.6rem;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.4rem;
 }
 
-.process-order-btn:hover {
-    transform: scale(1.05) translateY(-2px);
-    box-shadow: var(--ss-shadow-gold);
-    color: var(--text-on-accent);
-}
-
-/* Detail View Enhancements */
-.order-detail-card {
-    background: var(--sur-low);
-    backdrop-filter: blur(30px);
-    border-radius: var(--ss-radius-2xl);
-    border: 1.5px solid var(--border-subtle);
-    padding: 3rem;
-}
-
-.order-info-block {
-    background: rgba(var(--primary-rgb), 0.3);
-    border-radius: var(--ss-radius-lg);
-    padding: 1.5rem;
-    border: 1px solid var(--border-subtle);
-    height: 100%;
-}
-
+/* Info Blocks */
 .order-info-label {
-    font-size: 0.7rem;
+    font-size: 0.6rem;
     font-weight: 900;
     text-transform: uppercase;
-    color: var(--accent);
-    letter-spacing: 0.15em;
-    margin-bottom: 0.5rem;
+    color: var(--text-muted);
+    letter-spacing: 0.2em;
     display: block;
+    margin-bottom: 0.5rem;
+    opacity: 0.7;
 }
 
-.order-info-value {
-    font-weight: 800;
-    font-size: 1.1rem;
-    color: var(--text-main);
-}
-
-.status-control-panel {
-    background: var(--sur-low);
-    backdrop-filter: blur(20px);
-    border-radius: var(--ss-radius-xl);
-    border: 1.5px solid var(--border-subtle);
-    padding: 2.5rem;
-}
-
+/* Custom Selects for Status Update */
 .status-select {
-    background: var(--bg-alt) !important;
+    background-color: var(--sur-mid) !important;
     border: 1.5px solid var(--border-subtle) !important;
     color: var(--text-main) !important;
-    font-weight: 800 !important;
-    padding: 1rem !important;
+    font-weight: 800;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
     border-radius: var(--ss-radius-lg) !important;
+    padding: 0.75rem 1rem !important;
+    transition: var(--ss-transition);
 }
 
 .status-select:focus {
@@ -125,7 +87,11 @@
     box-shadow: var(--ss-shadow-gold) !important;
 }
 
-@keyframes fadeIn {
-    from { opacity: 0; transform: translateY(20px); }
-    to { opacity: 1; transform: translateY(0); }
+/* Table Responsive override */
+.table-responsive {
+    overflow-x: visible !important;
+}
+
+@media (max-width: 991.98px) {
+    .table-responsive { overflow-x: auto !important; }
 }

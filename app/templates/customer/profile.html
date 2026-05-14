@@ -1,109 +1,107 @@
 {% extends 'base.html' %}
 
-{% block title %}Account Dashboard - Jay Goga Kirana Store{% endblock %}
+{% block title %}My Account — Jay Goga Kirana Store{% endblock %}
 
 {% block content %}
-<div class="container my-5 profile-container">
-    <div class="row g-5">
-        <!-- Sidebar Navigation -->
+<div class="container my-4 my-md-5 profile-container">
+    <div class="row g-4">
+        <!-- Sidebar / Tab strip -->
         <div class="col-lg-3">
             <div class="ss-profile-sidebar shadow-2xl">
-                <div class="text-center mb-5">
-                    <div class="profile-avatar-premium mx-auto mb-4">
+                <div class="text-center mb-4">
+                    <div class="profile-avatar-premium mx-auto mb-3">
                         {{ user.username[0].upper() }}
                     </div>
-                    <h4 class="fw-900 text-ss-main mb-1">{{ user.full_name or user.username }}</h4>
-                    <div class="ss-tag smallest tracking-widest text-uppercase fw-900 opacity-75">Verified Client</div>
+                    <h5 class="fw-900 text-ss-main mb-1">{{ user.full_name or user.username }}</h5>
+                    <div class="ss-badge ss-badge-info smallest tracking-widest">Verified Customer</div>
                 </div>
 
-                <div class="nav flex-column nav-pills custom-profile-nav">
-                    <a href="{{ url_for('customer.profile') }}"
-                        class="nav-link active">
-                        <i class="bi bi-person-badge"></i>Personal Identity
+                <nav class="custom-profile-nav nav flex-column flex-md-row flex-lg-column">
+                    <a href="{{ url_for('customer.profile') }}" class="nav-link active">
+                        <i class="bi bi-person-badge"></i>Profile
                     </a>
-                    <a href="{{ url_for('customer.my_orders') }}"
-                        class="nav-link">
-                        <i class="bi bi-bag-heart"></i>Order Synopsis
+                    <a href="{{ url_for('customer.my_orders') }}" class="nav-link">
+                        <i class="bi bi-bag-heart"></i>My Orders
                     </a>
-                    <a href="{{ url_for('customer.view_wishlist') }}"
-                        class="nav-link">
-                        <i class="bi bi-heart"></i>Wishlist Collection
+                    <a href="{{ url_for('customer.view_wishlist') }}" class="nav-link">
+                        <i class="bi bi-heart"></i>Wishlist
                     </a>
-                    <hr class="my-4 border-white border-opacity-10">
-                    <a href="{{ url_for('auth.logout') }}"
-                        class="nav-link text-danger">
-                        <i class="bi bi-power"></i>Secure Exit
+                    <hr class="my-3 border-opacity-10 d-none d-lg-block">
+                    <a href="{{ url_for('auth.logout') }}" class="nav-link text-danger">
+                        <i class="bi bi-power"></i>Sign Out
                     </a>
-                </div>
+                </nav>
             </div>
         </div>
 
         <!-- Main Content -->
         <div class="col-lg-9">
             <div class="ss-profile-card shadow-2xl">
-                <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center mb-5">
+                <div class="d-flex flex-column flex-sm-row justify-content-between align-items-sm-center mb-4">
                     <div>
-                        <h2 class="display-6 fw-900 text-ss-main mb-1">Account Dashboard</h2>
-                        <p class="text-muted mb-0 fs-5">Curate your personal data and track your artisanal acquisitions.</p>
+                        <h2 class="fw-900 text-ss-main mb-1">Account Details</h2>
+                        <p class="text-muted mb-0 small">Manage your personal information and view your orders.</p>
                     </div>
                     <a href="{{ url_for('customer.edit_profile') }}"
-                        class="btn btn-ss-outline px-4 mt-4 mt-md-0 py-3">
+                        class="btn btn-ss-outline px-4 mt-3 mt-sm-0">
                         <i class="bi bi-pencil-square me-2"></i>Edit Profile
                     </a>
                 </div>
 
-                <div class="row g-4 mb-5">
+                <div class="row g-3 mb-4">
                     {% if user.credit and user.credit > 0 %}
-                    <div class="col-12 mb-3">
-                        <div class="credit-alert d-flex justify-content-between align-items-center shadow-xl">
+                    <div class="col-12">
+                        <div class="credit-alert d-flex justify-content-between align-items-center">
                             <div>
-                                <span class="info-label text-danger">Outstanding Store Credit (Udhar)</span>
+                                <span class="info-label text-danger">Outstanding Store Credit</span>
                                 <h3 class="fw-900 text-danger mb-0">₹{{ "{:,.2f}".format(user.credit) }}</h3>
                             </div>
-                            <i class="bi bi-wallet2 display-4 text-danger opacity-30"></i>
+                            <i class="bi bi-wallet2 display-5 text-danger opacity-20"></i>
                         </div>
                     </div>
                     {% endif %}
 
-                    <div class="col-md-6">
+                    <div class="col-sm-6">
                         <div class="info-block-premium">
-                            <span class="info-label">Legal Identity</span>
-                            <p class="info-value mb-0">{{ user.full_name or 'Not disclosed' }}</p>
+                            <span class="info-label">Full Name</span>
+                            <p class="info-value mb-0">{{ user.full_name or 'Not set' }}</p>
                         </div>
                     </div>
-                    <div class="col-md-6">
+                    <div class="col-sm-6">
                         <div class="info-block-premium">
-                            <span class="info-label">Marketplace Alias</span>
+                            <span class="info-label">Username</span>
                             <p class="info-value mb-0">@{{ user.username }}</p>
                         </div>
                     </div>
-                    <div class="col-md-6">
+                    <div class="col-sm-6">
                         <div class="info-block-premium">
-                            <span class="info-label">Communications Hub</span>
-                            <p class="info-value mb-0 text-truncate">{{ user.email or 'Not linked' }}</p>
+                            <span class="info-label">Email</span>
+                            <p class="info-value mb-0 text-truncate">{{ user.email or 'Not set' }}</p>
                         </div>
                     </div>
-                    <div class="col-md-6">
+                    <div class="col-sm-6">
                         <div class="info-block-premium">
-                            <span class="info-label">Contact Vector</span>
-                            <p class="info-value mb-0">{{ user.phone or 'Not linked' }}</p>
+                            <span class="info-label">Phone</span>
+                            <p class="info-value mb-0">{{ user.phone or 'Not set' }}</p>
                         </div>
                     </div>
                     <div class="col-12">
-                        <div class="info-block-premium border-start-4 border-ss-primary">
-                            <span class="info-label">Logistics Destination</span>
-                            <p class="info-value mb-0 lh-base">{{ user.address or 'No logistical data saved yet' }}</p>
+                        <div class="info-block-premium">
+                            <span class="info-label">Delivery Address</span>
+                            <p class="info-value mb-0 lh-base">{{ user.address or 'No address saved yet' }}</p>
                         </div>
                     </div>
                 </div>
 
-                <!-- Recent Orders Section -->
-                <div class="mt-5 pt-5 border-top border-white border-opacity-5">
+                <!-- Recent Orders -->
+                <div class="mt-4 pt-4 border-top border-opacity-10">
                     <div class="d-flex justify-content-between align-items-center mb-4">
                         <h4 class="fw-900 text-ss-main mb-0">
-                            <i class="bi bi-activity me-3 text-ss-primary"></i>Recent Acquisition Flow
+                            <i class="bi bi-activity me-2 text-ss-primary"></i>Recent Orders
                         </h4>
-                        <a href="{{ url_for('customer.my_orders') }}" class="smallest fw-900 text-ss-primary text-uppercase tracking-widest text-decoration-none">Complete History</a>
+                        <a href="{{ url_for('customer.my_orders') }}" class="smallest fw-900 text-ss-primary text-uppercase tracking-widest text-decoration-none">
+                            View All
+                        </a>
                     </div>
 
                     {% if recent_orders %}
@@ -111,28 +109,28 @@
                         <div class="table-responsive">
                             <table class="table table-hover align-middle mb-0">
                                 <thead>
-                                    <tr class="smallest text-uppercase fw-900 text-muted border-bottom border-white border-opacity-5">
-                                        <th class="ps-4 py-4">Reference ID</th>
-                                        <th class="py-4">Log Date</th>
-                                        <th class="py-4">Phase</th>
-                                        <th class="py-4">Valuation</th>
-                                        <th class="text-end pe-4 py-4">Action</th>
+                                    <tr class="smallest text-uppercase fw-900 text-muted border-bottom border-opacity-10">
+                                        <th class="ps-4 py-3">Order #</th>
+                                        <th class="py-3 d-none d-md-table-cell">Date</th>
+                                        <th class="py-3">Status</th>
+                                        <th class="py-3 d-none d-sm-table-cell">Amount</th>
+                                        <th class="text-end pe-4 py-3">Action</th>
                                     </tr>
                                 </thead>
-                                <tbody class="border-0">
+                                <tbody>
                                     {% for order in recent_orders %}
-                                    <tr class="border-bottom border-white border-opacity-5 transition-all hover-bg-white-5">
-                                        <td class="ps-4 py-4 fw-900 text-ss-main">#JG-{{ order.id }}</td>
-                                        <td class="py-4 small opacity-75">{{ order.created_at.strftime('%b %d, %Y') }}</td>
-                                        <td class="py-4">
-                                            <span class="badge rounded-pill px-3 py-2 fw-900 smallest {% if order.order_status == 'Delivered' %}bg-ss-success{% elif order.order_status == 'Cancelled' %}bg-danger{% else %}bg-ss-primary-subtle text-ss-primary{% endif %}">
-                                                {{ order.order_status|upper }}
+                                    <tr class="border-bottom border-opacity-5">
+                                        <td class="ps-4 py-3 fw-900 text-ss-main">#JG-{{ order.id }}</td>
+                                        <td class="py-3 small opacity-75 d-none d-md-table-cell">{{ order.created_at.strftime('%d %b %Y') }}</td>
+                                        <td class="py-3">
+                                            <span class="ss-badge {% if order.order_status == 'Delivered' %}ss-badge-success{% elif order.order_status == 'Cancelled' %}ss-badge-danger{% else %}ss-badge-info{% endif %}">
+                                                {{ order.order_status }}
                                             </span>
                                         </td>
-                                        <td class="py-4 fw-900 text-ss-main">₹{{ "{:,.0f}".format(order.total_amount) }}</td>
-                                        <td class="text-end pe-4 py-4">
+                                        <td class="py-3 fw-900 text-ss-main d-none d-sm-table-cell">₹{{ "{:,.0f}".format(order.total_amount) }}</td>
+                                        <td class="text-end pe-4 py-3">
                                             <a href="{{ url_for('customer.order_detail', order_id=order.id) }}"
-                                                class="btn btn-ss-primary btn-sm px-4 rounded-pill">EXAMINE</a>
+                                                class="btn btn-ss-primary btn-sm px-3 rounded-pill">View</a>
                                         </td>
                                     </tr>
                                     {% endfor %}
@@ -142,10 +140,11 @@
                     </div>
                     {% else %}
                     <div class="text-center py-5 glass-panel border-opacity-5">
-                        <i class="bi bi-journal-x display-1 text-muted opacity-10 d-block mb-4"></i>
-                        <p class="text-muted fs-5 mb-0">No historical data recorded in this cycle.</p>
-                        <a href="{{ url_for('customer.shop') }}"
-                            class="btn btn-ss-primary btn-sm mt-4 px-5 py-3 shadow-lg">START COLLECTION</a>
+                        <i class="bi bi-bag display-4 text-muted opacity-20 d-block mb-3"></i>
+                        <p class="text-muted mb-4">No orders placed yet.</p>
+                        <a href="{{ url_for('customer.shop') }}" class="btn btn-ss-primary btn-sm px-5 py-3">
+                            Start Shopping
+                        </a>
                     </div>
                     {% endif %}
                 </div>

@@ -1,0 +1,119 @@
+{% extends 'admin/admin_base.html' %}
+
+{% block title %}Activity Log — Jay Goga Admin{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{{ url_for('static', filename='css/admin/customers.css') }}">
+{% endblock %}
+
+{% block content %}
+<div class="container-fluid px-3 px-md-4 py-4 page-transition">
+
+    <!-- Header -->
+    <div class="row align-items-center mb-4 animate-fade-in">
+        <div class="col-md-7">
+            <div class="d-flex align-items-center mb-1">
+                <div class="bg-ss-primary rounded-pill me-3" style="width: 5px; height: 32px;"></div>
+                <h1 class="h2 fw-900 text-ss-main mb-0">Activity Log</h1>
+            </div>
+            <p class="text-muted mb-0 ps-4 smallest fw-900 text-uppercase tracking-widest opacity-50">Track all admin and system actions</p>
+        </div>
+        <div class="col-md-5 text-md-end mt-3 mt-md-0">
+            <!-- Action Filter -->
+            <form method="GET" class="d-inline-flex align-items-center gap-2 w-100 w-md-auto">
+                <select name="action" class="ss-input py-2 px-3 smallest fw-900 w-100" style="min-width: 180px;" onchange="this.form.submit()">
+                    <option value="">All Actions</option>
+                    {% for a in action_types %}
+                    <option value="{{ a }}" {% if a == action_filter %}selected{% endif %}>{{ a.replace('_', ' ') }}</option>
+                    {% endfor %}
+                </select>
+                {% if action_filter %}
+                <a href="{{ url_for('admin.activity_log') }}" class="btn btn-ss-ghost btn-sm">Reset</a>
+                {% endif %}
+            </form>
+        </div>
+    </div>
+
+    <!-- Log Table -->
+    <div class="ss-card p-0 shadow-2xl overflow-hidden mb-5 animate-fade-in">
+        <div class="table-responsive">
+            <table class="table table-hover align-middle mb-0 mobile-table-card-mode">
+                <thead class="bg-ss-main bg-opacity-5">
+                    <tr>
+                        <th class="ps-4 py-3 smallest fw-900 text-muted text-uppercase">Time</th>
+                        <th class="py-3 smallest fw-900 text-muted text-uppercase">Action</th>
+                        <th class="py-3 smallest fw-900 text-muted text-uppercase">Target</th>
+                        <th class="py-3 smallest fw-900 text-muted text-uppercase">User</th>
+                        <th class="py-3 smallest fw-900 text-muted text-uppercase">IP</th>
+                        <th class="py-3 smallest fw-900 text-muted text-uppercase">Notes</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% if logs %}
+                    {% for log in logs %}
+                    <tr class="border-bottom border-ss-main border-opacity-5">
+                        <td class="ps-4 py-3" data-label="Time">
+                            <div class="smallest fw-900 text-ss-main">{{ log.created_at.strftime('%b %d, %Y') }}</div>
+                            <div class="smallest text-muted opacity-60">{{ log.created_at.strftime('%I:%M %p') }}</div>
+                        </td>
+                        <td class="py-3" data-label="Action">
+                            {% set action_color = 
+                                'danger' if 'DELETE' in log.action or 'DEACTIVATE' in log.action or 'CANCEL' in log.action
+                                else 'success' if 'ADD' in log.action
+                                else 'warning' if 'UPDATE' in log.action
+                                else 'info' %}
+                            <span class="ss-badge ss-badge-{{ action_color }} smallest">
+                                {{ log.action.replace('_', ' ') }}
+                            </span>
+                        </td>
+                        <td class="py-3" data-label="Target">
+                            {% if log.entity_type %}
+                            <span class="fw-800 text-ss-main small">{{ log.entity_type }}</span>
+                            <span class="smallest text-muted ms-1">#{{ log.entity_id }}</span>
+                            {% else %}
+                            <span class="text-muted opacity-40">—</span>
+                            {% endif %}
+                        </td>
+                        <td class="py-3" data-label="User">
+                            {% if log.user %}
+                            <div class="fw-900 text-ss-main smallest">{{ log.user.username }}</div>
+                            {% else %}
+                            <span class="text-muted opacity-40 smallest">System</span>
+                            {% endif %}
+                        </td>
+                        <td class="py-3" data-label="IP">
+                            <span class="smallest text-muted font-monospace opacity-60">{{ log.ip_address or '—' }}</span>
+                        </td>
+                        <td class="py-3" data-label="Notes">
+                            {% if log.details %}
+                            <div class="smallest text-muted text-truncate" style="max-width: 200px;" title="{{ log.details }}">
+                                {{ log.details | truncate(120) }}
+                            </div>
+                            {% else %}
+                            <span class="text-muted opacity-40">—</span>
+                            {% endif %}
+                        </td>
+                    </tr>
+                    {% endfor %}
+                    {% else %}
+                    <tr>
+                        <td colspan="6" class="text-center py-5">
+                            <i class="bi bi-journal-x display-4 text-muted opacity-10 d-block mb-3"></i>
+                            <h5 class="fw-900 text-ss-main">No Audit Entries</h5>
+                            <p class="text-muted smallest fw-900 text-uppercase tracking-widest opacity-50">Activity logs will appear here</p>
+                        </td>
+                    </tr>
+                    {% endif %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    {% if logs %}
+    <p class="text-muted smallest text-center mt-3 opacity-50">
+        Showing {{ logs|length }} most recent entries
+        {% if action_filter %} filtered by "{{ action_filter.replace('_', ' ') }}"{% endif %}.
+    </p>
+    {% endif %}
+</div>
+{% endblock %}
