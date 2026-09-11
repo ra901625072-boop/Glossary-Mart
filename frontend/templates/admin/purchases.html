@@ -1,0 +1,90 @@
+{% extends 'admin/admin_base.html' %}
+
+{% block title %}Stock In — Jay Goga Admin{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{{ url_for('static', filename='css/admin/purchases.css') }}">
+{% endblock %}
+
+{% block content %}
+<div class="container-fluid px-2 px-md-4 py-4 page-transition">
+    <div class="row align-items-center mb-4 animate-fade-in">
+        <div class="col-md-7">
+            <div class="d-flex align-items-center mb-1">
+                <div class="bg-ss-primary rounded-pill me-3" style="width: 5px; height: 32px;"></div>
+                <h1 class="h2 fw-900 text-ss-main mb-0">Stock In</h1>
+            </div>
+            <p class="text-muted mb-0 ps-4 smallest fw-900 text-uppercase tracking-widest opacity-50">View history of stock updates</p>
+        </div>
+        <div class="col-md-5 text-md-end mt-3 mt-md-0">
+            <a href="{{ url_for('admin.add_purchase') }}" class="btn btn-ss-primary shadow-xl px-4 py-3 sparkle-hover w-100 w-md-auto">
+                <i class="bi bi-plus-lg me-2"></i> ADD STOCK
+            </a>
+        </div>
+    </div>
+
+    <div class="ss-card p-0 shadow-2xl overflow-hidden mb-5 animate-fade-in">
+        <div class="table-responsive">
+            <table class="table table-hover align-middle mb-0 mobile-table-card-mode">
+                <thead class="bg-ss-main bg-opacity-5">
+                    <tr>
+                        <th class="ps-4 py-3 smallest fw-900 text-muted text-uppercase">ID / Date</th>
+                        <th class="py-3 smallest fw-900 text-muted text-uppercase">Supplier</th>
+                        <th class="py-3 smallest fw-900 text-muted text-uppercase">Product</th>
+                        <th class="text-center py-3 smallest fw-900 text-muted text-uppercase">Qty</th>
+                        <th class="text-end py-3 smallest fw-900 text-muted text-uppercase">Price/Unit</th>
+                        <th class="text-end pe-4 py-3 smallest fw-900 text-muted text-uppercase">Total</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% if purchases %}
+                    {% for purchase in purchases %}
+                    <tr class="border-bottom border-ss-main border-opacity-5">
+                        <td class="ps-4 py-3" data-label="ID / Date">
+                            <div class="fw-900 text-ss-main small text-uppercase tracking-wider">#PUR-{{ '{:04d}'.format(purchase.id) }}</div>
+                            <div class="smallest fw-bold text-muted opacity-50">{{ purchase.purchase_date.strftime('%b %d, %H:%M') }}</div>
+                        </td>
+                        <td class="py-3" data-label="Supplier">
+                            <div class="d-flex align-items-center gap-2">
+                                <span class="smallest fw-900 text-ss-main text-uppercase tracking-widest text-truncate" style="max-width: 150px;">
+                                    {{ purchase.supplier.name if purchase.supplier else 'Deleted' }}
+                                </span>
+                            </div>
+                        </td>
+                        <td class="py-3" data-label="Product">
+                            <div class="d-flex align-items-center gap-2">
+                                {% if purchase.product and purchase.product.image_path %}
+                                <img src="{{ url_for('static', filename=purchase.product.image_path) }}" 
+                                    alt="{{ purchase.product.name }}" class="rounded-2" style="width: 24px; height: 24px; object-fit: cover;">
+                                {% endif %}
+                                <span class="fw-900 text-ss-primary smallest text-uppercase tracking-wider text-truncate" style="max-width: 150px;">
+                                    {{ purchase.product.name if purchase.product else 'Deleted' }}
+                                </span>
+                            </div>
+                        </td>
+                        <td class="text-center py-3" data-label="Qty">
+                            <span class="ss-badge ss-badge-info smallest">
+                                {{ purchase.quantity }} units
+                            </span>
+                        </td>
+                        <td class="text-end py-3 smallest fw-900 text-muted" data-label="Price/Unit">₹{{ '{:,.0f}'.format(purchase.purchase_price) }}</td>
+                        <td class="text-end pe-4 py-3" data-label="Total">
+                            <div class="fw-900 text-ss-main small">₹{{ '{:,.0f}'.format(purchase.total_cost) }}</div>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                    {% else %}
+                    <tr>
+                        <td colspan="6" class="text-center py-5">
+                            <i class="bi bi-bag-plus display-4 text-muted opacity-10 d-block mb-3"></i>
+                            <h5 class="fw-900 text-ss-main">No Purchase History</h5>
+                            <p class="text-muted smallest fw-900 text-uppercase tracking-widest opacity-50">Stock update records will appear here</p>
+                        </td>
+                    </tr>
+                    {% endif %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,373 @@
+{% extends 'admin/admin_base.html' %}
+
+{% block title %}Dashboard — Jay Goga Admin{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{{ url_for('static', filename='css/admin/dashboard.css') }}">
+{% endblock %}
+
+{% block content %}
+<div class="container-fluid px-3 px-md-4 py-4 dashboard-container page-transition">
+    <!-- Low Stock Alerts -->
+    {% if stock_stats.low_stock_products %}
+    <div class="ss-card d-flex flex-column flex-md-row align-items-center p-4 mb-4 border-start border-4 border-danger shadow-2xl" style="background: var(--sur-mid);">
+        <div class="db-stat-icon-container bg-danger bg-opacity-10 text-danger mb-3 mb-md-0 me-md-4 border border-danger border-opacity-20">
+            <i class="bi bi-shield-exclamation fs-3"></i>
+        </div>
+        <div class="flex-grow-1 text-center text-md-start">
+            <h5 class="fw-900 mb-1 text-ss-main">Low Stock Alert</h5>
+            <p class="mb-0 text-muted fw-600 small">Inventory alert: <strong>{{ stock_stats.low_stock_products|length }}</strong> product(s) are below threshold.</p>
+        </div>
+        <div class="mt-3 mt-md-0">
+            <a href="#low-stock-section" class="btn btn-ss-primary px-4 py-2">RESTOCK NOW</a>
+        </div>
+    </div>
+    {% endif %}
+
+    <!-- Header -->
+    <div class="row align-items-center mb-4 animate-fade-in">
+        <div class="col-md-7">
+            <div class="d-flex align-items-center mb-2">
+                <div class="bg-ss-primary rounded-pill me-3" style="width: 5px; height: 32px;"></div>
+                <h1 class="h2 fw-900 text-ss-main mb-0">Dashboard Overview</h1>
+            </div>
+            <p class="text-muted mb-0 ps-4 smallest fw-900 text-uppercase tracking-widest opacity-50">Business performance metrics</p>
+        </div>
+        <div class="col-lg-5 text-lg-end mt-3 mt-lg-0 d-none d-md-block">
+            <div class="d-inline-flex align-items-center gap-3 ss-card px-4 py-3 border-ss-primary border-opacity-10 bg-ss-primary bg-opacity-10">
+                <div class="pulse-dot bg-ss-primary"></div>
+                <span class="smallest fw-900 text-uppercase tracking-widest text-ss-primary">Live Updates Active</span>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Quick Actions Panel -->
+    <div class="row g-3 mb-4 animate-fade-in" style="animation-delay: 0.1s;">
+        <div class="col-12 col-md-4">
+            <a href="{{ url_for('admin.pos') }}" class="ss-card p-3 d-flex align-items-center text-decoration-none hover-lift border-0 shadow-lg bg-ss-primary text-white">
+                <div class="bg-white bg-opacity-20 p-2 rounded-3 me-3">
+                    <i class="bi bi-display fs-4"></i>
+                </div>
+                <div>
+                    <h6 class="fw-900 mb-0 smallest text-uppercase tracking-widest">Launch POS</h6>
+                    <span class="smallest opacity-75">Start a new checkout</span>
+                </div>
+                <i class="bi bi-chevron-right ms-auto opacity-50"></i>
+            </a>
+        </div>
+        <div class="col-12 col-md-4">
+            <a href="{{ url_for('admin.add_product') }}" class="ss-card p-3 d-flex align-items-center text-decoration-none hover-lift border-0 shadow-lg">
+                <div class="bg-ss-primary bg-opacity-10 text-ss-primary p-2 rounded-3 me-3">
+                    <i class="bi bi-plus-circle fs-4"></i>
+                </div>
+                <div>
+                    <h6 class="fw-900 mb-0 smallest text-uppercase tracking-widest text-ss-main">New Asset</h6>
+                    <span class="smallest text-muted">Add product to inventory</span>
+                </div>
+                <i class="bi bi-chevron-right ms-auto text-muted"></i>
+            </a>
+        </div>
+        <div class="col-12 col-md-4">
+            <a href="{{ url_for('admin.sales') }}" class="ss-card p-3 d-flex align-items-center text-decoration-none hover-lift border-0 shadow-lg">
+                <div class="bg-success bg-opacity-10 text-success p-2 rounded-3 me-3">
+                    <i class="bi bi-receipt fs-4"></i>
+                </div>
+                <div>
+                    <h6 class="fw-900 mb-0 smallest text-uppercase tracking-widest text-ss-main">Record Sale</h6>
+                    <span class="smallest text-muted">Direct walk-in entry</span>
+                </div>
+                <i class="bi bi-chevron-right ms-auto text-muted"></i>
+            </a>
+        </div>
+    </div>
+
+    <!-- Tier 1 Stats: 2-col on mobile, 3-col on desktop -->
+    <div class="row g-3 g-md-4 mb-4 dashboard-stats-row">
+        <div class="col-6 col-lg-4">
+            <div class="ss-card p-3 p-md-4 luxury-card stagger-item stagger-1">
+                <div class="d-flex justify-content-between align-items-start mb-3">
+                    <div>
+                        <span class="db-stat-label">Today's Sales</span>
+                        <h2 class="db-stat-value text-ss-main h3">₹{{ "{:,.0f}".format(stats_1_day.total_sales) }}</h2>
+                    </div>
+                    <div class="db-stat-icon-container db-stat-icon-orders d-none d-sm-flex">
+                        <i class="bi bi-activity"></i>
+                    </div>
+                </div>
+                <div class="pt-3 border-top border-ss-main border-opacity-5 d-flex flex-column flex-sm-row justify-content-between align-items-sm-center gap-2">
+                    <span class="ss-badge ss-badge-success smallest">₹{{ "{:,.0f}".format(stats_1_day.total_profit) }} PROFIT</span>
+                    <span class="smallest fw-900 text-muted tracking-widest text-uppercase d-none d-md-inline">{{ stats_1_day.transaction_count }} TX</span>
+                </div>
+            </div>
+        </div>
+        <div class="col-6 col-lg-4">
+            <div class="ss-card p-3 p-md-4 luxury-card stagger-item stagger-2">
+                <div class="d-flex justify-content-between align-items-start mb-3">
+                    <div>
+                        <span class="db-stat-label">Weekly Sales</span>
+                        <h2 class="db-stat-value text-ss-main h3">₹{{ "{:,.0f}".format(stats_7_days.total_sales) }}</h2>
+                    </div>
+                    <div class="db-stat-icon-container db-stat-icon-revenue d-none d-sm-flex">
+                        <i class="bi bi-graph-up-arrow"></i>
+                    </div>
+                </div>
+                <div class="pt-3 border-top border-ss-main border-opacity-5 d-flex flex-column flex-sm-row justify-content-between align-items-sm-center gap-2">
+                    <span class="ss-badge ss-badge-success smallest">₹{{ "{:,.0f}".format(stats_7_days.total_profit) }} PROFIT</span>
+                    <span class="smallest fw-900 text-muted tracking-widest text-uppercase d-none d-md-inline">{{ stats_7_days.transaction_count }} TX</span>
+                </div>
+            </div>
+        </div>
+        <div class="col-12 col-lg-4">
+            <div class="ss-card p-3 p-md-4 luxury-card stagger-item stagger-3">
+                <div class="d-flex justify-content-between align-items-start mb-3">
+                    <div>
+                        <span class="db-stat-label">Monthly Revenue</span>
+                        <h2 class="db-stat-value text-ss-main h3">₹{{ "{:,.0f}".format(stats_30_days.total_sales) }}</h2>
+                    </div>
+                    <div class="db-stat-icon-container db-stat-icon-profit d-none d-sm-flex">
+                        <i class="bi bi-bar-chart-fill"></i>
+                    </div>
+                </div>
+                <div class="pt-3 border-top border-ss-main border-opacity-5 d-flex flex-column flex-sm-row justify-content-between align-items-sm-center gap-2">
+                    <span class="ss-badge ss-badge-success smallest">₹{{ "{:,.0f}".format(stats_30_days.total_profit) }} PROFIT</span>
+                    <span class="smallest fw-900 text-muted tracking-widest text-uppercase d-none d-md-inline">{{ stats_30_days.transaction_count }} TX</span>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Tier 1.5: Orders Overview -->
+    <div class="row g-3 g-md-4 mb-4">
+        <div class="col-md-7 col-lg-8">
+            <div class="ss-card p-4 d-flex align-items-center shadow-lg border-start border-4 border-ss-primary h-100">
+                <div class="db-stat-icon-container bg-ss-primary bg-opacity-10 text-ss-primary me-4 d-none d-sm-flex">
+                    <i class="bi bi-cart-check fs-3"></i>
+                </div>
+                <div>
+                    <span class="db-stat-label text-uppercase tracking-widest opacity-50">Total Orders</span>
+                    <h3 class="fw-900 text-ss-main mb-0">{{ total_orders }} <span class="fs-6 fw-600 text-muted">COMPLETED</span></h3>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-5 col-lg-4">
+            <div class="ss-card p-4 h-100 hover-lift bg-ss-primary bg-opacity-10 border-ss-primary border-opacity-10">
+                <div class="d-flex align-items-center">
+                    <div class="bg-ss-primary bg-opacity-10 text-ss-primary p-3 rounded-4 me-3 d-none d-sm-flex">
+                        <i class="bi bi-clock-history fs-3"></i>
+                    </div>
+                    <div>
+                        <span class="smallest fw-900 text-muted text-uppercase tracking-widest d-block mb-1">Pending Orders</span>
+                        <h2 class="fw-900 text-ss-main mb-0 h3 text-ss-primary">{{ pending_orders }} ORDERS</h2>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Tier 2 Analytics -->
+    <div class="row g-3 g-md-4 mb-4">
+        <div class="col-lg-8">
+            <div class="ss-card p-3 p-md-4 h-100 shadow-2xl">
+                <div class="d-flex justify-content-between align-items-center mb-4">
+                    <h5 class="fw-900 text-ss-main mb-0 text-uppercase tracking-wider small">Sales & Profit</h5>
+                    <span class="ss-badge ss-badge-info smallest">30D PERFORMANCE</span>
+                </div>
+                <div class="chart-container-responsive" style="height: 300px;">
+                    <canvas id="salesChart"></canvas>
+                </div>
+            </div>
+        </div>
+        <div class="col-lg-4">
+            <div class="ss-card p-3 p-md-4 h-100 shadow-2xl">
+                <h5 class="fw-900 text-ss-main mb-4 text-uppercase tracking-wider text-center small">Inventory Share</h5>
+                <div class="chart-container-responsive" style="height: 300px;">
+                    <canvas id="stockCategoryChart"></canvas>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Inventory Watchlist -->
+    <div class="row align-items-center mb-3 mt-4" id="low-stock-section">
+        <div class="col">
+            <h5 class="fw-900 text-ss-main mb-0">
+                <i class="bi bi-shield-exclamation text-ss-accent me-2"></i>Low Stock Products
+            </h5>
+        </div>
+    </div>
+
+    <div class="ss-card p-0 shadow-2xl overflow-hidden mb-5">
+        <div class="table-responsive">
+            <table class="table table-hover align-middle mb-0 mobile-table-card-mode">
+                <thead class="bg-ss-main bg-opacity-5">
+                    <tr>
+                        <th class="ps-4 py-3 smallest fw-900 text-muted text-uppercase">Product</th>
+                        <th class="text-center py-3 smallest fw-900 text-muted text-uppercase">Stock</th>
+                        <th class="text-end pe-4 py-3 smallest fw-900 text-muted text-uppercase">Action</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% if stock_stats.low_stock_products %}
+                        {% for product in stock_stats.low_stock_products %}
+                        <tr class="border-bottom border-ss-main border-opacity-5">
+                            <td class="ps-4 py-3" data-label="Product">
+                                <div class="fw-900 text-ss-main text-uppercase tracking-wider small mb-1">{{ product.name }}</div>
+                                <span class="ss-badge ss-badge-warning smallest">{{ product.category_rel.name if product.category_rel else 'General' }}</span>
+                            </td>
+                            <td class="text-center py-3" data-label="Stock">
+                                <div class="fw-900 {{ 'text-danger' if product.stock == 0 else 'text-ss-accent' }} mb-0 h4">
+                                    {{ product.stock }}
+                                </div>
+                                <span class="smallest fw-800 text-muted text-uppercase tracking-widest">in stock</span>
+                            </td>
+                            <td class="text-end pe-4 py-3" data-label="Action">
+                                <a href="{{ url_for('admin.edit_product', product_id=product.id) }}"
+                                    class="btn btn-ss-primary btn-sm px-3 rounded-pill shadow-sm">
+                                    RESTOCK
+                                </a>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    {% else %}
+                        <tr>
+                            <td colspan="3" class="text-center py-5">
+                                <i class="bi bi-shield-check-fill display-4 text-ss-success opacity-10 d-block mb-3"></i>
+                                <h5 class="fw-900 text-ss-main mb-1">Stock Levels Healthy</h5>
+                                <p class="text-muted small mb-0">All products are within acceptable levels.</p>
+                            </td>
+                        </tr>
+                    {% endif %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    document.addEventListener('DOMContentLoaded', function () {
+        const isLight = document.documentElement.getAttribute('data-theme') === 'light';
+        const labelColor = isLight ? '#64748b' : 'rgba(255,255,255,0.4)';
+        const gridColor = isLight ? 'rgba(0,0,0,0.05)' : 'rgba(255,255,255,0.03)';
+
+        Chart.defaults.font.family = "'Outfit', sans-serif";
+        Chart.defaults.color = labelColor;
+        
+        const salesCtx = document.getElementById('salesChart').getContext('2d');
+        const salesLabels = {{ chart_data.labels | tojson if chart_data else [] }};
+        const salesData = {{ chart_data.sales | tojson if chart_data else [] }};
+        const profitData = {{ chart_data.profit | tojson if chart_data else [] }};
+
+        const gradient = salesCtx.createLinearGradient(0, 0, 0, 300);
+        gradient.addColorStop(0, 'rgba(16, 185, 129, 0.22)');
+        gradient.addColorStop(1, 'rgba(16, 185, 129, 0)');
+
+        const styles = getComputedStyle(document.documentElement);
+        const tooltipBg = styles.getPropertyValue('--sur-high').trim();
+        const tooltipText = styles.getPropertyValue('--text-main').trim();
+        const tooltipSoft = styles.getPropertyValue('--text-muted').trim();
+        const tooltipBorder = styles.getPropertyValue('--border-color').trim();
+
+        new Chart(salesCtx, {
+            type: 'line',
+            data: {
+                labels: salesLabels,
+                datasets: [
+                    {
+                        label: 'Sales',
+                        data: salesData,
+                        borderColor: '#10b981',
+                        backgroundColor: gradient,
+                        fill: true,
+                        tension: 0.4,
+                        borderWidth: 3,
+                        pointRadius: 0,
+                        pointHoverRadius: 6
+                    },
+                    {
+                        label: 'Profit',
+                        data: profitData,
+                        borderColor: '#0284c7',
+                        backgroundColor: 'transparent',
+                        fill: false,
+                        tension: 0.4,
+                        borderWidth: 2,
+                        borderDash: [5, 5],
+                        pointRadius: 0
+                    }
+                ]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                interaction: { intersect: false, mode: 'index' },
+                plugins: {
+                    legend: { display: false },
+                    tooltip: {
+                        backgroundColor: tooltipBg,
+                        titleColor: tooltipText,
+                        bodyColor: tooltipSoft,
+                        borderColor: tooltipBorder,
+                        padding: 12,
+                        cornerRadius: 12,
+                        borderWidth: 1,
+                        callbacks: { label: c => c.dataset.label + ': ₹' + c.raw.toLocaleString() }
+                    }
+                },
+                scales: {
+                    y: { 
+                        beginAtZero: true, 
+                        grid: { color: gridColor, drawBorder: false },
+                        ticks: { color: labelColor, font: { weight: '800', size: 10 }, callback: v => '₹' + v.toLocaleString() }
+                    },
+                    x: { grid: { display: false }, ticks: { color: labelColor, font: { weight: '800', size: 10 } } }
+                }
+            }
+        });
+
+        const stockLabels = {{ stock_stats.category_labels | tojson if stock_stats else [] }};
+        const stockValues = {{ stock_stats.category_values | tojson if stock_stats else [] }};
+
+        const catCtx = document.getElementById('stockCategoryChart').getContext('2d');
+        new Chart(catCtx, {
+            type: 'doughnut',
+            data: {
+                labels: stockLabels,
+                datasets: [{
+                    data: stockValues,
+                    backgroundColor: ['#10b981', '#059669', '#34d399', '#0284c7', '#8b5cf6', '#f59e0b'],
+                    borderWidth: 0,
+                    hoverOffset: 15
+                }]
+            },
+            options: {
+                maintainAspectRatio: false,
+                cutout: '75%',
+                plugins: {
+                    legend: { 
+                        position: 'bottom', 
+                        labels: { 
+                            color: labelColor,
+                            boxWidth: 8, 
+                            usePointStyle: true, 
+                            padding: 15, 
+                            font: { weight: '800', size: 10 } 
+                        } 
+                    },
+                    tooltip: {
+                        backgroundColor: tooltipBg,
+                        titleColor: tooltipText,
+                        bodyColor: tooltipSoft,
+                        borderColor: tooltipBorder,
+                        borderWidth: 1,
+                        padding: 12,
+                        cornerRadius: 12,
+                        callbacks: { label: c => ' ₹' + c.raw.toLocaleString() }
+                    }
+                }
+            }
+        });
+    });
+</script>
+{% endblock %}

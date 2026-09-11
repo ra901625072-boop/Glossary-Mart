@@ -1,0 +1,159 @@
+{% extends 'base.html' %}
+
+{% block title %}Your Cart — Jay Goga Mart Store{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{{ url_for('static', filename='css/customer/cart.css') }}">
+{% endblock %}
+
+{% block content %}
+<div class="container my-4 my-md-5">
+    <!-- Header -->
+    <div class="row align-items-center mb-4 animate-fade-in">
+        <div class="col">
+            <div class="d-flex align-items-center mb-1">
+                <div class="bg-ss-primary rounded-pill me-3" style="width:4px;height:28px;"></div>
+                <h1 class="fw-900 text-ss-main mb-0">Your Cart</h1>
+            </div>
+            <p class="text-muted mb-0 ps-4 smallest fw-700 text-uppercase tracking-widest">
+                {{ cart_items|length }} item{% if cart_items|length != 1 %}s{% endif %} in your cart
+            </p>
+        </div>
+        <div class="col-auto">
+            <a href="{{ url_for('customer.shop') }}" class="btn btn-ss-ghost btn-sm">
+                <i class="bi bi-arrow-left me-1"></i>Continue Shopping
+            </a>
+        </div>
+    </div>
+
+    {% if cart_items %}
+    <div class="row g-4">
+        <!-- Cart Items -->
+        <div class="col-lg-8 animate-fade-in">
+            <div class="d-flex flex-column gap-3">
+                {% for item in cart_items %}
+                <div class="ss-card border-0 shadow-lg p-3 p-md-4">
+                    <!-- Mobile-friendly layout: image + info row, then controls row -->
+                    <div class="d-flex align-items-start gap-3">
+                        <!-- Image -->
+                        <div class="cart-img-box">
+                            {% if item.product.image_path %}
+                            <img src="{{ url_for('static', filename=item.product.image_path) }}" alt="{{ item.product.name }}">
+                            {% else %}
+                            <i class="bi bi-box-seam fs-3 text-ss-primary opacity-20"></i>
+                            {% endif %}
+                        </div>
+
+                        <!-- Product Info -->
+                        <div class="flex-grow-1 min-w-0">
+                            <span class="smallest fw-800 text-ss-primary text-uppercase tracking-widest opacity-60 mb-1 d-block">
+                                {{ item.product.category_rel.name if item.product.category_rel else 'Essentials' }}
+                            </span>
+                            <h5 class="fw-900 text-ss-main mb-1 text-truncate">{{ item.product.name }}</h5>
+                            <span class="text-muted small">₹{{ "{:,.2f}".format(item.product.selling_price) }} / unit</span>
+                        </div>
+
+                        <!-- Desktop: subtotal + remove (hidden on mobile) -->
+                        <div class="d-none d-md-block text-end flex-shrink-0">
+                            <div class="smallest fw-900 text-muted text-uppercase tracking-widest mb-1">Subtotal</div>
+                            <div class="h5 fw-900 text-ss-main mb-2">₹{{ "{:,.0f}".format(item.subtotal) }}</div>
+                            <form method="POST" action="{{ url_for('customer.remove_from_cart', cart_id=item.id) }}">
+                                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                                <button type="submit" class="btn btn-link text-danger p-0 smallest fw-900 text-decoration-none">
+                                    <i class="bi bi-trash3 me-1"></i>Remove
+                                </button>
+                            </form>
+                        </div>
+                    </div>
+
+                    <!-- Controls row (qty + mobile subtotal/remove) -->
+                    <div class="d-flex align-items-center justify-content-between mt-3 pt-3 border-top border-opacity-10">
+                        <!-- Quantity -->
+                        <div class="ss-qty-selector">
+                            <form method="POST" action="{{ url_for('customer.update_cart', cart_id=item.id) }}" class="d-flex align-items-center m-0">
+                                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                                <button type="button" class="ss-qty-btn" onclick="this.nextElementSibling.stepDown();this.nextElementSibling.dispatchEvent(new Event('change'));" aria-label="Decrease quantity">
+                                    <i class="bi bi-dash"></i>
+                                </button>
+                                <input type="number" name="quantity" class="ss-qty-input"
+                                    value="{{ item.quantity }}" min="1" max="{{ item.product.stock_quantity }}"
+                                    onchange="this.form.submit()" aria-label="Quantity">
+                                <button type="button" class="ss-qty-btn" onclick="this.previousElementSibling.stepUp();this.previousElementSibling.dispatchEvent(new Event('change'));" aria-label="Increase quantity">
+                                    <i class="bi bi-plus"></i>
+                                </button>
+                            </form>
+                        </div>
+
+                        <!-- Mobile: subtotal + remove -->
+                        <div class="d-md-none d-flex align-items-center gap-3">
+                            <div class="h6 fw-900 text-ss-main mb-0">₹{{ "{:,.0f}".format(item.subtotal) }}</div>
+                            <form method="POST" action="{{ url_for('customer.remove_from_cart', cart_id=item.id) }}">
+                                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                                <button type="submit" class="btn btn-link text-danger p-0 smallest fw-900 text-decoration-none">
+                                    <i class="bi bi-trash3"></i>
+                                </button>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+
+        <!-- Order Summary Sidebar -->
+        <div class="col-lg-4">
+            <div class="ss-card border-0 shadow-2xl p-4 checkout-sticky-summary" style="position:sticky;top:90px;">
+                <h4 class="fw-900 text-ss-main mb-4 text-uppercase tracking-widest border-bottom border-opacity-10 pb-3">
+                    Order Summary
+                </h4>
+
+                <div class="mb-4 d-flex flex-column gap-2">
+                    <div class="d-flex justify-content-between">
+                        <span class="smallest fw-800 text-muted text-uppercase">Items ({{ cart_items|length }})</span>
+                        <span class="fw-800 text-ss-main">₹{{ "{:,.2f}".format(total) }}</span>
+                    </div>
+                    <div class="d-flex justify-content-between">
+                        <span class="smallest fw-800 text-muted text-uppercase">Delivery</span>
+                        <span class="text-ss-primary fw-900 smallest">FREE</span>
+                    </div>
+                </div>
+
+                <div class="ss-card border-0 p-4 mb-4" style="background:rgba(var(--accent-rgb),0.07);">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div>
+                            <small class="smallest fw-900 text-uppercase text-muted d-block mb-1">Total</small>
+                            <h2 class="fw-900 text-ss-main mb-0">₹{{ "{:,.0f}".format(total) }}</h2>
+                        </div>
+                        <div class="bg-ss-primary bg-opacity-10 p-3 rounded-circle">
+                            <i class="bi bi-shield-check text-ss-primary fs-4"></i>
+                        </div>
+                    </div>
+                </div>
+
+                <a href="{{ url_for('customer.checkout') }}" class="btn btn-ss-primary btn-lg w-100 py-3 shadow-xl sparkle-hover mb-3">
+                    <i class="bi bi-bag-check me-2"></i>PROCEED TO CHECKOUT
+                </a>
+                <p class="smallest fw-800 text-muted text-uppercase text-center tracking-widest mb-0 opacity-60">
+                    <i class="bi bi-lock-fill me-1 text-ss-primary"></i>Secure Transaction
+                </p>
+            </div>
+        </div>
+    </div>
+
+    {% else %}
+    <!-- Empty State -->
+    <div class="ss-card text-center py-5 shadow-2xl border-0 mt-4 animate-fade-in">
+        <div class="mb-4 d-inline-flex p-5 rounded-circle" style="background:rgba(var(--accent-rgb),0.07);">
+            <i class="bi bi-bag-plus text-ss-primary" style="font-size:5rem;"></i>
+        </div>
+        <h2 class="fw-900 text-ss-main mb-3">Your Cart is Empty</h2>
+        <p class="text-muted smallest fw-800 text-uppercase tracking-widest mb-5 opacity-60">
+            Browse our fresh selection and add items to get started
+        </p>
+        <a href="{{ url_for('customer.shop') }}" class="btn btn-ss-primary btn-lg px-5 shadow-xl sparkle-hover">
+            <i class="bi bi-shop me-2"></i>Start Shopping
+        </a>
+    </div>
+    {% endif %}
+</div>
+{% endblock %}

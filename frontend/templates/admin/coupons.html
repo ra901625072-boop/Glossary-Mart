@@ -1,0 +1,99 @@
+{% extends 'admin/admin_base.html' %}
+
+{% block title %}Coupons — Jay Goga Admin{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{{ url_for('static', filename='css/admin/coupons.css') }}">
+{% endblock %}
+
+{% block content %}
+<div class="container-fluid px-2 px-md-4 py-4 page-transition">
+    <div class="row align-items-center mb-4 animate-fade-in">
+        <div class="col-md-7">
+            <div class="d-flex align-items-center mb-1">
+                <div class="bg-ss-primary rounded-pill me-3" style="width: 5px; height: 32px;"></div>
+                <h1 class="h2 fw-900 text-ss-main mb-0">Coupons</h1>
+            </div>
+            <p class="text-muted mb-0 ps-4 smallest fw-900 text-uppercase tracking-widest opacity-50">Manage discount codes and promotions</p>
+        </div>
+        <div class="col-md-5 text-md-end mt-3 mt-md-0">
+            <button class="btn btn-ss-primary px-4 py-3 shadow-xl w-100 w-md-auto" disabled>
+                <i class="bi bi-plus-lg me-2"></i> ADD COUPON
+            </button>
+        </div>
+    </div>
+
+    <div class="ss-card p-0 shadow-2xl overflow-hidden mb-5 animate-fade-in">
+        <div class="table-responsive">
+            <table class="table table-hover align-middle mb-0 mobile-table-card-mode">
+                <thead class="bg-ss-main bg-opacity-5">
+                    <tr>
+                        <th class="ps-4 py-3 smallest fw-900 text-muted text-uppercase">Code</th>
+                        <th class="py-3 smallest fw-900 text-muted text-uppercase">Discount</th>
+                        <th class="py-3 smallest fw-900 text-muted text-uppercase">Min Order</th>
+                        <th class="text-center py-3 smallest fw-900 text-muted text-uppercase">Usage</th>
+                        <th class="text-center py-3 smallest fw-900 text-muted text-uppercase">Status</th>
+                        <th class="text-end pe-4 py-3 smallest fw-900 text-muted text-uppercase">Action</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% if coupons %}
+                    {% for coupon in coupons %}
+                    <tr class="border-bottom border-ss-main border-opacity-5">
+                        <td class="ps-4 py-3" data-label="Code">
+                            <div class="ss-badge ss-badge-info py-2 px-3 fw-900 text-uppercase tracking-widest small">
+                                {{ coupon.code }}
+                            </div>
+                        </td>
+                        <td class="py-3" data-label="Discount">
+                            <div class="fw-900 text-ss-main small">
+                                {% if coupon.discount_type == 'percentage' %}
+                                {{ coupon.value }}% OFF
+                                {% else %}
+                                ₹{{ coupon.value }} OFF
+                                {% endif %}
+                            </div>
+                        </td>
+                        <td class="py-3" data-label="Min Order">
+                            <span class="smallest fw-800 text-muted">₹{{ coupon.min_order_amount }}</span>
+                        </td>
+                        <td class="text-center py-3" data-label="Usage">
+                            <div class="smallest fw-900 text-ss-main opacity-60">{{ coupon.times_used }} / {{ coupon.usage_limit }}</div>
+                            <div class="progress mt-2 bg-ss-main bg-opacity-10" style="height: 4px; max-width: 80px; margin: 0 auto;">
+                                <div class="progress-bar bg-ss-primary" style="width: {{ (coupon.times_used / coupon.usage_limit * 100)|round }}%"></div>
+                            </div>
+                        </td>
+                        <td class="text-center py-3" data-label="Status">
+                            {% if coupon.is_active %}
+                            <span class="ss-badge ss-badge-success smallest">ACTIVE</span>
+                            {% else %}
+                            <span class="ss-badge ss-badge-danger smallest">EXPIRED</span>
+                            {% endif %}
+                        </td>
+                        <td class="text-end pe-4 py-3" data-label="Action">
+                            <div class="d-flex justify-content-end gap-2">
+                                <button class="btn btn-ss-outline rounded-circle p-0 d-flex align-items-center justify-content-center" style="width: 36px; height: 36px;" disabled>
+                                    <i class="bi bi-pencil-fill smallest"></i>
+                                </button>
+                                <button class="btn btn-ss-primary bg-danger border-0 rounded-circle p-0 d-flex align-items-center justify-content-center" style="width: 36px; height: 36px;" disabled>
+                                    <i class="bi bi-trash3 smallest"></i>
+                                </button>
+                            </div>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                    {% else %}
+                    <tr>
+                        <td colspan="6" class="text-center py-5">
+                            <i class="bi bi-ticket-perforated display-4 text-muted opacity-10 d-block mb-3"></i>
+                            <h5 class="fw-900 text-ss-main">No Coupons Found</h5>
+                            <p class="text-muted smallest fw-900 text-uppercase tracking-widest opacity-50">Create discount codes to drive sales</p>
+                        </td>
+                    </tr>
+                    {% endif %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+{% endblock %}

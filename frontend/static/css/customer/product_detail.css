@@ -1,0 +1,71 @@
+/**
+ * JAY GOGA MART — PRODUCT DETAIL SHOWCASE (customer/product_detail.css)
+ * High-definition gallery, pricing badge, live inventory status, stepper, and customer reviews.
+ */
+
+.ss-detail-gallery {
+    width: 100%;
+    max-width: 480px;
+    aspect-ratio: 1 / 1;
+    border-radius: var(--radius-2xl);
+    background: var(--sur-2);
+    overflow: hidden;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    position: relative;
+    border: 1px solid var(--border-bright);
+}
+
+.ss-detail-gallery img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    transition: transform 0.6s var(--ease-primary);
+}
+
+.ss-detail-gallery:hover img {
+    transform: scale(1.06);
+}
+
+.product-price-large {
+    font-family: var(--font-display);
+    font-size: clamp(2.2rem, 4vw, 3.2rem);
+    font-weight: 900;
+    color: var(--ss-primary);
+    line-height: 1;
+    letter-spacing: -0.02em;
+}
+
+/* Reviews List & Rating Breakdown */
+.review-card {
+    background: var(--sur-1);
+    border: 1px solid var(--border-bright);
+    border-radius: var(--radius-xl);
+    padding: 1.5rem;
+    margin-bottom: 1rem;
+    transition: var(--ss-transition);
+}
+
+.review-card:hover {
+    border-color: rgba(var(--primary-rgb), 0.3);
+    box-shadow: var(--shadow-md);
+}
+
+.review-stars {
+    color: #f59e0b;
+    font-size: 0.95rem;
+    display: flex;
+    gap: 3px;
+}
+
+.verified-buyer-badge {
+    font-size: var(--font-xs);
+    font-weight: 800;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    color: var(--ss-primary);
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+}

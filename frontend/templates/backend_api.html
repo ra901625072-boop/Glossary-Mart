@@ -1,0 +1,740 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Jay Goga Mart - Backend API & Services</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;600&family=Outfit:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
+    <link rel="icon" type="image/png" href="{{ url_for('static', filename='images/favicon.png') if url_for is defined else 'static/images/favicon.png' }}">
+    <link rel="shortcut icon" href="{{ url_for('static', filename='images/favicon.ico') if url_for is defined else 'static/images/favicon.ico' }}">
+    <style>
+        :root {
+            --bg-base: #0a0f16;
+            --bg-card: rgba(16, 23, 34, 0.78);
+            --bg-card-hover: rgba(22, 33, 49, 0.9);
+            --border-glow: rgba(16, 185, 129, 0.35);
+            --border-subtle: rgba(255, 255, 255, 0.08);
+            --accent-primary: #10b981;
+            --accent-gradient: linear-gradient(135deg, #059669 0%, #10b981 50%, #047857 100%);
+            --accent-emerald: #10b981;
+            --accent-amber: #f59e0b;
+            --accent-cyan: #06b6d4;
+            --text-main: #f8fafc;
+            --text-muted: #94a3b8;
+            --font-main: 'Outfit', -apple-system, BlinkMacSystemFont, sans-serif;
+            --font-mono: 'JetBrains Mono', monospace;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            background-color: var(--bg-base);
+            color: var(--text-main);
+            font-family: var(--font-main);
+            min-height: 100vh;
+            line-height: 1.6;
+            overflow-x: hidden;
+            background-image: 
+                radial-gradient(circle at 12% 15%, rgba(5, 150, 105, 0.16) 0%, transparent 45%),
+                radial-gradient(circle at 88% 40%, rgba(16, 185, 129, 0.1) 0%, transparent 42%),
+                radial-gradient(circle at 50% 88%, rgba(245, 158, 11, 0.05) 0%, transparent 50%);
+            background-attachment: fixed;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 0 24px;
+        }
+
+        /* Header */
+        header {
+            border-bottom: 1px solid var(--border-subtle);
+            backdrop-filter: blur(16px);
+            -webkit-backdrop-filter: blur(16px);
+            position: sticky;
+            top: 0;
+            z-index: 100;
+            background: rgba(10, 14, 23, 0.85);
+        }
+
+        .nav-inner {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            height: 76px;
+        }
+
+        .brand {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            text-decoration: none;
+            color: var(--text-main);
+            font-weight: 800;
+            font-size: 1.35rem;
+            letter-spacing: -0.02em;
+        }
+
+        .brand-icon {
+            width: 38px;
+            height: 38px;
+            border-radius: 10px;
+            background: var(--accent-gradient);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.2rem;
+            color: #fff;
+            box-shadow: 0 4px 14px rgba(99, 102, 241, 0.35);
+        }
+
+        .badge-pill {
+            font-family: var(--font-mono);
+            font-size: 0.72rem;
+            text-transform: uppercase;
+            letter-spacing: 0.08em;
+            padding: 4px 10px;
+            border-radius: 20px;
+            font-weight: 600;
+        }
+
+        .badge-backend {
+            background: rgba(99, 102, 241, 0.15);
+            color: #a5b4fc;
+            border: 1px solid rgba(99, 102, 241, 0.3);
+        }
+
+        .status-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            background: rgba(16, 185, 129, 0.12);
+            color: var(--accent-emerald);
+            border: 1px solid rgba(16, 185, 129, 0.25);
+            padding: 6px 14px;
+            border-radius: 30px;
+            font-size: 0.85rem;
+            font-weight: 600;
+        }
+
+        .pulse-dot {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background-color: var(--accent-emerald);
+            box-shadow: 0 0 0 0 rgba(16, 185, 129, 0.7);
+            animation: pulse 2s infinite;
+        }
+
+        @keyframes pulse {
+            0% { box-shadow: 0 0 0 0 rgba(16, 185, 129, 0.7); }
+            70% { box-shadow: 0 0 0 8px rgba(16, 185, 129, 0); }
+            100% { box-shadow: 0 0 0 0 rgba(16, 185, 129, 0); }
+        }
+
+        .nav-links {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+        }
+
+        /* Buttons */
+        .btn {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            padding: 10px 20px;
+            border-radius: 10px;
+            font-size: 0.95rem;
+            font-weight: 600;
+            text-decoration: none;
+            transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+            cursor: pointer;
+            border: none;
+        }
+
+        .btn-primary {
+            background: var(--accent-gradient);
+            color: #fff;
+            box-shadow: 0 4px 18px rgba(99, 102, 241, 0.35);
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 24px rgba(99, 102, 241, 0.5);
+            color: #fff;
+        }
+
+        .btn-outline {
+            background: rgba(255, 255, 255, 0.04);
+            color: var(--text-main);
+            border: 1px solid var(--border-subtle);
+        }
+
+        .btn-outline:hover {
+            background: rgba(255, 255, 255, 0.08);
+            border-color: rgba(255, 255, 255, 0.2);
+            transform: translateY(-2px);
+        }
+
+        .btn-sm {
+            padding: 6px 12px;
+            font-size: 0.82rem;
+            border-radius: 8px;
+        }
+
+        /* Hero */
+        .hero {
+            padding: 70px 0 40px;
+            text-align: center;
+        }
+
+        .hero-tag {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 0.85rem;
+            color: #a5b4fc;
+            background: rgba(99, 102, 241, 0.1);
+            border: 1px solid rgba(99, 102, 241, 0.25);
+            padding: 6px 16px;
+            border-radius: 30px;
+            margin-bottom: 20px;
+            font-weight: 500;
+        }
+
+        .hero h1 {
+            font-size: 3.2rem;
+            font-weight: 800;
+            letter-spacing: -0.03em;
+            line-height: 1.15;
+            margin-bottom: 20px;
+            background: linear-gradient(180deg, #ffffff 30%, #94a3b8 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .hero p {
+            font-size: 1.2rem;
+            color: var(--text-muted);
+            max-width: 680px;
+            margin: 0 auto 36px;
+            font-weight: 400;
+        }
+
+        .hero-actions {
+            display: flex;
+            justify-content: center;
+            gap: 16px;
+            flex-wrap: wrap;
+        }
+
+        /* Grid */
+        .grid-3 {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 24px;
+            margin: 40px 0;
+        }
+
+        @media (max-width: 900px) {
+            .grid-3 {
+                grid-template-columns: 1fr;
+            }
+            .hero h1 {
+                font-size: 2.2rem;
+            }
+        }
+
+        /* Card */
+        .card {
+            background: var(--bg-card);
+            border: 1px solid var(--border-subtle);
+            border-radius: 16px;
+            padding: 28px;
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .card:hover {
+            border-color: var(--border-glow);
+            transform: translateY(-4px);
+            box-shadow: 0 12px 30px rgba(0, 0, 0, 0.4);
+        }
+
+        .card-icon {
+            width: 48px;
+            height: 48px;
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.4rem;
+            margin-bottom: 20px;
+        }
+
+        .icon-indigo { background: rgba(99, 102, 241, 0.15); color: #818cf8; }
+        .icon-emerald { background: rgba(16, 185, 129, 0.15); color: #34d399; }
+        .icon-pink { background: rgba(236, 72, 153, 0.15); color: #f472b6; }
+
+        .card h3 {
+            font-size: 1.25rem;
+            font-weight: 700;
+            margin-bottom: 10px;
+            letter-spacing: -0.01em;
+        }
+
+        .card p {
+            color: var(--text-muted);
+            font-size: 0.95rem;
+            margin-bottom: 18px;
+        }
+
+        .card-meta {
+            font-family: var(--font-mono);
+            font-size: 0.8rem;
+            color: #cbd5e1;
+            background: rgba(0, 0, 0, 0.3);
+            padding: 8px 12px;
+            border-radius: 8px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        /* Interactive Ping Tester Card */
+        .tester-section {
+            margin: 50px 0;
+        }
+
+        .tester-card {
+            background: var(--bg-card);
+            border: 1px solid var(--border-glow);
+            border-radius: 18px;
+            padding: 32px;
+            box-shadow: 0 8px 32px rgba(99, 102, 241, 0.12);
+        }
+
+        .tester-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 16px;
+            margin-bottom: 24px;
+        }
+
+        .tester-title {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .tester-title h2 {
+            font-size: 1.5rem;
+            font-weight: 700;
+        }
+
+        .tester-controls {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .console-output {
+            background: #05070d;
+            border: 1px solid var(--border-subtle);
+            border-radius: 12px;
+            padding: 18px;
+            font-family: var(--font-mono);
+            font-size: 0.9rem;
+            color: #38bdf8;
+            min-height: 120px;
+            max-height: 260px;
+            overflow-y: auto;
+            white-space: pre-wrap;
+            word-break: break-all;
+        }
+
+        .console-meta {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-top: 12px;
+            font-family: var(--font-mono);
+            font-size: 0.8rem;
+            color: var(--text-muted);
+        }
+
+        /* API Table */
+        .api-section {
+            margin: 60px 0;
+        }
+
+        .section-heading {
+            margin-bottom: 24px;
+        }
+
+        .section-heading h2 {
+            font-size: 1.8rem;
+            font-weight: 700;
+            letter-spacing: -0.02em;
+            margin-bottom: 6px;
+        }
+
+        .section-heading p {
+            color: var(--text-muted);
+        }
+
+        .table-responsive {
+            overflow-x: auto;
+            border-radius: 16px;
+            border: 1px solid var(--border-subtle);
+            background: var(--bg-card);
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 0.92rem;
+            text-align: left;
+        }
+
+        th {
+            background: rgba(255, 255, 255, 0.03);
+            padding: 16px 20px;
+            font-weight: 600;
+            color: #cbd5e1;
+            border-bottom: 1px solid var(--border-subtle);
+            text-transform: uppercase;
+            font-size: 0.75rem;
+            letter-spacing: 0.06em;
+        }
+
+        td {
+            padding: 16px 20px;
+            border-bottom: 1px solid var(--border-subtle);
+            color: var(--text-muted);
+            vertical-align: middle;
+        }
+
+        tr:last-child td {
+            border-bottom: none;
+        }
+
+        tr:hover td {
+            background: rgba(255, 255, 255, 0.02);
+            color: var(--text-main);
+        }
+
+        .method-badge {
+            font-family: var(--font-mono);
+            font-size: 0.75rem;
+            font-weight: 700;
+            padding: 4px 8px;
+            border-radius: 6px;
+            display: inline-block;
+        }
+
+        .method-get { background: rgba(16, 185, 129, 0.15); color: #34d399; }
+        .method-post { background: rgba(59, 130, 246, 0.15); color: #60a5fa; }
+        .method-put { background: rgba(245, 158, 11, 0.15); color: #fbbf24; }
+        .method-delete { background: rgba(239, 68, 68, 0.15); color: #f87171; }
+
+        .endpoint-code {
+            font-family: var(--font-mono);
+            color: #e2e8f0;
+            font-size: 0.88rem;
+        }
+
+        /* Footer */
+        footer {
+            border-top: 1px solid var(--border-subtle);
+            padding: 40px 0;
+            margin-top: 80px;
+            text-align: center;
+            color: var(--text-muted);
+            font-size: 0.9rem;
+        }
+
+        .footer-links {
+            display: flex;
+            justify-content: center;
+            gap: 24px;
+            margin-bottom: 16px;
+        }
+
+        .footer-links a {
+            color: var(--text-muted);
+            text-decoration: none;
+            transition: color 0.2s;
+        }
+
+        .footer-links a:hover {
+            color: var(--text-main);
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <div class="container nav-inner">
+            <a href="/" class="brand">
+                <img src="{{ url_for('static', filename='images/logo-icon.png') if url_for is defined else 'static/images/logo-icon.png' }}" alt="e-glossary logo" style="height: 32px; width: 32px; object-fit: contain; margin-right: 6px;">
+                <span>E-GLOSSARY MART</span>
+                <span class="badge-pill badge-backend">BACKEND SERVICE</span>
+            </a>
+
+            <div class="nav-links">
+                <div class="status-badge">
+                    <span class="pulse-dot"></span>
+                    <span>API Operational</span>
+                </div>
+                <a href="{{ frontend_url }}" target="_blank" rel="noopener noreferrer" class="btn btn-outline btn-sm">
+                    <i class="bi bi-box-arrow-up-right"></i> Storefront
+                </a>
+                <a href="/auth/admin/login" class="btn btn-primary btn-sm">
+                    <i class="bi bi-shield-lock"></i> Admin ERP
+                </a>
+            </div>
+        </div>
+    </header>
+
+    <main class="container">
+        <!-- Hero -->
+        <section class="hero">
+            <div class="hero-tag">
+                <i class="bi bi-layers-fill"></i> Decoupled Cloud Architecture
+            </div>
+            <h1>Jay Goga Mart — Backend API Services</h1>
+            <p>
+                This Render web service powers the core business logic, PostgreSQL database queries, authentication sessions, and REST endpoints. The customer storefront is hosted separately on Vercel.
+            </p>
+            <div class="hero-actions">
+                <a href="{{ frontend_url }}" target="_blank" rel="noopener noreferrer" class="btn btn-primary">
+                    <i class="bi bi-shop"></i> Visit Customer Storefront (Vercel)
+                </a>
+                <a href="/auth/admin/login" class="btn btn-outline">
+                    <i class="bi bi-speedometer2"></i> Staff & Admin ERP Login
+                </a>
+                <button id="quickPingBtn" class="btn btn-outline" onclick="pingEndpoint('/api/health')">
+                    <i class="bi bi-activity"></i> Ping Health Check
+                </button>
+            </div>
+        </section>
+
+        <!-- Architecture Breakdown Cards -->
+        <section class="grid-3">
+            <div class="card">
+                <div class="card-icon icon-indigo">
+                    <i class="bi bi-globe"></i>
+                </div>
+                <h3>Frontend Client</h3>
+                <p>Decoupled edge-deployed single-page storefront serving HTML, dynamic catalog browsing, and instant client cart interactions.</p>
+                <div class="card-meta">
+                    <span>HOST: VERCEL</span>
+                    <a href="{{ frontend_url }}" target="_blank" style="color: #a5b4fc; text-decoration: none;">View Site ↗</a>
+                </div>
+            </div>
+
+            <div class="card">
+                <div class="card-icon icon-emerald">
+                    <i class="bi bi-server"></i>
+                </div>
+                <h3>Backend Web Service</h3>
+                <p>Python 3.12 Flask application running Gunicorn on Render, handling REST queries, transaction management, and inventory logic.</p>
+                <div class="card-meta">
+                    <span>HOST: RENDER</span>
+                    <span style="color: #34d399;">Active • WSGI</span>
+                </div>
+            </div>
+
+            <div class="card">
+                <div class="card-icon icon-pink">
+                    <i class="bi bi-shield-check"></i>
+                </div>
+                <h3>Cross-Origin Gateway</h3>
+                <p>CORS enabled with cross-origin credentials support, CSRF-exempt JSON API endpoints, and secure HTTP-only cookies.</p>
+                <div class="card-meta">
+                    <span>CORS ORIGIN: ALLOWED</span>
+                    <span style="color: #f472b6;">Vercel + Localhost</span>
+                </div>
+            </div>
+        </section>
+
+        <!-- Live Interactive API Tester -->
+        <section class="tester-section" id="api-tester">
+            <div class="tester-card">
+                <div class="tester-header">
+                    <div class="tester-title">
+                        <i class="bi bi-terminal-fill" style="font-size: 1.5rem; color: #818cf8;"></i>
+                        <h2>Live REST API Inspector</h2>
+                    </div>
+                    <div class="tester-controls">
+                        <button class="btn btn-outline btn-sm" onclick="pingEndpoint('/api/health')">/api/health</button>
+                        <button class="btn btn-outline btn-sm" onclick="pingEndpoint('/api/categories')">/api/categories</button>
+                        <button class="btn btn-outline btn-sm" onclick="pingEndpoint('/api/products?per_page=3')">/api/products</button>
+                        <button class="btn btn-outline btn-sm" onclick="pingEndpoint('/api/auth/me')">/api/auth/me</button>
+                    </div>
+                </div>
+
+                <div class="console-output" id="consoleOutput">// Click a test button above or "Ping Health Check" to inspect live API responses...
+GET /api/health</div>
+
+                <div class="console-meta">
+                    <span id="responseStatus">Status: Ready</span>
+                    <span id="responseLatency">Latency: -- ms</span>
+                </div>
+            </div>
+        </section>
+
+        <!-- Endpoints Reference -->
+        <section class="api-section">
+            <div class="section-heading">
+                <h2>Public REST Endpoints</h2>
+                <p>Available for cross-origin consumers (Vercel client, mobile app, and external integrations).</p>
+            </div>
+
+            <div class="table-responsive">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Method</th>
+                            <th>Endpoint</th>
+                            <th>Description</th>
+                            <th>Auth</th>
+                            <th>Direct Test</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td><span class="method-badge method-get">GET</span></td>
+                            <td><span class="endpoint-code">/api/health</span></td>
+                            <td>Service uptime heartbeat & health diagnostics</td>
+                            <td>Public</td>
+                            <td><a href="/api/health" target="_blank" class="btn btn-outline btn-sm">Inspect ↗</a></td>
+                        </tr>
+                        <tr>
+                            <td><span class="method-badge method-get">GET</span></td>
+                            <td><span class="endpoint-code">/api/products</span></td>
+                            <td>Product catalog with category filter, search, sorting & pagination</td>
+                            <td>Public</td>
+                            <td><a href="/api/products" target="_blank" class="btn btn-outline btn-sm">Inspect ↗</a></td>
+                        </tr>
+                        <tr>
+                            <td><span class="method-badge method-get">GET</span></td>
+                            <td><span class="endpoint-code">/api/categories</span></td>
+                            <td>Active product category listings</td>
+                            <td>Public</td>
+                            <td><a href="/api/categories" target="_blank" class="btn btn-outline btn-sm">Inspect ↗</a></td>
+                        </tr>
+                        <tr>
+                            <td><span class="method-badge method-get">GET</span></td>
+                            <td><span class="endpoint-code">/api/cart</span></td>
+                            <td>Retrieve guest session or authenticated customer cart items</td>
+                            <td>Session</td>
+                            <td><a href="/api/cart" target="_blank" class="btn btn-outline btn-sm">Inspect ↗</a></td>
+                        </tr>
+                        <tr>
+                            <td><span class="method-badge method-post">POST</span></td>
+                            <td><span class="endpoint-code">/api/cart/add</span></td>
+                            <td>Add item to cart: <code>{ "product_id": 1, "quantity": 1 }</code></td>
+                            <td>Session</td>
+                            <td><span class="endpoint-code">JSON Payload</span></td>
+                        </tr>
+                        <tr>
+                            <td><span class="method-badge method-post">POST</span></td>
+                            <td><span class="endpoint-code">/api/auth/login</span></td>
+                            <td>JSON customer or staff authentication: <code>{ "username", "password" }</code></td>
+                            <td>Public</td>
+                            <td><span class="endpoint-code">JSON Payload</span></td>
+                        </tr>
+                        <tr>
+                            <td><span class="method-badge method-get">GET</span></td>
+                            <td><span class="endpoint-code">/api/auth/me</span></td>
+                            <td>Check current session login state and customer profile</td>
+                            <td>Public</td>
+                            <td><a href="/api/auth/me" target="_blank" class="btn btn-outline btn-sm">Inspect ↗</a></td>
+                        </tr>
+                        <tr>
+                            <td><span class="method-badge method-get">GET</span></td>
+                            <td><span class="endpoint-code">/api/orders</span></td>
+                            <td>List order history and order line items for current customer</td>
+                            <td>Customer</td>
+                            <td><a href="/api/orders" target="_blank" class="btn btn-outline btn-sm">Inspect ↗</a></td>
+                        </tr>
+                        <tr>
+                            <td><span class="method-badge method-post">POST</span></td>
+                            <td><span class="endpoint-code">/api/orders/checkout</span></td>
+                            <td>Process cart checkout and create new order</td>
+                            <td>Customer</td>
+                            <td><span class="endpoint-code">JSON Payload</span></td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </section>
+    </main>
+
+    <footer>
+        <div class="container">
+            <div class="footer-links">
+                <a href="{{ frontend_url }}" target="_blank">Storefront (Vercel)</a>
+                <a href="/auth/admin/login">Admin ERP</a>
+                <a href="/health">Health Status</a>
+                <a href="/api/products">API Catalog</a>
+            </div>
+            <p>© 2026 Jay Goga Mart. High-availability decoupled backend service running on Render.</p>
+        </div>
+    </footer>
+
+    <script>
+        async function pingEndpoint(path) {
+            const output = document.getElementById('consoleOutput');
+            const statusEl = document.getElementById('responseStatus');
+            const latencyEl = document.getElementById('responseLatency');
+
+            output.textContent = `Fetching ${path}...`;
+            statusEl.textContent = 'Status: Fetching...';
+            latencyEl.textContent = 'Latency: -- ms';
+
+            const startTime = performance.now();
+            try {
+                const response = await fetch(path, {
+                    headers: { 'Accept': 'application/json' },
+                    credentials: 'include'
+                });
+                const duration = Math.round(performance.now() - startTime);
+                const data = await response.json();
+
+                statusEl.textContent = `Status: ${response.status} ${response.statusText || 'OK'}`;
+                statusEl.style.color = response.ok ? '#34d399' : '#f87171';
+                latencyEl.textContent = `Latency: ${duration} ms`;
+
+                output.textContent = `// Response from ${path} (${duration}ms)\n` + JSON.stringify(data, null, 2);
+            } catch (err) {
+                const duration = Math.round(performance.now() - startTime);
+                statusEl.textContent = 'Status: Network Error';
+                statusEl.style.color = '#f87171';
+                latencyEl.textContent = `Latency: ${duration} ms`;
+                output.textContent = `// Error fetching ${path}\n${err.message}`;
+            }
+        }
+
+        // Auto-run initial ping
+        window.addEventListener('DOMContentLoaded', () => {
+            pingEndpoint('/api/health');
+        });
+    </script>
+</body>
+</html>

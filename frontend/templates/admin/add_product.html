@@ -1,0 +1,182 @@
+{% extends 'admin/admin_base.html' %}
+
+{% block title %}Add Product — Jay Goga Admin{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{{ url_for('static', filename='css/admin/inventory.css') }}">
+{% endblock %}
+
+{% block content %}
+<div class="container-fluid px-2 px-md-4 py-4 page-transition">
+    <div class="row mb-4 animate-fade-in">
+        <div class="col-12">
+            <div class="d-flex align-items-center gap-3">
+                <div class="bg-ss-primary bg-opacity-10 p-3 rounded-4">
+                    <i class="bi bi-plus-circle fs-3 text-ss-primary d-block"></i>
+                </div>
+                <div>
+                    <h1 class="h3 fw-900 text-ss-main mb-0">Add Product</h1>
+                    <p class="text-muted smallest fw-900 text-uppercase tracking-widest opacity-50 mb-0">Fill in details for the new product</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="row justify-content-center">
+        <div class="col-xl-10">
+            <form method="POST" enctype="multipart/form-data" class="needs-validation" novalidate>
+                {{ form.hidden_tag() }}
+                
+                <div class="row g-4">
+                    <!-- Basic Information Card -->
+                    <div class="col-lg-7">
+                        <div class="ss-card border-0 shadow-lg p-4 p-md-5 h-100">
+                            <h6 class="fw-900 text-ss-main mb-4 text-uppercase tracking-widest opacity-60 border-bottom border-ss-main border-opacity-10 pb-3">
+                                <i class="bi bi-info-circle me-2 text-ss-primary"></i> Basic Info
+                            </h6>
+                            
+                            <div class="mb-4">
+                                {{ form.name.label(class="ss-form-label") }}
+                                {{ form.name(class="ss-input w-100", placeholder="e.g. Basmati Rice 5kg") }}
+                                {% for error in form.name.errors %}
+                                    <div class="text-danger smallest mt-1 fw-bold">{{ error }}</div>
+                                {% endfor %}
+                            </div>
+
+                            <div class="row g-3">
+                                <div class="col-md-6 mb-4">
+                                    {{ form.category_id.label(class="ss-form-label") }}
+                                    {{ form.category_id(class="ss-input w-100") }}
+                                </div>
+                                <div class="col-md-6 mb-4">
+                                    {{ form.supplier_name.label(class="ss-form-label") }}
+                                    {{ form.supplier_name(class="ss-input w-100", placeholder="Vendor Name") }}
+                                </div>
+                            </div>
+
+                            <div class="mb-0">
+                                <label class="ss-form-label">Product Image</label>
+                                <div class="ss-image-upload-compact position-relative sparkle-hover bg-ss-main bg-opacity-5 rounded-4 border-2 border-dashed border-ss-main border-opacity-10 d-flex flex-column align-items-center justify-content-center p-4" style="min-height: 160px;">
+                                    <input type="file" class="position-absolute top-0 start-0 w-100 h-100 opacity-0" id="image" name="image" accept="image/*" onchange="previewImage(event)" style="cursor: pointer; z-index: 2;">
+                                    <div id="uploadPlaceholder" class="text-center">
+                                        <i class="bi bi-cloud-arrow-up h1 text-ss-primary opacity-30 mb-2 d-block"></i>
+                                        <span class="smallest fw-900 text-uppercase tracking-widest text-muted">Click to upload image</span>
+                                    </div>
+                                    <div id="imagePreview" class="d-none text-center">
+                                        <img id="preview" src="" alt="Preview" class="img-fluid rounded-4 shadow-sm mb-2" style="max-height: 120px;">
+                                        <p class="smallest fw-900 text-ss-primary text-uppercase tracking-widest mb-0">Change Image</p>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Pricing & Inventory -->
+                    <div class="col-lg-5">
+                        <div class="row g-4">
+                            <!-- Pricing Card -->
+                            <div class="col-12">
+                                <div class="ss-card border-0 shadow-lg p-4 p-md-5">
+                                    <h6 class="fw-900 text-ss-main mb-4 text-uppercase tracking-widest opacity-60 border-bottom border-ss-main border-opacity-10 pb-3">
+                                        <i class="bi bi-currency-rupee me-2 text-ss-primary"></i> Pricing
+                                    </h6>
+                                    
+                                    <div class="row g-3">
+                                        <div class="col-6 mb-4">
+                                            {{ form.cost_price.label(class="ss-form-label") }}
+                                            {{ form.cost_price(class="ss-input w-100", id="cost_price", placeholder="0") }}
+                                        </div>
+                                        <div class="col-6 mb-4">
+                                            {{ form.selling_price.label(class="ss-form-label") }}
+                                            {{ form.selling_price(class="ss-input w-100", id="selling_price", placeholder="0") }}
+                                        </div>
+                                    </div>
+
+                                    <!-- Margin Stats -->
+                                    <div id="marginPreview" class="p-3 bg-ss-primary bg-opacity-5 rounded-4 border border-ss-primary border-opacity-10 d-none">
+                                        <div class="d-flex justify-content-between align-items-center">
+                                            <div class="smallest fw-900 text-ss-primary text-uppercase tracking-widest">Profit Margin</div>
+                                            <div class="text-end">
+                                                <div id="projProfit" class="fw-900 text-ss-main smallest mb-0"></div>
+                                                <div id="projMargin" class="ss-badge ss-badge-success smallest"></div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Inventory Card -->
+                            <div class="col-12">
+                                <div class="ss-card border-0 shadow-lg p-4 p-md-5">
+                                    <h6 class="fw-900 text-ss-main mb-4 text-uppercase tracking-widest opacity-60 border-bottom border-ss-main border-opacity-10 pb-3">
+                                        <i class="bi bi-boxes me-2 text-ss-primary"></i> Inventory
+                                    </h6>
+                                    
+                                    <div class="row g-3">
+                                        <div class="col-6">
+                                            {{ form.stock_quantity.label(class="ss-form-label") }}
+                                            {{ form.stock_quantity(class="ss-input w-100", placeholder="0") }}
+                                        </div>
+                                        <div class="col-6">
+                                            {{ form.minimum_stock_alert.label(class="ss-form-label") }}
+                                            {{ form.minimum_stock_alert(class="ss-input w-100", placeholder="10") }}
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="d-flex flex-column flex-sm-row align-items-center gap-3 mt-5">
+                    <a href="{{ url_for('admin.products') }}" class="btn btn-ss-ghost w-100 w-sm-auto px-4 py-3 smallest fw-900 tracking-widest order-2 order-sm-1">
+                        CANCEL
+                    </a>
+                    <button type="submit" class="btn btn-ss-primary w-100 w-sm-auto px-5 py-3 shadow-xl sparkle-hover flex-grow-1 fw-900 tracking-widest order-1 order-sm-2">
+                        ADD PRODUCT
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    function previewImage(event) {
+        const file = event.target.files[0];
+        if (file) {
+            const reader = new FileReader();
+            reader.onload = function (e) {
+                document.getElementById('preview').src = e.target.result;
+                document.getElementById('uploadPlaceholder').classList.add('d-none');
+                document.getElementById('imagePreview').classList.remove('d-none');
+            };
+            reader.readAsDataURL(file);
+        }
+    }
+
+    function calculateMargin() {
+        const cost = parseFloat(document.getElementById('cost_price').value) || 0;
+        const selling = parseFloat(document.getElementById('selling_price').value) || 0;
+        const preview = document.getElementById('marginPreview');
+        const profitEl = document.getElementById('projProfit');
+        const marginEl = document.getElementById('projMargin');
+
+        if (selling > 0 && cost > 0) {
+            const profit = selling - cost;
+            const margin = (profit / selling) * 100;
+
+            profitEl.textContent = `₹${profit.toFixed(0)} profit`;
+            marginEl.textContent = `${margin.toFixed(0)}% Margin`;
+            preview.classList.remove('d-none');
+        } else {
+            preview.classList.add('d-none');
+        }
+    }
+
+    document.getElementById('cost_price').addEventListener('input', calculateMargin);
+    document.getElementById('selling_price').addEventListener('input', calculateMargin);
+</script>
+{% endblock %}

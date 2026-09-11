@@ -1,0 +1,70 @@
+{% extends "base.html" %}
+{% block title %}My Wishlist - Jay Goga Mart{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{{ url_for('static', filename='css/customer/shop.css') }}">
+{% endblock %}
+
+{% block content %}
+<div class="container my-4 my-md-5 page-transition">
+    <div class="d-flex align-items-center mb-4 pb-3 border-bottom border-ss-main border-opacity-10 animate-fade-in">
+        <div class="bg-ss-primary bg-opacity-10 p-3 rounded-circle me-3">
+            <i class="bi bi-heart-fill fs-3 text-ss-primary d-block"></i>
+        </div>
+        <div>
+            <h1 class="h2 fw-900 text-ss-main mb-0">My Wishlist</h1>
+            <p class="text-muted smallest fw-900 text-uppercase tracking-widest mb-0 opacity-50">Saved items for later</p>
+        </div>
+    </div>
+
+    {% if items %}
+        <div class="row g-4 product-grid">
+            {% for item in items %}
+            <div class="col-6 col-md-4 col-xl-3 animate-fade-in" style="animation-delay: {{ loop.index0 * 0.05 }}s;">
+                <div class="ss-product-card d-flex flex-column h-100">
+                    <div class="ss-img-container">
+                        {% if item.product.image_path %}
+                            <img src="{{ url_for('static', filename=item.product.image_path) }}" class="ss-product-img" alt="{{ item.product.name }}">
+                        {% else %}
+                            <div class="w-100 h-100 d-flex align-items-center justify-content-center">
+                                <i class="bi bi-box-seam fs-1 text-ss-primary opacity-25"></i>
+                            </div>
+                        {% endif %}
+                    </div>
+                    
+                    <div class="pt-2 d-flex flex-column flex-grow-1">
+                        <h3 class="ss-product-title">{{ item.product.name }}</h3>
+                        <div class="ss-price-current mt-auto mb-3">₹{{ "%.0f"|format(item.product.selling_price) }}</div>
+                        
+                        <div class="d-flex gap-2">
+                            <form action="{{ url_for('customer.add_to_cart', product_id=item.product.id) }}" method="POST" class="flex-grow-1">
+                                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                                <button type="submit" class="btn btn-ss-primary w-100 py-2 smallest fw-900 text-uppercase tracking-widest shadow-sm">
+                                    <i class="bi bi-cart-plus me-1"></i> Add
+                                </button>
+                            </form>
+                            
+                            <form action="{{ url_for('customer.remove_from_wishlist', id=item.id) }}" method="POST">
+                                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                                <button type="submit" class="btn btn-ss-outline p-0 d-flex align-items-center justify-content-center border-danger text-danger bg-danger bg-opacity-10" style="width: 40px; height: 40px;" title="Remove">
+                                    <i class="bi bi-trash3-fill"></i>
+                                </button>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+    {% else %}
+        <div class="ss-card text-center py-5 my-5 animate-fade-in">
+            <i class="bi bi-heart display-1 text-muted opacity-10 d-block mb-4"></i>
+            <h3 class="fw-900 text-ss-main mb-2">Your wishlist is empty</h3>
+            <p class="text-muted smallest fw-900 text-uppercase tracking-widest opacity-50 mb-4">Save your favorite items here</p>
+            <a href="{{ url_for('customer.shop') }}" class="btn btn-ss-primary px-5 py-3 shadow-xl sparkle-hover">
+                <i class="bi bi-cart-plus me-2"></i> EXPLORE SHOP
+            </a>
+        </div>
+    {% endif %}
+</div>
+{% endblock %}

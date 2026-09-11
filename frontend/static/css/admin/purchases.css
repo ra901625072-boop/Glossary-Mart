@@ -1,0 +1,19 @@
+/* ========== Admin Purchases & Stock In ========== */
+
+.purchases-container {
+    animation: fadeIn 0.6s var(--ease-smooth);
+}
+
+.purchase-card {
+    background: var(--sur-low);
+    border: 1px solid var(--border-subtle);
+    border-radius: var(--ss-radius-xl);
+    padding: 1.5rem;
+    transition: var(--ss-transition-bounce);
+}
+
+.purchase-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 10px 25px rgba(16, 185, 129, 0.15);
+    border-color: var(--ss-primary);
+}

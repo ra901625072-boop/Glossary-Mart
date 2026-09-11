@@ -1,0 +1,41 @@
+# Vercel Ignore File
+# Excludes backend, python runtime, database, and logs from Vercel deployments
+
+# Backend and python code
+backend/
+database/
+wsgi.py
+build.sh
+runtime.txt
+requirements*.txt
+render.yaml
+.renderignore
+Procfile
+gunicorn.conf.py
+
+
+# Python virtual environment & cache
+venv/
+.venv/
+__pycache__/
+*.py
+*.pyc
+*.pyd
+*.pyo
+
+# Local database & state
+instance/
+logs/
+*.db
+*.sqlite
+*.sqlite3
+
+# Tests & test caches
+tests/
+.pytest_cache/
+htmlcov/
+.coverage
+coverage.xml
+
+# Documentation & extra files
+other/

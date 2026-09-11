@@ -1,0 +1,308 @@
+/**
+ * JAY GOGA MART — CONSOLIDATED ADMIN ERP CONSOLE STYLES (admin.css)
+ * High-performance layout, sidebar, POS counter, inventory management, and reports
+ */
+
+:root {
+    --adm-primary: #059669;
+    --adm-primary-hover: #047857;
+    --adm-secondary: #0284c7;
+    --adm-accent: #f59e0b;
+    --adm-danger: #ef4444;
+    --adm-success: #10b981;
+    --adm-dark: #0f172a;
+    --adm-sidebar-bg: #0f172a;
+    --adm-sidebar-text: #94a3b8;
+    --adm-sidebar-hover: #1e293b;
+    --adm-sidebar-active: rgba(5, 150, 105, 0.15);
+    --adm-surface: #ffffff;
+    --adm-bg: #f8fafc;
+    --adm-border: #e2e8f0;
+    --adm-text-main: #1e293b;
+    --adm-text-muted: #64748b;
+    --adm-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.07), 0 2px 4px -1px rgba(0, 0, 0, 0.04);
+    --adm-radius: 14px;
+}
+
+[data-theme="dark"] {
+    --adm-surface: #1e293b;
+    --adm-bg: #0b1120;
+    --adm-border: #334155;
+    --adm-text-main: #f8fafc;
+    --adm-text-muted: #94a3b8;
+    --adm-shadow: 0 4px 10px rgba(0, 0, 0, 0.35);
+}
+
+body.admin-body {
+    background-color: var(--adm-bg);
+    color: var(--adm-text-main);
+    font-family: 'Inter', sans-serif;
+    overflow-x: hidden;
+    margin: 0;
+    padding: 0;
+}
+
+h1, h2, h3, h4, h5, h6, .brand-font {
+    font-family: 'Outfit', 'Inter', sans-serif;
+}
+
+/* Admin Topbar */
+.admin-topbar {
+    background: var(--adm-surface);
+    border-bottom: 1px solid var(--adm-border);
+    height: 68px;
+    position: sticky;
+    top: 0;
+    z-index: 1040;
+    display: flex;
+    align-items: center;
+    padding: 0 1.5rem;
+    transition: background 0.3s ease, border-color 0.3s ease;
+}
+
+/* Sidebar Shell */
+.admin-layout-wrapper {
+    display: flex;
+    min-height: calc(100vh - 68px);
+}
+
+.admin-sidebar {
+    width: 260px;
+    background: var(--adm-sidebar-bg);
+    color: var(--adm-sidebar-text);
+    flex-shrink: 0;
+    display: flex;
+    flex-direction: column;
+    transition: transform 0.3s ease;
+    z-index: 1030;
+}
+
+@media (max-width: 991px) {
+    .admin-sidebar {
+        position: fixed;
+        top: 68px;
+        bottom: 0;
+        left: 0;
+        transform: translateX(-100%);
+        box-shadow: 4px 0 20px rgba(0,0,0,0.3);
+    }
+    .admin-sidebar.show-mobile {
+        transform: translateX(0);
+    }
+}
+
+.sidebar-brand-card {
+    padding: 1.25rem 1rem;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+}
+
+.brand-logo-admin {
+    width: 38px;
+    height: 38px;
+    object-fit: contain;
+    border-radius: 10px;
+    background: #ffffff;
+    padding: 2px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+}
+
+.sidebar-menu-scroll {
+    flex-grow: 1;
+    overflow-y: auto;
+    padding: 1rem 0.75rem;
+}
+
+.sidebar-category-header {
+    font-size: 0.68rem;
+    font-weight: 800;
+    letter-spacing: 0.12em;
+    color: #64748b;
+    text-transform: uppercase;
+    padding: 0.75rem 0.75rem 0.35rem;
+}
+
+.admin-nav-item {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    padding: 0.65rem 0.85rem;
+    border-radius: 10px;
+    color: #94a3b8;
+    text-decoration: none;
+    font-size: 0.86rem;
+    font-weight: 600;
+    margin-bottom: 0.2rem;
+    transition: all 0.2s ease;
+}
+
+.admin-nav-item i {
+    font-size: 1.1rem;
+    width: 22px;
+    text-align: center;
+}
+
+.admin-nav-item:hover {
+    color: #ffffff;
+    background: var(--adm-sidebar-hover);
+}
+
+.admin-nav-item.active {
+    color: #ffffff;
+    background: var(--adm-primary);
+    box-shadow: 0 4px 12px rgba(5, 150, 105, 0.35);
+}
+
+/* Admin Main Content View */
+.admin-main-stage {
+    flex-grow: 1;
+    padding: 1.75rem;
+    background: var(--adm-bg);
+    overflow-y: auto;
+    max-width: 100%;
+}
+
+.adm-view {
+    display: none;
+    opacity: 0;
+    transition: opacity 0.25s ease-in-out;
+}
+
+.adm-view.active-view {
+    display: block;
+    opacity: 1;
+}
+
+/* KPI Cards */
+.kpi-card {
+    background: var(--adm-surface);
+    border: 1px solid var(--adm-border);
+    border-radius: var(--adm-radius);
+    padding: 1.5rem;
+    box-shadow: var(--adm-shadow);
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+    height: 100%;
+}
+
+.kpi-card:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 10px 20px -5px rgba(0,0,0,0.1);
+}
+
+.kpi-icon-box {
+    width: 48px;
+    height: 48px;
+    border-radius: 12px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.4rem;
+}
+
+/* POS Terminal Styles */
+.pos-product-tile {
+    background: var(--adm-surface);
+    border: 1px solid var(--adm-border);
+    border-radius: 12px;
+    padding: 0.85rem;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    text-align: center;
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+}
+
+.pos-product-tile:hover {
+    border-color: var(--adm-primary);
+    transform: scale(1.02);
+    box-shadow: var(--adm-shadow);
+}
+
+.pos-product-img {
+    width: 100%;
+    height: 90px;
+    object-fit: contain;
+    margin-bottom: 0.5rem;
+}
+
+.pos-cart-panel {
+    background: var(--adm-surface);
+    border: 1px solid var(--adm-border);
+    border-radius: var(--adm-radius);
+    padding: 1.25rem;
+    display: flex;
+    flex-direction: column;
+    height: calc(100vh - 130px);
+    position: sticky;
+    top: 90px;
+}
+
+.pos-items-scroll {
+    flex-grow: 1;
+    overflow-y: auto;
+    margin: 1rem 0;
+}
+
+/* Thermal Bill Print Styling */
+.thermal-bill {
+    max-width: 380px;
+    margin: 0 auto;
+    background: #ffffff;
+    color: #000000;
+    padding: 20px;
+    font-family: 'Courier New', Courier, monospace;
+    font-size: 13px;
+    border: 1px dashed #cccccc;
+}
+
+@media print {
+    body * {
+        visibility: hidden;
+    }
+    #billPrintArea, #billPrintArea * {
+        visibility: visible;
+    }
+    #billPrintArea {
+        position: absolute;
+        left: 0;
+        top: 0;
+        width: 100%;
+    }
+}
+
+/* Tables Styling */
+.adm-table-wrap {
+    background: var(--adm-surface);
+    border: 1px solid var(--adm-border);
+    border-radius: var(--adm-radius);
+    overflow: hidden;
+    box-shadow: var(--adm-shadow);
+}
+
+.table.adm-table {
+    margin-bottom: 0;
+    color: var(--adm-text-main);
+    background-color: transparent;
+}
+
+.table.adm-table th {
+    background: rgba(0, 0, 0, 0.02);
+    font-size: 0.75rem;
+    font-weight: 800;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    color: var(--adm-text-muted);
+    border-bottom: 1px solid var(--adm-border);
+    padding: 1rem 1.25rem;
+}
+
+.table.adm-table td {
+    padding: 1rem 1.25rem;
+    vertical-align: middle;
+    border-bottom: 1px solid var(--adm-border);
+    font-size: 0.88rem;
+}

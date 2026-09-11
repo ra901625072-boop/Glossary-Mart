@@ -1,0 +1,124 @@
+/**
+ * JAY GOGA MART — SHOPPING CART STYLES (customer/cart.css)
+ * Bag items list, quantity steppers, summary calculations card, and empty bag state.
+ */
+
+.cart-img-box {
+    width: 76px;
+    height: 76px;
+    border-radius: var(--radius-md);
+    background: var(--sur-2);
+    overflow: hidden;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    border: 1px solid var(--border-subtle);
+}
+
+.cart-img-box img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+/* Quantity Stepper Component */
+.quantity-stepper,
+.ss-qty-selector {
+    display: inline-flex;
+    align-items: center;
+    background: var(--sur-2);
+    border: 1px solid var(--border-bright);
+    border-radius: var(--radius-full);
+    padding: 3px;
+}
+
+.quantity-stepper button,
+.ss-qty-btn {
+    width: 30px;
+    height: 30px;
+    border-radius: 50%;
+    border: none;
+    background: transparent;
+    color: var(--text-main);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 0.9rem;
+    cursor: pointer;
+    transition: background var(--duration-fast), color var(--duration-fast), transform var(--duration-fast);
+}
+
+.quantity-stepper button:hover,
+.ss-qty-btn:hover {
+    background: var(--ss-primary);
+    color: #ffffff;
+    transform: scale(1.06);
+}
+
+.quantity-stepper button:active,
+.ss-qty-btn:active {
+    transform: scale(0.92);
+}
+
+.quantity-stepper span,
+.quantity-stepper input,
+.ss-qty-input {
+    width: 38px;
+    text-align: center;
+    font-weight: 750;
+    font-size: var(--font-sm);
+    color: var(--text-main);
+    border: none;
+    background: transparent;
+}
+
+/* Order Summary Sticky Card */
+.cart-summary-card {
+    background: var(--ss-card-bg);
+    backdrop-filter: blur(24px);
+    -webkit-backdrop-filter: blur(24px);
+    border: 1px solid var(--border-bright);
+    border-radius: var(--radius-2xl);
+    padding: 2rem;
+    box-shadow: var(--shadow-md);
+    position: sticky;
+    top: 90px;
+}
+
+.cart-summary-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding-block: 0.65rem;
+    font-size: var(--font-sm);
+    color: var(--text-secondary);
+}
+
+.cart-summary-total {
+    border-top: 1.5px dashed var(--border-bright);
+    padding-top: 1.25rem;
+    margin-top: 0.75rem;
+    display: flex;
+    justify-content: space-between;
+    align-items: baseline;
+}
+
+.cart-summary-total-val {
+    font-family: var(--font-display);
+    font-size: 1.75rem;
+    font-weight: 850;
+    color: var(--ss-primary);
+}
+
+@media (max-width: 576px) {
+    .cart-img-box {
+        width: 64px;
+        height: 64px;
+    }
+
+    .cart-summary-card {
+        padding: 1.25rem;
+        border-radius: var(--radius-xl);
+    }
+}

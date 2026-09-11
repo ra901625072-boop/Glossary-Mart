@@ -1,0 +1,61 @@
+services:
+  - type: web
+    name: glossary-mart
+    env: python
+    buildCommand: ./build.sh
+    startCommand: gunicorn wsgi:app --bind 0.0.0.0:$PORT
+    healthCheckPath: /health
+    # Tell Render to ONLY trigger builds when backend files change:
+    buildFilter:
+      paths:
+        - backend/**
+        - database/**
+        - frontend/**
+        - requirements.txt
+        - wsgi.py
+        - build.sh
+        - runtime.txt
+      ignoredPaths:
+        - other/**
+        - README.md
+        - .vercelignore
+        - vercel.json
+    envVars:
+      - key: DATABASE_URL
+        fromDatabase:
+          name: mart-db
+          property: connectionString
+      - key: SECRET_KEY
+        generateValue: true
+      # IMPORTANT: Set ADMIN_USERNAME and ADMIN_PASSWORD manually in the
+      # Render dashboard under Environment → Secret Files / Environment Variables.
+      # Do NOT hardcode credentials here.
+      - key: ADMIN_USERNAME
+        sync: false
+      - key: ADMIN_PASSWORD
+        sync: false
+      - key: FRONTEND_URL
+        value: https://glossary-mart.vercel.app
+      - key: CORS_ALLOWED_ORIGINS
+        value: https://glossary-mart.vercel.app,http://localhost:3000,http://localhost:5173
+      - key: SESSION_COOKIE_SAMESITE
+        value: "None"
+      - key: SESSION_COOKIE_SECURE
+        value: "true"
+      - key: SKIP_DB_CREATE
+        value: "false"
+      - key: PYTHON_VERSION
+        value: 3.12.3
+      - key: MAIL_USERNAME
+        sync: false
+      - key: MAIL_PASSWORD
+        sync: false
+      - key: MAIL_SERVER
+        sync: false
+      - key: MAIL_DEFAULT_SENDER
+        sync: false
+
+databases:
+  - name: mart-db
+    plan: free
+

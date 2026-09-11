@@ -1,0 +1,156 @@
+{% extends 'base.html' %}
+
+{% block title %}Shop — Jay Goga Mart Store{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{{ url_for('static', filename='css/customer/shop.css') }}">
+{% endblock %}
+
+{% block content %}
+<div class="container my-4 my-md-5 page-transition shop-container">
+    <div class="row g-4">
+        <!-- Category Pills -->
+        <div class="col-12">
+            <div class="ss-nav-pills">
+                <a href="{{ url_for('customer.shop') }}" class="ss-nav-pill {% if not selected_category %}active{% endif %}">
+                    <i class="bi bi-grid-3x3-gap-fill me-1"></i> All
+                </a>
+                {% for cat in categories %}
+                <a href="{{ url_for('customer.shop', category=cat.name) }}" class="ss-nav-pill {% if cat.name == selected_category %}active{% endif %}">
+                    {{ cat.name }}
+                </a>
+                {% endfor %}
+            </div>
+        </div>
+
+        <!-- Product Grid -->
+        <div class="col-12">
+            <!-- Results Bar -->
+            <div class="d-flex align-items-center justify-content-between mb-4 glass-panel p-3 px-4 border-0 shadow-xl">
+                <div class="smallest fw-900 text-uppercase tracking-widest text-muted">
+                    <span class="text-ss-primary">{{ products|length }}</span> products
+                    {% if selected_category %} in <span class="text-ss-primary">{{ selected_category }}</span>{% endif %}
+                    {% if request.args.get('search') %} for "<span class="text-ss-primary">{{ request.args.get('search') }}</span>"{% endif %}
+                </div>
+                <div class="smallest fw-700 text-muted d-none d-md-block">
+                    <i class="bi bi-sort-down me-1 text-ss-primary"></i> Best Match
+                </div>
+            </div>
+
+            {% if products %}
+            <div class="products-grid products-grid--commerce" id="productGrid">
+                {% for product in products %}
+                <div class="product-grid-item col-6 col-md-4 col-xl-3 stagger-item" style="animation-delay: {{ loop.index * 0.04 }}s">
+                    <div class="ss-product-card magnetic-hover">
+                        <a href="{{ url_for('customer.product_detail', product_id=product.id) }}"
+                           class="text-decoration-none d-flex flex-column flex-grow-1"
+                           aria-label="View {{ product.name }}">
+                            <div class="ss-img-container position-relative">
+                                {% if product.image_path %}
+                                <img src="{{ url_for('static', filename=product.image_path) }}"
+                                     class="ss-product-img" alt="{{ product.name }}" loading="lazy">
+                                {% else %}
+                                <div class="w-100 h-100 d-flex align-items-center justify-content-center">
+                                    <i class="bi bi-box-seam fs-1 text-ss-primary opacity-25"></i>
+                                </div>
+                                {% endif %}
+                                <div class="position-absolute top-0 end-0 p-2">
+                                    <span class="ss-badge ss-badge-info">
+                                        {{ product.category_rel.name if product.category_rel else 'Other' }}
+                                    </span>
+                                </div>
+                            </div>
+                            <div class="pt-2">
+                                <h6 class="ss-product-title mb-1">{{ product.name }}</h6>
+                            </div>
+                        </a>
+                        <div class="d-flex flex-column pt-1">
+                            <div class="d-flex align-items-center gap-3 mb-3">
+                                <span class="ss-price-current">₹{{ "{:,.0f}".format(product.selling_price) }}</span>
+                                <span class="text-muted smallest text-decoration-line-through opacity-50">₹{{ "{:,.0f}".format(product.selling_price|float * 1.2) }}</span>
+                            </div>
+                            <div class="mt-auto">
+                                {% if current_user.is_authenticated and current_user.role == 'admin' %}
+                                <a href="{{ url_for('admin.edit_product', product_id=product.id) }}"
+                                    class="btn btn-ss-outline w-100 btn-sm">
+                                    <i class="bi bi-pencil-square me-1"></i>Edit
+                                </a>
+                                {% elif product.stock_quantity > 0 %}
+                                <form method="POST" class="ajax-cart-form"
+                                    action="{{ url_for('customer.add_to_cart', product_id=product.id) }}">
+                                    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                                    <button type="submit" class="btn btn-ss-primary w-100 sparkle-hover">
+                                        <i class="bi bi-basket-fill me-1"></i>Add to Cart
+                                    </button>
+                                </form>
+                                {% else %}
+                                <button class="btn w-100 disabled-btn" disabled>Out of Stock</button>
+                                {% endif %}
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+
+            {% else %}
+            <div class="col-12 text-center py-5 mt-4">
+                <div class="mb-4 text-ss-primary opacity-25">
+                    <i class="bi bi-search display-1"></i>
+                </div>
+                <h3 class="fw-900 mb-3">No Products Found</h3>
+                <p class="text-muted mb-5">Try a different search or category.</p>
+                <a href="{{ url_for('customer.shop') }}" class="btn btn-ss-primary btn-lg px-5">
+                    <i class="bi bi-arrow-clockwise me-2"></i>View All Products
+                </a>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    document.querySelectorAll('.ajax-cart-form').forEach(form => {
+        form.addEventListener('submit', function(e) {
+            e.preventDefault();
+            const btn = this.querySelector('button[type="submit"]');
+            const orig = btn.innerHTML;
+            btn.disabled = true;
+            btn.innerHTML = '<span class="spinner-border spinner-border-sm me-1"></span>Adding...';
+
+            fetch(this.action, {
+                method: 'POST',
+                body: new FormData(this),
+                headers: { 'X-Requested-With': 'XMLHttpRequest' }
+            })
+            .then(r => r.json())
+            .then(data => {
+                if (data.success) {
+                    btn.classList.remove('btn-ss-primary');
+                    btn.classList.add('btn-ss-success');
+                    btn.innerHTML = '<i class="bi bi-check-lg me-1"></i>Added!';
+                    // Update cart counter
+                    if (data.cart_count !== undefined) {
+                        document.querySelectorAll('.cart-counter').forEach(el => el.innerText = data.cart_count);
+                    }
+                    setTimeout(() => {
+                        btn.disabled = false;
+                        btn.classList.remove('btn-ss-success');
+                        btn.classList.add('btn-ss-primary');
+                        btn.innerHTML = orig;
+                    }, 2000);
+                } else {
+                    alert(data.message || 'Error adding to cart');
+                    btn.disabled = false;
+                    btn.innerHTML = orig;
+                }
+            })
+            .catch(() => { btn.disabled = false; btn.innerHTML = orig; });
+        });
+    });
+});
+</script>
+{% endblock %}

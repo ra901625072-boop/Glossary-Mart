@@ -1,0 +1,133 @@
+{% extends 'auth_base.html' %}
+
+{% block title %}Create Account — Jay Goga Mart Store{% endblock %}
+
+{% block content %}
+<div class="container my-4">
+    <div class="row justify-content-center">
+        <div class="col-md-9 col-lg-7 col-xl-6">
+
+            <!-- Logo -->
+            <div class="text-center mb-4 animate-fade-in">
+                <div class="auth-logo-text mb-1 d-flex align-items-center justify-content-center">
+                    <i class="bi bi-basket2-fill me-2 text-ss-primary"></i>
+                    JAY GOGA <span class="ms-1 text-ss-primary"> MART</span>
+                </div>
+                <div class="smallest fw-900 text-muted text-uppercase tracking-widest opacity-60">Join your neighbourhood grocery partner</div>
+            </div>
+
+            <!-- Card -->
+            <div class="auth-card animate-fade-in">
+
+                <!-- Header -->
+                <div class="text-center mb-5">
+                    <div class="ss-auth-icon mx-auto">
+                        <i class="bi bi-person-plus"></i>
+                    </div>
+                    <h2 class="fw-900 text-ss-main mb-2">Create Account</h2>
+                    <p class="smallest fw-800 text-muted text-uppercase tracking-widest opacity-75">Join our community today</p>
+                </div>
+
+                <!-- Form -->
+                <form method="POST" action="{{ url_for('auth.customer_register') }}">
+                    {{ form.hidden_tag() }}
+
+                    <div class="row g-3">
+                        <div class="col-md-6 mb-3">
+                            {{ form.full_name.label(class="ss-form-label") }}
+                            {{ form.full_name(class="ss-input w-100", placeholder="Full Name") }}
+                            {% for error in form.full_name.errors %}
+                                <div class="text-danger smallest fw-700 mt-1"><i class="bi bi-exclamation-circle me-1"></i>{{ error }}</div>
+                            {% endfor %}
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            {{ form.username.label(class="ss-form-label") }}
+                            {{ form.username(class="ss-input w-100", placeholder="Username") }}
+                            {% for error in form.username.errors %}
+                                <div class="text-danger smallest fw-700 mt-1"><i class="bi bi-exclamation-circle me-1"></i>{{ error }}</div>
+                            {% endfor %}
+                        </div>
+                    </div>
+
+                    <div class="row g-3">
+                        <div class="col-md-6 mb-3">
+                            {{ form.email.label(class="ss-form-label") }}
+                            {{ form.email(class="ss-input w-100", placeholder="Email address") }}
+                            {% for error in form.email.errors %}
+                                <div class="text-danger smallest fw-700 mt-1"><i class="bi bi-exclamation-circle me-1"></i>{{ error }}</div>
+                            {% endfor %}
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            {{ form.phone.label(class="ss-form-label") }}
+                            {{ form.phone(class="ss-input w-100", placeholder="Phone number") }}
+                            {% for error in form.phone.errors %}
+                                <div class="text-danger smallest fw-700 mt-1"><i class="bi bi-exclamation-circle me-1"></i>{{ error }}</div>
+                            {% endfor %}
+                        </div>
+                    </div>
+
+                    <div class="mb-3">
+                        {{ form.address.label(class="ss-form-label") }}
+                        {{ form.address(class="ss-input w-100", rows="2", placeholder="Full delivery address") }}
+                        {% for error in form.address.errors %}
+                            <div class="text-danger smallest fw-700 mt-1"><i class="bi bi-exclamation-circle me-1"></i>{{ error }}</div>
+                        {% endfor %}
+                    </div>
+
+                    <div class="row g-3">
+                        <div class="col-md-6 mb-4">
+                            {{ form.password.label(class="ss-form-label") }}
+                            <div class="position-relative">
+                                {{ form.password(class="ss-input w-100", placeholder="Password", id="passwordInput") }}
+                                <button class="btn position-absolute top-50 end-0 translate-middle-y pe-3 border-0 shadow-none" type="button" onclick="togglePass('#passwordInput', this)">
+                                    <i class="bi bi-eye text-ss-primary opacity-50"></i>
+                                </button>
+                            </div>
+                            {% for error in form.password.errors %}
+                                <div class="text-danger smallest fw-700 mt-1"><i class="bi bi-exclamation-circle me-1"></i>{{ error }}</div>
+                            {% endfor %}
+                        </div>
+                        <div class="col-md-6 mb-4">
+                            {{ form.confirm_password.label(class="ss-form-label") }}
+                            <div class="position-relative">
+                                {{ form.confirm_password(class="ss-input w-100", placeholder="Confirm", id="confirmPasswordInput") }}
+                                <button class="btn position-absolute top-50 end-0 translate-middle-y pe-3 border-0 shadow-none" type="button" onclick="togglePass('#confirmPasswordInput', this)">
+                                    <i class="bi bi-eye text-ss-primary opacity-50"></i>
+                                </button>
+                            </div>
+                            {% for error in form.confirm_password.errors %}
+                                <div class="text-danger smallest fw-700 mt-1"><i class="bi bi-exclamation-circle me-1"></i>{{ error }}</div>
+                            {% endfor %}
+                        </div>
+                    </div>
+
+                    <button type="submit" class="btn btn-ss-primary w-100 py-3 mb-4 shadow-xl sparkle-hover fw-900 tracking-widest">
+                        <i class="bi bi-person-check me-2"></i>CREATE ACCOUNT
+                    </button>
+                </form>
+
+                <!-- Footer -->
+                <div class="text-center pt-4 border-top border-ss-main border-opacity-5">
+                    <p class="text-muted small mb-2">Already have an account?</p>
+                    <a href="{{ url_for('auth.customer_login') }}"
+                        class="btn btn-ss-outline w-100 py-3 smallest fw-900 tracking-widest">
+                        SIGN IN <i class="bi bi-arrow-right ms-2"></i>
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    function togglePass(inputId, btn) {
+        const input = document.querySelector(inputId);
+        const icon  = btn.querySelector('i');
+        input.setAttribute('type', input.getAttribute('type') === 'password' ? 'text' : 'password');
+        icon.classList.toggle('bi-eye');
+        icon.classList.toggle('bi-eye-slash');
+    }
+</script>
+{% endblock %}
