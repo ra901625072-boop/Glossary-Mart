@@ -383,6 +383,8 @@
                 document.querySelectorAll('.confirmed-order-pay-txt').forEach(el => el.textContent = stored.paymentMethod || 'COD');
                 const addrEl = document.getElementById('confirmedOrderAddress');
                 if (addrEl && stored.address) addrEl.textContent = stored.address;
+                const invLink = document.getElementById('orderConfirmInvoiceLink');
+                if (invLink) invLink.href = `invoice.html?order_id=${encodeURIComponent(stored.id)}`;
             }
         } catch (e) {}
     }
@@ -929,11 +931,14 @@
                             <span class="fw-bold text-dark fs-5">#${escapeHTML(order.id)}</span>
                             <span class="text-muted small ms-2">• ${escapeHTML(order.date)}</span>
                         </div>
-                        <div class="d-flex gap-2">
-                            <a href="${invoiceUrl}" target="_blank" class="btn btn-sm btn-outline-secondary rounded-pill px-3">
-                                <i class="bi bi-receipt me-1"></i> Tax Invoice (PDF)
+                        <div class="d-flex flex-wrap gap-2">
+                            <a href="invoice.html?order_id=${encodeURIComponent(order.id)}" class="btn btn-sm btn-outline-success rounded-pill px-3 fw-semibold">
+                                <i class="bi bi-receipt-cutoff me-1"></i> View Bill
                             </a>
-                            <button class="btn btn-sm btn-success rounded-pill px-3" onclick="window.JG.reorder('${escapeHTML(order.id)}')">
+                            <a href="${invoiceUrl}" target="_blank" class="btn btn-sm btn-outline-secondary rounded-pill px-3">
+                                <i class="bi bi-download me-1"></i> PDF
+                            </a>
+                            <button class="btn btn-sm btn-success rounded-pill px-3 fw-bold" onclick="window.JG.reorder('${escapeHTML(order.id)}')">
                                 <i class="bi bi-arrow-repeat me-1"></i> Reorder
                             </button>
                         </div>
@@ -1051,6 +1056,11 @@
             .slice(0, 2)
             .join('')) || 'EG';
         document.querySelectorAll('.profile-avatar-circle').forEach(el => el.textContent = initials);
+
+        const walletEl = document.getElementById('profileWalletBalance');
+        if (walletEl) {
+            walletEl.textContent = `₹${user.wallet_balance !== undefined ? user.wallet_balance : 250}`;
+        }
     }
 
     window.handleCartCheckoutProceed = function (e) {
@@ -1459,7 +1469,9 @@
         },
 
         viewInvoice: function (orderId) {
-            window.open(`/api/orders/${orderId}/invoice`, '_blank');
+            const inCustomer = window.location.pathname.includes('/customer/');
+            const invPath = inCustomer ? 'invoice.html' : 'customer/invoice.html';
+            window.open(`${invPath}?order_id=${encodeURIComponent(orderId)}`, '_blank');
         },
 
         reorder: function (orderId) {
