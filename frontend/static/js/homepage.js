@@ -701,6 +701,69 @@
         return false;
     }
 
+    function handleWishlistNavigation(e) {
+        if (e) e.preventDefault();
+        if (!isCustomerAuthenticated()) {
+            showToast('Please sign in to view your saved wishlist.', 'info');
+            const authModalEl = document.getElementById('authModal');
+            if (authModalEl && window.bootstrap) {
+                authModalEl.dataset.redirect = 'customer/wishlist.html';
+                switchAuthTab('login');
+                const modal = bootstrap.Modal.getInstance(authModalEl) || new bootstrap.Modal(authModalEl);
+                modal.show();
+            } else {
+                setTimeout(() => {
+                    window.location.href = 'auth/login.html?redirect=customer/wishlist.html';
+                }, 400);
+            }
+            return false;
+        }
+        window.location.href = 'customer/wishlist.html';
+        return false;
+    }
+
+    function handleOrdersNavigation(e) {
+        if (e) e.preventDefault();
+        if (!isCustomerAuthenticated()) {
+            showToast('Please sign in with your customer account to track orders.', 'info');
+            const authModalEl = document.getElementById('authModal');
+            if (authModalEl && window.bootstrap) {
+                authModalEl.dataset.redirect = 'customer/orders.html';
+                switchAuthTab('login');
+                const modal = bootstrap.Modal.getInstance(authModalEl) || new bootstrap.Modal(authModalEl);
+                modal.show();
+            } else {
+                setTimeout(() => {
+                    window.location.href = 'auth/login.html?redirect=customer/orders.html';
+                }, 400);
+            }
+            return false;
+        }
+        window.location.href = 'customer/orders.html';
+        return false;
+    }
+
+    function handleProfileNavigation(e) {
+        if (e) e.preventDefault();
+        if (!isCustomerAuthenticated()) {
+            showToast('Please sign in to access your profile and preferences.', 'info');
+            const authModalEl = document.getElementById('authModal');
+            if (authModalEl && window.bootstrap) {
+                authModalEl.dataset.redirect = 'customer/profile.html';
+                switchAuthTab('login');
+                const modal = bootstrap.Modal.getInstance(authModalEl) || new bootstrap.Modal(authModalEl);
+                modal.show();
+            } else {
+                setTimeout(() => {
+                    window.location.href = 'auth/login.html?redirect=customer/profile.html';
+                }, 400);
+            }
+            return false;
+        }
+        window.location.href = 'customer/profile.html';
+        return false;
+    }
+
     // ── 12. Checkout & Order Placement Flow ──
     function initiateCheckout() {
         if (cart.length === 0) {
@@ -872,48 +935,74 @@
     async function checkAuthState() {
         const accountBtn = document.getElementById('headerAccountBtn');
         const accountText = document.getElementById('accountBtnText');
-        if (!accountText) return;
+        const dropdownMenu = document.getElementById('headerAccountDropdownMenu');
+        const dropdownUserName = document.getElementById('headerDropdownUserName');
+        const dropdownUserEmail = document.getElementById('headerDropdownUserEmail');
+        const subnavAuth = document.getElementById('subnavAuthLink');
 
-        // Default state is always 'Login'
-        accountText.innerText = 'Login';
-        if (accountBtn) accountBtn.title = 'Login';
-
-        // Bind profile navigation for logged-in customers
-        if (accountBtn && !accountBtn.dataset.authBound) {
-            accountBtn.dataset.authBound = 'true';
-            accountBtn.addEventListener('click', (e) => {
-                const authDataStr = localStorage.getItem('jg_auth_user');
-                if (authDataStr) {
-                    try {
-                        const user = JSON.parse(authDataStr);
-                        if (user && user.role === 'customer') {
-                            e.preventDefault();
-                            e.stopPropagation();
-                            window.location.href = 'customer/profile.html';
-                        }
-                    } catch (err) {}
-                }
-            });
+        function applyUnauthenticatedState() {
+            if (accountText) accountText.innerText = 'Login';
+            if (accountBtn) {
+                accountBtn.title = 'Login';
+                accountBtn.setAttribute('data-bs-toggle', 'modal');
+                accountBtn.setAttribute('data-bs-target', '#authModal');
+                accountBtn.classList.remove('dropdown-toggle');
+                accountBtn.removeAttribute('aria-expanded');
+            }
+            if (dropdownMenu) {
+                dropdownMenu.style.display = 'none';
+            }
+            if (subnavAuth) {
+                subnavAuth.innerHTML = '<i class="bi bi-box-arrow-in-right me-1"></i>Sign In';
+                subnavAuth.setAttribute('href', 'auth/login.html');
+                subnavAuth.onclick = null;
+            }
         }
 
-        // 1. Optimistic render from localStorage cache
+        function applyAuthenticatedState(user) {
+            const displayName = user.full_name || user.name || user.username || 'Account';
+            const firstName = displayName.split(' ')[0];
+            if (accountText) accountText.innerText = firstName;
+            if (accountBtn) {
+                accountBtn.title = `Signed in as ${user.email || user.username}`;
+                accountBtn.setAttribute('data-bs-toggle', 'dropdown');
+                accountBtn.removeAttribute('data-bs-target');
+                accountBtn.classList.add('dropdown-toggle');
+            }
+            if (dropdownMenu) {
+                dropdownMenu.style.display = '';
+            }
+            if (dropdownUserName) {
+                dropdownUserName.textContent = displayName;
+            }
+            if (dropdownUserEmail) {
+                dropdownUserEmail.textContent = user.email || user.username || '';
+            }
+            if (subnavAuth) {
+                subnavAuth.innerHTML = '<i class="bi bi-box-arrow-right me-1"></i>Sign Out';
+                subnavAuth.setAttribute('href', 'javascript:void(0)');
+                subnavAuth.onclick = (e) => {
+                    e.preventDefault();
+                    handleLogout();
+                };
+            }
+        }
+
+        // 1. Initial render from localStorage cache
         const authDataStr = localStorage.getItem('jg_auth_user');
         if (authDataStr) {
             try {
-                const user = JSON.parse(authDataStr);
-                if (user && user.role === 'customer') {
-                    const displayName = user.full_name || user.name || user.username || 'Account';
-                    accountText.innerText = displayName.split(' ')[0];
-                    if (accountBtn) {
-                        accountBtn.title = `Signed in as ${user.email || user.username}`;
-                    }
+                const cachedUser = JSON.parse(authDataStr);
+                if (cachedUser && cachedUser.role === 'customer') {
+                    applyAuthenticatedState(cachedUser);
                 } else {
-                    accountText.innerText = 'Login';
-                    if (accountBtn) accountBtn.title = 'Login';
+                    applyUnauthenticatedState();
                 }
             } catch (e) {
-                // Ignore parse error
+                applyUnauthenticatedState();
             }
+        } else {
+            applyUnauthenticatedState();
         }
 
         // 2. Dynamic live session verification with backend
@@ -922,40 +1011,35 @@
             const res = await fetchFn('/api/auth/me');
             if (res.ok) {
                 const data = await res.json();
-                if (data && data.authenticated && data.user) {
+                if (data && data.authenticated && data.user && data.user.role === 'customer') {
                     const u = data.user;
-                    localStorage.setItem('jg_auth_user', JSON.stringify({
+                    const sessionUser = {
                         id: u.id,
                         name: u.full_name || u.name || u.username,
                         username: u.username,
                         email: u.email,
                         phone: u.phone,
-                        role: u.role || 'customer'
-                    }));
-                    if (u.role === 'customer') {
-                        const displayName = u.full_name || u.name || u.username || 'Account';
-                        accountText.innerText = displayName.split(' ')[0];
-                        if (accountBtn) {
-                            accountBtn.title = `Signed in as ${u.email || u.username}`;
-                        }
-                    } else {
-                        // Admin or guest on consumer storefront: keep button as 'Login'
-                        accountText.innerText = 'Login';
-                        if (accountBtn) accountBtn.title = 'Login';
-                    }
+                        role: 'customer'
+                    };
+                    localStorage.setItem('jg_auth_user', JSON.stringify(sessionUser));
+                    applyAuthenticatedState(sessionUser);
                     return;
                 } else {
-                    localStorage.removeItem('jg_auth_user');
-                    accountText.innerText = 'Login';
-                    if (accountBtn) accountBtn.title = 'Login';
+                    const local = JSON.parse(localStorage.getItem('jg_auth_user') || 'null');
+                    if (local && local.role !== 'admin') {
+                        localStorage.removeItem('jg_auth_user');
+                    }
+                    applyUnauthenticatedState();
                 }
             } else if (res.status === 401) {
-                localStorage.removeItem('jg_auth_user');
-                accountText.innerText = 'Login';
-                if (accountBtn) accountBtn.title = 'Login';
+                const local = JSON.parse(localStorage.getItem('jg_auth_user') || 'null');
+                if (local && local.role !== 'admin') {
+                    localStorage.removeItem('jg_auth_user');
+                }
+                applyUnauthenticatedState();
             }
         } catch (e) {
-            // Backend network error
+            // Backend network deferred
         }
     }
 
@@ -1006,6 +1090,38 @@
     }
 
 
+    function resolveRedirectDestination(role, redirectTarget) {
+        const path = window.location.pathname.toLowerCase();
+        const isInAuthDir = path.includes('/auth/') || path.endsWith('/auth');
+        const isStorefrontHome = !isInAuthDir && (path.endsWith('index.html') || path.endsWith('/') || path === '' || !path.includes('/customer/'));
+
+        if (role === 'admin') {
+            if (redirectTarget && (redirectTarget.includes('admin/') || redirectTarget.endsWith('.html'))) {
+                const clean = redirectTarget.replace(/^\.\.\//, '').replace(/^admin\//, '');
+                return isInAuthDir ? `../admin/${clean}` : `admin/${clean}`;
+            }
+            return isInAuthDir ? '../admin/index.html' : 'admin/index.html';
+        }
+
+        // Customer role:
+        if (redirectTarget) {
+            if (redirectTarget.includes('admin/')) {
+                return isInAuthDir ? '../customer/shop.html' : 'customer/shop.html';
+            }
+            if (redirectTarget === 'index.html' || redirectTarget === '/' || redirectTarget.endsWith('index.html')) {
+                return isInAuthDir ? '../index.html' : 'index.html';
+            }
+            const clean = redirectTarget.replace(/^\.\.\//, '').replace(/^customer\//, '');
+            return isInAuthDir ? `../customer/${clean}` : `customer/${clean}`;
+        }
+
+        // No explicit redirect target
+        if (isStorefrontHome) {
+            return 'stay';
+        }
+        return isInAuthDir ? '../customer/shop.html' : 'customer/shop.html';
+    }
+
     /**
      * Unified Login Handler
      * Seamlessly logs in customers and administrators through a single form,
@@ -1028,11 +1144,6 @@
         }
 
         if (feedback) feedback.innerHTML = '<div class="alert alert-info py-2 small mb-3"><span class="spinner-border spinner-border-sm me-2"></span>Signing in...</div>';
-
-        // Detect directory context (/auth/ vs root)
-        const isInAuthDir = window.location.pathname.includes('/auth/') || window.location.pathname.endsWith('/auth');
-        const adminDest = isInAuthDir ? '../admin/index.html' : 'admin/index.html';
-        const customerDest = isInAuthDir ? '../customer/shop.html' : 'customer/shop.html';
 
         try {
             const res = await (window.apiFetch || fetch)('/api/auth/login', {
@@ -1067,20 +1178,23 @@
 
                 // Resolve intended redirect destination if provided
                 const urlParams = new URLSearchParams(window.location.search);
-                const redirectTarget = urlParams.get('redirect');
-                let finalDest;
+                const modalRedirect = document.getElementById('authModal')?.dataset?.redirect;
+                const redirectTarget = urlParams.get('redirect') || modalRedirect || null;
+                const finalDest = resolveRedirectDestination(sessionUser.role, redirectTarget);
 
-                if (sessionUser.role === 'admin') {
-                    finalDest = (redirectTarget && redirectTarget.startsWith('admin/'))
-                        ? (isInAuthDir ? `../${redirectTarget}` : redirectTarget)
-                        : adminDest;
-                } else {
-                    if (redirectTarget && !redirectTarget.startsWith('admin/')) {
-                        const cleanTarget = redirectTarget.replace(/^customer\//, '');
-                        finalDest = isInAuthDir ? `../customer/${cleanTarget}` : `customer/${cleanTarget}`;
-                    } else {
-                        finalDest = customerDest;
+                if (finalDest === 'stay') {
+                    const authModalEl = document.getElementById('authModal');
+                    if (authModalEl && window.bootstrap) {
+                        delete authModalEl.dataset.redirect;
+                        const modal = bootstrap.Modal.getInstance(authModalEl);
+                        if (modal) modal.hide();
                     }
+                    checkAuthState();
+                    if (window.EG && window.EG.auth) {
+                        window.EG.auth.setUser(sessionUser);
+                    }
+                    syncCartFromBackend();
+                    return;
                 }
 
                 setTimeout(() => {
@@ -1135,14 +1249,26 @@
                 localStorage.setItem('jg_auth_user', JSON.stringify(sessionUser));
                 showToast(`Welcome to e Grossary, ${name}!`, 'success');
 
-                const isInAuthDir = window.location.pathname.includes('/auth/') || window.location.pathname.endsWith('/auth');
                 const urlParams = new URLSearchParams(window.location.search);
-                const redirectTarget = urlParams.get('redirect');
-                let targetDest = isInAuthDir ? '../customer/shop.html' : 'customer/shop.html';
-                if (redirectTarget) {
-                    const clean = redirectTarget.replace(/^customer\//, '');
-                    targetDest = isInAuthDir ? `../customer/${clean}` : `customer/${clean}`;
+                const modalRedirect = document.getElementById('authModal')?.dataset?.redirect;
+                const redirectTarget = urlParams.get('redirect') || modalRedirect || null;
+                const targetDest = resolveRedirectDestination(sessionUser.role, redirectTarget);
+
+                if (targetDest === 'stay') {
+                    const authModalEl = document.getElementById('authModal');
+                    if (authModalEl && window.bootstrap) {
+                        delete authModalEl.dataset.redirect;
+                        const modal = bootstrap.Modal.getInstance(authModalEl);
+                        if (modal) modal.hide();
+                    }
+                    checkAuthState();
+                    if (window.EG && window.EG.auth) {
+                        window.EG.auth.setUser(sessionUser);
+                    }
+                    syncCartFromBackend();
+                    return;
                 }
+
                 setTimeout(() => { window.location.href = targetDest; }, 600);
                 return;
             } else {
@@ -1244,6 +1370,10 @@
     window.openQuickView = openQuickView;
     window.initiateCheckout = initiateCheckout;
     window.handleCheckoutNavigation = handleCheckoutNavigation;
+    window.handleWishlistNavigation = handleWishlistNavigation;
+    window.handleOrdersNavigation = handleOrdersNavigation;
+    window.handleProfileNavigation = handleProfileNavigation;
+    window.resolveRedirectDestination = resolveRedirectDestination;
     window.isCustomerAuthenticated = isCustomerAuthenticated;
     window.placeOrder = placeOrder;
     window.subscribeNewsletter = subscribeNewsletter;

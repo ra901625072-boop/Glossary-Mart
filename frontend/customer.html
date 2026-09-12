@@ -19,6 +19,21 @@
                 'wishlist': 'customer/wishlist.html',
                 'profile': 'customer/profile.html'
             };
+            var protectedPages = ['checkout', 'payment', 'order-confirmation', 'orders', 'wishlist', 'profile'];
+            if (protectedPages.indexOf(rawHash) !== -1) {
+                try {
+                    var user = JSON.parse(localStorage.getItem('jg_auth_user') || 'null');
+                    if (!user || !user.id || user.role !== 'customer') {
+                        var targetParam = 'customer/' + rawHash + '.html' + (search ? '&' + search.substring(1) : '');
+                        window.location.replace('auth/login.html?redirect=' + encodeURIComponent(targetParam));
+                        return;
+                    }
+                } catch (e) {
+                    var targetParam = 'customer/' + rawHash + '.html' + (search ? '&' + search.substring(1) : '');
+                    window.location.replace('auth/login.html?redirect=' + encodeURIComponent(targetParam));
+                    return;
+                }
+            }
             var target = routeMap[rawHash] || 'customer/shop.html';
             window.location.replace(target + search);
         })();

@@ -158,6 +158,18 @@
                 document.querySelectorAll('.profile-user-email-display').forEach(el => {
                     el.textContent = 'Sign in to sync orders';
                 });
+                document.querySelectorAll('.auth-guest-action').forEach(el => {
+                    el.style.display = 'block';
+                });
+                document.querySelectorAll('.auth-customer-action').forEach(el => {
+                    el.style.display = 'none';
+                });
+                const subnavAuth = document.getElementById('subnavAuthLink');
+                if (subnavAuth) {
+                    subnavAuth.innerHTML = '<i class="bi bi-box-arrow-in-right me-1"></i>Sign In';
+                    subnavAuth.setAttribute('href', 'auth/login.html');
+                    subnavAuth.onclick = null;
+                }
                 return;
             }
 
@@ -172,6 +184,23 @@
             document.querySelectorAll('.profile-user-email-display').forEach(el => {
                 el.textContent = user.email || '';
             });
+            document.querySelectorAll('.auth-guest-action').forEach(el => {
+                el.style.display = 'none';
+            });
+            document.querySelectorAll('.auth-customer-action').forEach(el => {
+                el.style.display = '';
+            });
+            const subnavAuth = document.getElementById('subnavAuthLink');
+            if (subnavAuth) {
+                subnavAuth.innerHTML = '<i class="bi bi-box-arrow-right me-1"></i>Sign Out';
+                subnavAuth.setAttribute('href', 'javascript:void(0)');
+                subnavAuth.onclick = (e) => {
+                    e.preventDefault();
+                    if (typeof window.handleLogout === 'function') {
+                        window.handleLogout();
+                    }
+                };
+            }
         }
     }
 

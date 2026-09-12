@@ -293,11 +293,11 @@
         }
 
         // Protected routes: require authentication before rendering
-        const protectedRoutes = ['profile', 'checkout'];
+        const protectedRoutes = ['profile', 'checkout', 'orders', 'wishlist', 'payment', 'order-confirmation'];
         if (protectedRoutes.includes(route)) {
             const isAuthenticated = Boolean(state.user && state.user.id);
             if (!isAuthenticated) {
-                const targetPage = route === 'checkout' ? 'checkout.html' : 'profile.html';
+                const targetPage = `${route}.html`;
                 const loginPath = inCustomerDir ? `../auth/login.html?redirect=${targetPage}` : `auth/login.html?redirect=customer/${targetPage}`;
                 if (document.body) document.body.style.display = 'none';
                 window.location.replace(loginPath);
@@ -1235,7 +1235,7 @@
     // ── Check Current Authenticated Customer Session ──
     async function checkAuthSession() {
         const pathFile = window.location.pathname.split('/').pop().replace('.html', '').toLowerCase();
-        const isProtectedCustomerRoute = ['profile', 'checkout', 'payment', 'order-confirmation'].includes(pathFile);
+        const isProtectedCustomerRoute = ['profile', 'checkout', 'payment', 'order-confirmation', 'orders', 'wishlist'].includes(pathFile);
 
         try {
             const fetchFn = window.apiFetch || fetch;
