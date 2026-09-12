@@ -66,18 +66,6 @@
                 </a>
             </div>
 
-            <!-- Delivery Location Selector -->
-            <div class="col-auto d-none d-lg-block">
-                <div class="location-selector-chip d-flex align-items-center gap-2 cursor-pointer" data-bs-toggle="modal" data-bs-target="#locationModal">
-                    <i class="bi bi-geo-alt-fill text-success fs-5"></i>
-                    <div class="text-truncate">
-                        <div class="smallest text-muted fw-bold text-uppercase" style="font-size: 0.65rem;">Delivering to</div>
-                        <div class="small fw-bold text-dark text-truncate" style="max-width: 130px;" id="headerDeliveryAddress">Home - Pali Sector 4</div>
-                    </div>
-                    <i class="bi bi-chevron-down smallest text-muted ms-1"></i>
-                </div>
-            </div>
-
             <!-- Live Search Bar -->
             <div class="col">
                 <div class="search-container-box">
@@ -259,7 +247,8 @@
                     </div>
                     <button class="btn btn-success w-100 rounded-pill fw-bold py-2" data-bs-dismiss="modal" onclick="
                         const addr = document.getElementById('modalAddressInput').value;
-                        document.getElementById('headerDeliveryAddress').textContent = addr;
+                        const hAddr = document.getElementById('headerDeliveryAddress');
+                        if (hAddr) hAddr.textContent = addr;
                     ">
                         Set Location
                     </button>
