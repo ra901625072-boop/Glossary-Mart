@@ -25,15 +25,14 @@ def create_admin(app):
 
 def create_customer(app):
     """Create verified local customer accounts and genuine product reviews"""
+    # Permanently purge legacy demo customer account if exists
+    legacy_demo = User.query.filter((User.username == 'customer') | (User.email == 'customer@mart.com')).first()
+    if legacy_demo:
+        Review.query.filter_by(user_id=legacy_demo.id).delete()
+        db.session.delete(legacy_demo)
+        db.session.commit()
+
     customers_data = [
-        {
-            'username': 'customer',
-            'email': 'customer@mart.com',
-            'password': 'customer123',
-            'full_name': 'Priya Patel (Verified Patron)',
-            'phone': '+91 98251 22334',
-            'address': 'B-12, Radhe Shyam Residency, Pali Road, Mehsana, Gujarat 384002'
-        },
         {
             'username': 'rahul_sharma',
             'email': 'rahul.sharma@gmail.com',
@@ -85,7 +84,7 @@ def create_customer(app):
 
     # Seed genuine customer reviews
     if Review.query.count() < 8:
-        primary_customer = User.query.filter_by(username='customer').first()
+        primary_customer = User.query.filter_by(username='rahul_sharma').first() or User.query.filter_by(role='customer').first()
         reviews_data = [
             ('Aashirvaad Superior MP Atta 5kg', 5, "Very fresh chakki atta. Rotis turn out super soft every time!"),
             ('Amul Taaza Fresh Toned Milk 1L', 5, "Daily morning fresh delivery is on time. Amul quality is always reliable."),

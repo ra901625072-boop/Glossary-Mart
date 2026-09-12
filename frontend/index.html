@@ -518,25 +518,13 @@
                         </button>
                     </div>
                     <div class="small text-muted">
-                        <i class="bi bi-info-circle me-1 text-success"></i>One-click instant demo accounts available inside.
+                        <i class="bi bi-shield-check me-1 text-success"></i>Sign in or create an account to start shopping.
                     </div>
                 </div>
                 <div class="col-lg-6">
                     <div class="p-3 p-md-4 rounded-4 bg-light border">
-                        <h6 class="fw-bold text-dark mb-3"><i class="bi bi-lightning-charge-fill text-warning me-2"></i>Quick One-Click Test Accounts</h6>
+                        <h6 class="fw-bold text-dark mb-3"><i class="bi bi-shield-lock-fill text-success me-2"></i>Authorized Store Operations</h6>
                         <div class="d-flex flex-column gap-2">
-                            <div class="demo-login-chip bg-white border p-3 rounded-3 cursor-pointer" onclick="fillDemoCredentials('customer'); new bootstrap.Modal(document.getElementById('authModal')).show();">
-                                <div class="d-flex align-items-center gap-3">
-                                    <div class="rounded-circle bg-success bg-opacity-10 text-success p-2 d-flex align-items-center justify-content-center" style="width: 40px; height: 40px;">
-                                        <i class="bi bi-person-fill fs-5"></i>
-                                    </div>
-                                    <div>
-                                        <div class="fw-bold text-dark small">Customer Account</div>
-                                        <div class="text-muted smallest">customer@mart.com &bull; pass: customer123</div>
-                                    </div>
-                                </div>
-                                <span class="badge bg-success bg-opacity-10 text-success">Click to Sign In &rarr;</span>
-                            </div>
                             <div class="demo-login-chip bg-white border p-3 rounded-3 cursor-pointer" onclick="fillDemoCredentials('admin'); new bootstrap.Modal(document.getElementById('authModal')).show();">
                                 <div class="d-flex align-items-center gap-3">
                                     <div class="rounded-circle bg-dark bg-opacity-10 text-dark p-2 d-flex align-items-center justify-content-center" style="width: 40px; height: 40px;">
@@ -544,10 +532,10 @@
                                     </div>
                                     <div>
                                         <div class="fw-bold text-dark small">Admin ERP Console</div>
-                                        <div class="text-muted smallest">admin@mart.com &bull; pass: StrongAdmin@2026</div>
+                                        <div class="text-muted smallest">admin@mart.com &bull; Authorized Personnel Only</div>
                                     </div>
                                 </div>
-                                <span class="badge bg-dark bg-opacity-10 text-dark">Click to Launch &rarr;</span>
+                                <span class="badge bg-dark bg-opacity-10 text-dark">Access Console &rarr;</span>
                             </div>
                         </div>
                     </div>
@@ -918,19 +906,7 @@
                             </button>
                         </form>
 
-                        <div class="auth-divider">Quick Demo Sign In</div>
-                        <div class="demo-login-chip" onclick="fillDemoCredentials('customer')">
-                            <div class="d-flex align-items-center gap-2">
-                                <i class="bi bi-person-check text-success fs-5"></i>
-                                <div>
-                                    <strong class="d-block text-dark">One-Click Customer Demo</strong>
-                                    <span class="text-muted smallest">customer@mart.com &bull; pass: customer123</span>
-                                </div>
-                            </div>
-                            <span class="badge bg-success bg-opacity-10 text-success">Auto-fill</span>
-                        </div>
-
-                        <div class="text-center mt-3 pt-2 border-top small text-muted">
+                        <div class="text-center mt-4 pt-3 border-top small text-muted">
                             Don't have an account? <a href="javascript:void(0)" onclick="switchAuthTab('register')" class="text-success fw-bold">Sign up now</a>
                         </div>
                     </div>

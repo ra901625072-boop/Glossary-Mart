@@ -954,20 +954,13 @@
     }
 
     function fillDemoCredentials(role) {
-        if (role === 'customer') {
-            switchAuthTab('login');
-            const emailInput = document.getElementById('loginEmail');
-            const passInput = document.getElementById('loginPassword');
-            if (emailInput) emailInput.value = 'customer@mart.com';
-            if (passInput) passInput.value = 'customer123';
-            showToast('Customer demo credentials autofilled!', 'info');
-        } else if (role === 'admin') {
+        if (role === 'admin') {
             switchAuthTab('admin');
             const adminEmail = document.getElementById('adminEmail');
             const adminPass = document.getElementById('adminPassword');
             if (adminEmail) adminEmail.value = 'admin@mart.com';
             if (adminPass) adminPass.value = 'StrongAdmin@2026';
-            showToast('Admin ERP demo credentials autofilled!', 'info');
+            showToast('Admin ERP credentials autofilled!', 'info');
         }
     }
 
