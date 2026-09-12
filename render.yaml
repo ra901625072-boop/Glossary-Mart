@@ -12,6 +12,7 @@ services:
         - database/**
         - frontend/**
         - requirements.txt
+        - .python-version
         - wsgi.py
         - build.sh
       ignoredPaths:
@@ -21,9 +22,7 @@ services:
         - vercel.json
     envVars:
       - key: DATABASE_URL
-        fromDatabase:
-          name: mart-db
-          property: connectionString
+        sync: false
       - key: SECRET_KEY
         generateValue: true
       # IMPORTANT: Set ADMIN_USERNAME and ADMIN_PASSWORD manually in the
@@ -44,7 +43,7 @@ services:
       - key: SKIP_DB_CREATE
         value: "false"
       - key: PYTHON_VERSION
-        value: 3.12.3
+        value: 3.11.9
       - key: MAIL_USERNAME
         sync: false
       - key: MAIL_PASSWORD
@@ -53,8 +52,4 @@ services:
         sync: false
       - key: MAIL_DEFAULT_SENDER
         sync: false
-
-databases:
-  - name: mart-db
-    plan: free
 
