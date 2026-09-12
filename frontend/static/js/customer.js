@@ -548,11 +548,13 @@
 
         container.innerHTML = fallbackList.map(p => {
             const mrp = p.mrp || Math.round(p.price * 1.15);
+            const discountPercent = mrp > p.price ? Math.round(((mrp - p.price) / mrp) * 100) : 0;
             const inWishlist = state.wishlist.includes(p.id);
             return `
                 <div class="col-6 col-md-3">
                     <div class="product-card-customer h-100 d-flex flex-column">
                         <div class="product-thumb-wrapper">
+                            ${discountPercent > 0 ? `<span class="discount-badge-pill">${discountPercent}% OFF</span>` : ''}
                             <button class="wishlist-toggle-btn ${inWishlist ? 'active' : ''}" onclick="window.JG.toggleWishlist(${Number(p.id)})">
                                 <i class="bi bi-heart${inWishlist ? '-fill' : ''}"></i>
                             </button>
@@ -561,17 +563,20 @@
                             </a>
                         </div>
                         <div class="delivery-eta-tag"><i class="bi bi-stopwatch"></i> ${escapeHTML(p.eta || '15 MINS')}</div>
+                        <div class="d-flex align-items-center gap-2 mb-1 mt-1">
+                            <span class="veg-icon" title="100% Vegetarian"></span>
+                            <span class="product-pack-size mb-0">${escapeHTML(p.unit || '1 unit')}</span>
+                        </div>
                         <a href="product.html?id=${p.id}" class="text-decoration-none">
-                            <h4 class="product-title-text mt-1 text-dark">${escapeHTML(p.name)}</h4>
+                            <h4 class="product-title-text text-dark">${escapeHTML(p.name)}</h4>
                         </a>
-                        <div class="small text-muted mb-2">${escapeHTML(p.unit || '1 unit')}</div>
-                        <div class="mt-auto d-flex justify-content-between align-items-center">
+                        <div class="price-box-wrap mt-auto">
                             <div>
-                                <span class="product-price-val">₹${p.price}</span>
-                                <span class="product-mrp-val ms-1">₹${mrp}</span>
+                                <span class="curr-price">₹${p.price}</span>
+                                ${mrp > p.price ? `<span class="mrp-strike ms-1">₹${mrp}</span>` : ''}
                             </div>
-                            <button class="btn btn-sm btn-outline-success rounded-pill px-3 fw-bold" onclick="window.JG.addToCart(${Number(p.id)})">
-                                + ADD
+                            <button class="btn-add-cart-init" onclick="window.JG.addToCart(${Number(p.id)})">
+                                <i class="bi bi-plus-lg me-1"></i>ADD
                             </button>
                         </div>
                     </div>
@@ -683,7 +688,8 @@
                                 <i class="bi bi-heart${inWishlist ? '-fill' : ''}"></i>
                             </button>
                             <img src="${escapeHTML(product.image)}" alt="${escapeHTML(product.name)}" class="product-thumb-img" 
-                                 onclick="window.JG.openProductModal(${Number(product.id)})" style="cursor:pointer;">
+                                 onclick="window.JG.openProductModal(${Number(product.id)})" style="cursor:pointer;"
+                                 onerror="this.onerror=null; this.src='../static/images/logo-icon.png';">
                         </div>
 
                         <div class="delivery-eta-tag">
@@ -1005,7 +1011,11 @@
                         </button>
                         <img src="${escapeHTML(prod.image)}" alt="${escapeHTML(prod.name)}" class="product-thumb-img">
                     </div>
-                    <div class="product-pack-size">${escapeHTML(prod.unit || '1 unit')}</div>
+                    <div class="delivery-eta-tag"><i class="bi bi-stopwatch"></i> ${escapeHTML(prod.eta || '15 MINS')}</div>
+                    <div class="d-flex align-items-center gap-2 mb-1 mt-1">
+                        <span class="veg-icon" title="100% Vegetarian"></span>
+                        <span class="product-pack-size mb-0">${escapeHTML(prod.unit || '1 unit')}</span>
+                    </div>
                     <h3 class="product-title-text">${escapeHTML(prod.name)}</h3>
                     <div class="price-box-wrap">
                         <div class="curr-price">₹${Number(prod.price)}</div>
@@ -1033,6 +1043,14 @@
 
         document.querySelectorAll('.profile-user-name-display').forEach(el => el.textContent = user.full_name || user.username || 'Customer Profile');
         document.querySelectorAll('.profile-user-email-display').forEach(el => el.textContent = user.email || 'Sign in to sync your orders across devices');
+
+        const initials = ((user.full_name || user.name || user.username || 'EG')
+            .trim()
+            .split(/\s+/)
+            .map(w => w[0].toUpperCase())
+            .slice(0, 2)
+            .join('')) || 'EG';
+        document.querySelectorAll('.profile-avatar-circle').forEach(el => el.textContent = initials);
     }
 
     window.handleCartCheckoutProceed = function (e) {
@@ -1526,7 +1544,7 @@
                             isVeg: true,
                             inStock: p.stock_quantity > 0,
                             eta: "15 MINS",
-                            image: p.image_path || 'static/images/logo-icon.png',
+                            image: p.image_path ? (window.apiUrl ? window.apiUrl(p.image_path) : p.image_path) : '../static/images/logo-icon.png',
                             description: `${p.name} — Authentic grocery item available at e Grossary.`,
                             nutrition: { calories: 'N/A' }
                         };
@@ -1579,9 +1597,16 @@
             console.debug('Session check deferred:', e);
         }
 
+        const currentLocal = JSON.parse(localStorage.getItem('jg_auth_user') || 'null');
+        if (currentLocal && currentLocal.role === 'customer') {
+            state.user = currentLocal;
+            renderProfileView();
+            document.documentElement.style.display = '';
+            return;
+        }
+
         // Unauthenticated or not customer on server: clear customer state & redirect if on protected page
         state.user = null;
-        const currentLocal = JSON.parse(localStorage.getItem('jg_auth_user') || 'null');
         if (currentLocal && currentLocal.role !== 'admin') {
             localStorage.removeItem('jg_auth_user');
         }

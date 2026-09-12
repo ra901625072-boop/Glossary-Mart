@@ -12,14 +12,14 @@
 :root,
 [data-theme="light"] {
     /* Brand Palette */
-    --brand-dark: #163e2e;
-    --brand-forest: #1b4d3e;
-    --brand-primary: #10b981;
-    --brand-primary-hover: #059669;
-    --brand-primary-active: #047857;
-    --brand-light: #ecfdf5;
-    --brand-light-2: #d1fae5;
-    --primary-rgb: 16, 185, 129;
+    --brand-dark: #0c1a14;
+    --brand-forest: #132e22;
+    --brand-primary: #059669;
+    --brand-primary-hover: #047857;
+    --brand-primary-active: #065f46;
+    --brand-light: #f0fdf4;
+    --brand-light-2: #bbf7d0;
+    --primary-rgb: 5, 150, 105;
 
     /* Accents */
     --accent-amber: #f59e0b;
@@ -28,29 +28,32 @@
     --accent-red-light: #fee2e2;
 
     /* Surfaces */
-    --bg-main: #f8faf7;
-    --bg-alt: #f1f5f2;
+    --bg-main: #f8faf9;
+    --bg-alt: #f1f5f3;
     --sur-1: #ffffff;
-    --sur-2: #f4f6f4;
-    --sur-3: #e8ede8;
+    --sur-2: #f8faf9;
+    --sur-3: #eef2ef;
     --card-bg: #ffffff;
     --card-hover: #ffffff;
 
     /* Typography & Borders */
-    --text-main: #1e293b;
+    --text-main: #0f172a;
     --text-secondary: #475569;
     --text-muted: #64748b;
-    --border-subtle: #e2e8f0;
+    --border-subtle: rgba(15, 23, 42, 0.08);
     --border-bright: #cbd5e1;
-    --border-focus: #10b981;
+    --border-focus: #059669;
 
     /* Shadows & Elevation */
-    --ss-shadow-xs: 0 1px 3px rgba(0, 0, 0, 0.04);
-    --ss-shadow-sm: 0 2px 8px rgba(0, 0, 0, 0.06);
-    --ss-shadow-md: 0 6px 18px rgba(0, 0, 0, 0.08);
-    --ss-shadow-lg: 0 12px 28px rgba(0, 0, 0, 0.10);
-    --ss-shadow-xl: 0 20px 40px rgba(0, 0, 0, 0.12);
-    --ss-glow-primary: 0 0 20px rgba(16, 185, 129, 0.25);
+    --ss-shadow-xs: 0 1px 3px rgba(12, 26, 20, 0.04);
+    --ss-shadow-sm: 0 2px 8px rgba(12, 26, 20, 0.06);
+    --ss-shadow-md: 0 6px 18px rgba(12, 26, 20, 0.08);
+    --ss-shadow-lg: 0 12px 28px rgba(12, 26, 20, 0.10);
+    --ss-shadow-xl: 0 20px 40px rgba(12, 26, 20, 0.12);
+    --ss-glow-primary: 0 0 20px rgba(5, 150, 105, 0.22);
+    --glow-card-hover: 0 10px 24px -4px rgba(5, 150, 105, 0.12), 0 4px 8px -2px rgba(12, 26, 20, 0.04);
+    --glow-focus: 0 0 0 3px rgba(5, 150, 105, 0.18);
+    --ambient-hero: radial-gradient(circle at 80% 20%, rgba(16, 185, 129, 0.08) 0%, rgba(248, 250, 249, 0) 70%);
 
     /* Radii */
     --radius-xs: 6px;
@@ -447,8 +450,8 @@ img {
 
 /* ── 4. Hero Section ── */
 .hero-grocery {
-    background: linear-gradient(180deg, #edf7ed 0%, var(--bg-main) 100%);
-    padding: 50px 0 40px;
+    background: var(--ambient-hero), linear-gradient(180deg, #f0fdf4 0%, var(--bg-main) 100%);
+    padding: 56px 0 48px;
     position: relative;
     overflow: hidden;
 }
@@ -582,20 +585,7 @@ img {
 }
 
 .hero-doodle-label {
-    position: absolute;
-    top: 20px;
-    right: 30px;
-    font-family: 'Outfit', cursive, sans-serif;
-    font-weight: 700;
-    font-size: 1.25rem;
-    color: #1b4d3e;
-    transform: rotate(6deg);
-    pointer-events: none;
-    text-shadow: 0 1px 2px rgba(255, 255, 255, 0.8);
-}
-
-[data-theme="dark"] .hero-doodle-label {
-    color: #6ee7b7;
+    display: none;
 }
 
 .hero-controls {
@@ -790,23 +780,56 @@ img {
 }
 
 .product-card:hover {
-    border-color: var(--brand-primary);
-    transform: translateY(-4px);
-    box-shadow: var(--ss-shadow-md);
+    border-color: rgba(5, 150, 105, 0.3);
+    transform: translateY(-3px);
+    box-shadow: var(--glow-card-hover);
 }
 
 .discount-badge-pill {
     position: absolute;
     top: 10px;
     left: 10px;
-    background: var(--brand-primary);
-    color: #ffffff;
-    font-size: 0.68rem;
-    font-weight: 800;
-    padding: 3px 7px;
+    background: #fff1f2;
+    color: #e11d48;
+    border: 1px solid #ffe4e6;
+    font-size: 0.7rem;
+    font-weight: 700;
+    padding: 3px 8px;
     border-radius: var(--radius-xs);
     letter-spacing: 0.02em;
     z-index: 2;
+    box-shadow: 0 1px 3px rgba(225, 29, 72, 0.08);
+}
+
+.wishlist-toggle-btn {
+    position: absolute;
+    top: 10px;
+    right: 10px;
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    background: rgba(255, 255, 255, 0.9);
+    backdrop-filter: blur(4px);
+    border: 1px solid var(--border-subtle);
+    color: var(--text-muted);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    z-index: 3;
+    transition: var(--transition-fast);
+}
+
+.wishlist-toggle-btn:hover {
+    color: #e11d48;
+    background: #ffffff;
+    transform: scale(1.1);
+}
+
+.wishlist-toggle-btn.active {
+    color: #e11d48;
+    background: #fff1f2;
+    border-color: #ffe4e6;
 }
 
 .product-img-box {

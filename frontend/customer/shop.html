@@ -44,12 +44,8 @@
                 <a href="../index.html" class="brand-logo-wrap text-decoration-none d-flex align-items-center gap-2">
                     <img src="../static/images/logo-icon.png" alt="e Grossary" style="width: 38px; height: 38px; object-fit: contain;">
                     <div>
-                        <div class="brand-title" style="font-family: 'Outfit', sans-serif; font-size: 1.35rem; font-weight: 800; color: #0f172a; line-height: 1.1;">
-                            e<span style="color: #10b981;">Grossary</span>
-                        </div>
-                        <div class="brand-tagline" style="font-size: 0.65rem; font-weight: 700; color: #059669; letter-spacing: 0.08em; text-transform: uppercase;">
-                            Fresh Groceries Superstore
-                        </div>
+                        <div class="brand-title">e<span>Grossary</span></div>
+                        <div class="brand-tagline">Fresh Groceries Superstore</div>
                     </div>
                 </a>
             </div>
@@ -71,7 +67,7 @@
                 <div class="search-container-box">
                     <i class="bi bi-search search-icon-pos"></i>
                     <input type="text" id="masterSearchInput" class="search-input-field" 
-                           placeholder="Search fresh vegetables, milk, atta, snacks, dairy products..."
+                           placeholder="Search fresh vegetables, fruits, milk, dairy, snacks..."
                            oninput="window.JG.handleSearchInput(this.value)">
                 </div>
             </div>
@@ -112,14 +108,6 @@
                             <div class="fw-bold profile-user-name-display text-dark">Customer Account</div>
                             <div class="smallest text-muted profile-user-email-display">Sign in to sync orders</div>
                         </li>
-                        <li class="auth-guest-action px-3 py-2" style="display: none;">
-                            <a href="../auth/login.html" class="btn btn-success btn-sm w-100 rounded-pill fw-bold mb-1">
-                                <i class="bi bi-box-arrow-in-right me-1"></i>Sign In
-                            </a>
-                            <div class="smallest text-center text-muted">
-                                New here? <a href="../auth/register.html" class="text-success fw-bold">Sign Up</a>
-                            </div>
-                        </li>
                         <li><a class="dropdown-item rounded-3 py-2 mt-1" href="profile.html"><i class="bi bi-person me-2 text-primary"></i>My Profile &amp; Settings</a></li>
                         <li><a class="dropdown-item rounded-3 py-2" href="orders.html"><i class="bi bi-box-seam me-2 text-success"></i>My Orders &amp; Tracking</a></li>
                         <li><a class="dropdown-item rounded-3 py-2" href="wishlist.html"><i class="bi bi-heart me-2 text-danger"></i>My Saved Wishlist</a></li>
@@ -132,17 +120,14 @@
         </div>
 
         <!-- Sub-Navigation Menu -->
-        <div class="sub-nav-bar mt-2">
+        <div class="sub-nav-bar">
             <div class="container">
                 <ul class="sub-nav-menu">
                     <li><a href="../index.html" class="sub-nav-link"><i class="bi bi-house-door me-1"></i>Home</a></li>
                     <li><a href="shop.html" class="sub-nav-link active">All Products</a></li>
-                    <li><a href="javascript:void(0)" onclick="window.JG.filterCategory('vegetables')" class="sub-nav-link">🥦 Fresh Vegetables</a></li>
-                    <li><a href="javascript:void(0)" onclick="window.JG.filterCategory('dairy')" class="sub-nav-link">🥛 Milk &amp; Dairy</a></li>
-                    <li><a href="javascript:void(0)" onclick="window.JG.filterCategory('staples')" class="sub-nav-link">🌾 Atta &amp; Staples</a></li>
-                    <li><a href="javascript:void(0)" onclick="window.JG.filterCategory('snacks')" class="sub-nav-link">🍿 Snacks &amp; Munchies</a></li>
-                    <li><a href="javascript:void(0)" onclick="window.JG.handleSortChange('discount')" class="sub-nav-link text-success fw-bold">🔥 Hot Deals</a></li>
-                    <li><a href="javascript:void(0)" onclick="window.JG.handleSortChange('rating')" class="sub-nav-link">⭐ Top Rated</a></li>
+                    <li><a href="javascript:void(0)" onclick="window.JG.handleSortChange('discount')" class="sub-nav-link text-success fw-bold">Offers &amp; Deals</a></li>
+                    <li><a href="javascript:void(0)" onclick="window.JG.handleSortChange('rating')" class="sub-nav-link">Top Rated</a></li>
+                    <li><a href="javascript:void(0)" onclick="window.JG.handleSortChange('latest')" class="sub-nav-link">New Arrivals</a></li>
                     <li><a href="about.html" class="sub-nav-link">About Us</a></li>
                     <li><a href="faq.html" class="sub-nav-link">FAQs</a></li>
                 </ul>
@@ -154,36 +139,36 @@
     <main class="container my-3 my-md-4">
         <!-- VIEW: SHOP & PRODUCT CATALOG -->
         <section id="view-shop" class="app-view active-view">
-            <!-- Category Pills Bar -->
+            <!-- Category Filter Carousel (Clean, Single Row) -->
             <div class="category-filter-nav mb-3">
                 <button class="cat-pill-btn active" data-category="all" onclick="window.JG.filterCategory('all')">
-                    <i class="bi bi-stars text-warning"></i> All Products
+                    <i class="bi bi-grid me-1"></i>All Products
                 </button>
                 <button class="cat-pill-btn" data-category="vegetables" onclick="window.JG.filterCategory('vegetables')">
-                    🥦 Fresh Vegetables
+                    Vegetables &amp; Fruits
                 </button>
                 <button class="cat-pill-btn" data-category="dairy" onclick="window.JG.filterCategory('dairy')">
-                    🥛 Dairy &amp; Bakery
+                    Dairy &amp; Breakfast
                 </button>
                 <button class="cat-pill-btn" data-category="staples" onclick="window.JG.filterCategory('staples')">
-                    🌾 Atta, Rice &amp; Dal
+                    Atta, Rice &amp; Dal
                 </button>
                 <button class="cat-pill-btn" data-category="snacks" onclick="window.JG.filterCategory('snacks')">
-                    🍿 Munchies &amp; Chips
+                    Snacks &amp; Munchies
                 </button>
                 <button class="cat-pill-btn" data-category="beverages" onclick="window.JG.filterCategory('beverages')">
-                    🧃 Cold Drinks &amp; Juices
+                    Beverages &amp; Juices
                 </button>
                 <button class="cat-pill-btn" data-category="spices" onclick="window.JG.filterCategory('spices')">
-                    🌶️ Spices &amp; Masalas
+                    Masala &amp; Spices
                 </button>
                 <button class="cat-pill-btn" data-category="cleaning" onclick="window.JG.filterCategory('cleaning')">
-                    🧼 Cleaning &amp; Soaps
+                    Cleaning &amp; Household
                 </button>
             </div>
 
             <!-- Subheader / Toolbar -->
-            <div class="d-flex flex-wrap justify-content-between align-items-center mb-4 bg-white p-3 rounded-4 border">
+            <div class="d-flex flex-wrap justify-content-between align-items-center mb-4 bg-white p-3 rounded-3 border" style="border-color: var(--border-subtle) !important;">
                 <div>
                     <h2 class="h5 fw-bold text-dark mb-0 brand-font">Everyday Grocery Essentials</h2>
                     <span class="smallest text-muted" id="catalogCountLabel">Showing all products</span>

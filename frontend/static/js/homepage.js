@@ -248,10 +248,16 @@
     function createProductCardHTML(p) {
         const cartItem = cart.find(item => String(item.id) === String(p.id));
         const qty = cartItem ? cartItem.quantity : 1;
+        const inWishlist = wishlist.includes(Number(p.id)) || wishlist.includes(String(p.id));
 
         return `
             <div class="product-card" id="card-${escapeHTML(String(p.id))}">
                 ${p.discount ? `<span class="discount-badge-pill">${escapeHTML(p.discount)}</span>` : ''}
+                <button class="wishlist-toggle-btn ${inWishlist ? 'active' : ''}" 
+                        title="${inWishlist ? 'Remove from Wishlist' : 'Add to Wishlist'}"
+                        onclick="event.stopPropagation(); toggleWishlist(${Number(p.id)}); this.classList.toggle('active');">
+                    <i class="bi bi-heart${inWishlist ? '-fill' : ''}"></i>
+                </button>
                 <div class="product-img-box" onclick="openQuickView('${escapeHTML(String(p.id))}')" style="cursor: pointer;">
                     <img src="${escapeHTML(p.image)}" alt="${escapeHTML(p.name)}" class="product-img" loading="lazy">
                 </div>
@@ -590,15 +596,17 @@
 
     // ── 9. Wishlist Controls ──
     function toggleWishlist(productId) {
-        const idx = wishlist.indexOf(productId);
+        const pId = Number(productId);
+        const idx = wishlist.findIndex(id => Number(id) === pId);
         if (idx > -1) {
             wishlist.splice(idx, 1);
             showToast('Removed from wishlist', 'info');
         } else {
-            wishlist.push(productId);
-            showToast('Added to your saved wishlist ❤️', 'success');
+            wishlist.push(pId);
+            showToast('Added to your saved wishlist', 'success');
         }
         saveWishlist();
+        renderProductGrids();
     }
 
     function updateWishlistUI() {

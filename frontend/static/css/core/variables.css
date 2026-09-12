@@ -1,97 +1,160 @@
 /**
  * e Grossary — Design System Tokens & Global CSS Variables (variables.css)
  * Centralized design tokens across Storefront, Customer Super-App, and ERP Console.
+ * Philosophy: Less Clutter → Stronger Hierarchy → Better Symmetry → Purposeful Lighting → Refined Motion
  */
 
 :root,
 [data-theme="light"] {
-    /* ── Storefront & Customer Brand Palette ── */
-    --brand-dark: #163e2e;
-    --brand-forest: #1b4d3e;
-    --brand-primary: #10b981;
-    --brand-primary-hover: #059669;
-    --brand-primary-active: #047857;
+    /* ── 1. Brand Core Palette (Refined Emerald & Forest) ── */
+    --brand-primary: #059669;          /* Emerald 600 - Primary brand action */
+    --brand-primary-hover: #047857;    /* Emerald 700 - Hover / active */
+    --brand-primary-dark: #064e3b;     /* Emerald 800 - Deep brand */
+    --brand-primary-light: #10b981;    /* Emerald 500 - Accents & highlights */
+    --brand-primary-rgb: 5, 150, 105;
+    
+    /* Tints & Subtle Surfaces */
+    --brand-subtle: #f0fdf4;           /* Emerald 50 - Background tint */
+    --brand-subtle-border: #bbf7d0;    /* Emerald 200 - Soft borders */
     --brand-light: #ecfdf5;
     --brand-light-2: #d1fae5;
-    --primary-rgb: 16, 185, 129;
+    --primary-rgb: 5, 150, 105;
 
-    /* Customer Super-App Tokens */
-    --ss-primary: #059669;
-    --ss-primary-dark: #047857;
-    --ss-primary-light: #10b981;
-    --ss-primary-rgb: 5, 150, 105;
-    --ss-secondary: #0284c7;
-    --ss-accent: #f59e0b;
-    --ss-danger: #ef4444;
-    --ss-success: #10b981;
-    --ss-dark: #0f172a;
-    --ss-light: #f8fafc;
-    --ss-surface: #ffffff;
-    --ss-border: #e2e8f0;
-    --ss-border-subtle: rgba(226, 232, 240, 0.8);
-    --ss-text-main: #1e293b;
-    --ss-text-muted: #64748b;
-    --ss-radius-sm: 8px;
-    --ss-radius-md: 12px;
-    --ss-radius-lg: 16px;
-    --ss-radius-xl: 24px;
-    --ss-radius-full: 9999px;
-    --ss-shadow-sm: 0 1px 3px rgba(0,0,0,0.06), 0 1px 2px rgba(0,0,0,0.04);
-    --ss-shadow-md: 0 4px 6px -1px rgba(0,0,0,0.08), 0 2px 4px -1px rgba(0,0,0,0.05);
-    --ss-shadow-lg: 0 10px 15px -3px rgba(0,0,0,0.08), 0 4px 6px -2px rgba(0,0,0,0.04);
-    --ss-shadow-xl: 0 20px 25px -5px rgba(0,0,0,0.1), 0 10px 10px -5px rgba(0,0,0,0.04);
-    --ss-shadow-glow: 0 0 20px rgba(5, 150, 105, 0.25);
-    --ss-transition: all 0.22s cubic-bezier(0.4, 0, 0.2, 1);
+    /* Dark Anchors (Header Ribbon, Master Footer) */
+    --brand-dark: #0c1a14;             /* Deep slate-forest anchor */
+    --brand-dark-surface: #11241c;     /* Elevated dark surface */
+    --brand-forest: #143226;          /* Rich forest tone */
+    --brand-dark-border: rgba(16, 185, 129, 0.16);
 
-    /* ── Admin ERP Tokens ── */
-    --adm-primary: #059669;
-    --adm-primary-hover: #047857;
-    --adm-secondary: #0284c7;
-    --adm-accent: #f59e0b;
-    --adm-danger: #ef4444;
-    --adm-success: #10b981;
-    --adm-dark: #0f172a;
-    --adm-sidebar-bg: #0f172a;
-    --adm-sidebar-text: #94a3b8;
-    --adm-sidebar-hover: #1e293b;
-    --adm-sidebar-active: rgba(5, 150, 105, 0.15);
-    --adm-surface: #ffffff;
-    --adm-bg: #f8fafc;
-    --adm-border: #e2e8f0;
-    --adm-text-main: #1e293b;
-    --adm-text-muted: #64748b;
-    --adm-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.07), 0 2px 4px -1px rgba(0, 0, 0, 0.04);
-    --adm-radius: 14px;
+    /* ── 2. Functional & Status Accents ── */
+    --accent-amber: #f59e0b;           /* Ratings & deals */
+    --accent-amber-subtle: #fef3c7;
+    --accent-amber-border: #fde68a;
+    --accent-red: #e11d48;             /* Discounts & alerts */
+    --accent-red-subtle: #fff1f2;
+    --accent-red-border: #ffe4e6;
+    --accent-blue: #0284c7;
+    --accent-blue-subtle: #f0f9ff;
+    --accent-emerald: #059669;
+    --accent-emerald-subtle: #ecfdf5;
 
-    /* ── Typography & Shadows ── */
+    /* ── 3. Neutral Canvas & Surface System ── */
+    --bg-main: #f8faf9;                /* Pure, warm off-white canvas */
+    --bg-canvas: #f8faf9;
+    --bg-alt: #f1f5f3;                 /* Secondary background */
+    --sur-1: #ffffff;                  /* Primary card surface */
+    --sur-2: #ffffff;
+    --sur-3: #f1f5f3;
+    --card-bg: #ffffff;
+    --card-hover: #ffffff;
+
+    /* Typography Scale */
+    --text-primary: #0f172a;           /* Deep slate 900 */
+    --text-secondary: #334155;         /* Slate 700 */
+    --text-muted: #64748b;             /* Slate 500 */
+    --text-disabled: #94a3b8;          /* Slate 400 */
+    --text-main: #0f172a;
+
+    /* Borders */
+    --border-subtle: rgba(15, 23, 42, 0.08);
+    --border-bright: #e2e8f0;
+    --border-medium: #cbd5e1;
+    --border-focus: #059669;
+
+    /* ── 4. Depth, Shadows & Purposeful Lighting ── */
+    --ss-shadow-xs: 0 1px 2px rgba(15, 23, 42, 0.04);
+    --ss-shadow-sm: 0 2px 6px -1px rgba(15, 23, 42, 0.05), 0 1px 3px rgba(15, 23, 42, 0.03);
+    --ss-shadow-md: 0 8px 16px -3px rgba(15, 23, 42, 0.06), 0 3px 6px -2px rgba(15, 23, 42, 0.04);
+    --ss-shadow-lg: 0 16px 28px -6px rgba(15, 23, 42, 0.08), 0 6px 10px -3px rgba(15, 23, 42, 0.04);
+    --ss-shadow-xl: 0 24px 48px -12px rgba(15, 23, 42, 0.12);
+
+    /* Purposeful Lighting Glows */
+    --glow-subtle: 0 0 24px -4px rgba(5, 150, 105, 0.16);
+    --glow-focus: 0 0 0 3px rgba(5, 150, 105, 0.15);
+    --glow-card-hover: 0 12px 28px -4px rgba(5, 150, 105, 0.10), 0 4px 10px -2px rgba(15, 23, 42, 0.04);
+    --ambient-hero: radial-gradient(circle at 75% 25%, rgba(16, 185, 129, 0.07), transparent 60%);
+
+    /* Radii System */
+    --radius-xs: 6px;
+    --radius-sm: 8px;
+    --radius-md: 12px;
+    --radius-lg: 16px;
+    --radius-xl: 20px;
+    --radius-full: 9999px;
+
+    /* Motion & Transitions */
+    --ease-out: cubic-bezier(0.16, 1, 0.3, 1);
+    --ease-spring: cubic-bezier(0.34, 1.56, 0.64, 1);
+    --duration-fast: 150ms;
+    --duration-normal: 240ms;
+    --transition-fast: all 0.15s cubic-bezier(0.16, 1, 0.3, 1);
+    --transition-smooth: all 0.24s cubic-bezier(0.16, 1, 0.3, 1);
+
+    /* ── 5. Backward Compatibility Mappings ── */
+    --ss-primary: var(--brand-primary);
+    --ss-primary-dark: var(--brand-primary-hover);
+    --ss-primary-light: var(--brand-primary-light);
+    --ss-primary-rgb: var(--brand-primary-rgb);
+    --ss-secondary: var(--accent-blue);
+    --ss-accent: var(--accent-amber);
+    --ss-danger: var(--accent-red);
+    --ss-success: var(--brand-primary);
+    --ss-dark: var(--brand-dark);
+    --ss-light: var(--bg-main);
+    --ss-surface: var(--sur-1);
+    --ss-border: var(--border-bright);
+    --ss-border-subtle: var(--border-subtle);
+    --ss-text-main: var(--text-primary);
+    --ss-text-muted: var(--text-muted);
+    --ss-radius-sm: var(--radius-sm);
+    --ss-radius-md: var(--radius-md);
+    --ss-radius-lg: var(--radius-lg);
+    --ss-radius-xl: var(--radius-xl);
+    --ss-radius-full: var(--radius-full);
+    --ss-shadow-glow: var(--glow-subtle);
+    --ss-transition: var(--transition-smooth);
+
+    /* Typography */
     --font-sans: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
     --font-heading: 'Outfit', var(--font-sans);
 }
 
 /* ── Dark Theme Tokens ── */
 [data-theme="dark"] {
-    --brand-dark: #0b1120;
+    --brand-dark: #060d09;
+    --brand-dark-surface: #0c1812;
     --brand-forest: #064e3b;
-    --bg-main: #0b1120;
-    --sur-1: #1e293b;
-    --sur-2: #1e293b;
-    --text-main: #f8fafc;
+    --bg-main: #0b1410;
+    --bg-canvas: #0b1410;
+    --bg-alt: #101c17;
+    --sur-1: #13221c;
+    --sur-2: #13221c;
+    --sur-3: #182c24;
+    --card-bg: #13221c;
+    --card-hover: #182c24;
+    --text-primary: #f8fafc;
     --text-secondary: #cbd5e1;
     --text-muted: #94a3b8;
-    --border-subtle: #334155;
-
-    /* Customer App Dark */
-    --ss-surface: #1e293b;
-    --ss-light: #0f172a;
-    --ss-border: #334155;
+    --text-main: #f8fafc;
+    --border-subtle: rgba(255, 255, 255, 0.08);
+    --border-bright: #233a30;
+    --border-medium: #304e42;
+    --ss-surface: #13221c;
+    --ss-light: #0b1410;
+    --ss-border: #233a30;
     --ss-text-main: #f8fafc;
     --ss-text-muted: #94a3b8;
+    --ss-shadow-sm: 0 2px 8px rgba(0, 0, 0, 0.35);
+    --ss-shadow-md: 0 6px 18px rgba(0, 0, 0, 0.45);
+    --ss-shadow-lg: 0 12px 28px rgba(0, 0, 0, 0.55);
+}
 
-    /* Admin ERP Dark */
-    --adm-surface: #1e293b;
-    --adm-bg: #0b1120;
-    --adm-border: #334155;
-    --adm-text-main: #f8fafc;
-    --adm-text-muted: #94a3b8;
-    --adm-shadow: 0 4px 10px rgba(0, 0, 0, 0.35);
+/* ── Accessibility: Reduced Motion ── */
+@media (prefers-reduced-motion: reduce) {
+    *, ::before, ::after {
+        animation-duration: 0.01ms !important;
+        animation-iteration-count: 1 !important;
+        transition-duration: 0.01ms !important;
+        scroll-behavior: auto !important;
+    }
 }
