@@ -244,45 +244,67 @@
         updateWishlistUI();
     }
 
-    // ── 3. Render Product Cards ──
+    // ── 3. Render Product Cards (Unified Standard) ──
     function createProductCardHTML(p) {
         const cartItem = cart.find(item => String(item.id) === String(p.id));
-        const qty = cartItem ? cartItem.quantity : 1;
+        const qty = cartItem ? cartItem.quantity : 0;
         const inWishlist = wishlist.includes(Number(p.id)) || wishlist.includes(String(p.id));
+        const mrpVal = p.mrp || Math.round(p.price * 1.15);
+        const discountPercent = mrpVal > p.price ? Math.round(((mrpVal - p.price) / mrpVal) * 100) : 0;
+
+        const actionButtonHtml = qty === 0 ? `
+            <button class="btn-add-cart-init" onclick="event.stopPropagation(); addToCart('${escapeHTML(String(p.id))}')">
+                <i class="bi bi-plus-lg me-1"></i>ADD
+            </button>
+        ` : `
+            <div class="product-qty-stepper">
+                <button class="stepper-btn" onclick="event.stopPropagation(); updateItemQuantity('${escapeHTML(String(p.id))}', -1)">-</button>
+                <span class="stepper-val" id="stepper-val-${escapeHTML(String(p.id))}">${qty}</span>
+                <button class="stepper-btn" onclick="event.stopPropagation(); updateItemQuantity('${escapeHTML(String(p.id))}', 1)">+</button>
+            </div>
+        `;
 
         return `
-            <div class="product-card" id="card-${escapeHTML(String(p.id))}">
-                ${p.discount ? `<span class="discount-badge-pill">${escapeHTML(p.discount)}</span>` : ''}
-                <button class="wishlist-toggle-btn ${inWishlist ? 'active' : ''}" 
-                        title="${inWishlist ? 'Remove from Wishlist' : 'Add to Wishlist'}"
-                        onclick="event.stopPropagation(); toggleWishlist(${Number(p.id)}); this.classList.toggle('active');">
-                    <i class="bi bi-heart${inWishlist ? '-fill' : ''}"></i>
-                </button>
-                <div class="product-img-box" onclick="openQuickView('${escapeHTML(String(p.id))}')" style="cursor: pointer;">
-                    <img src="${escapeHTML(p.image)}" alt="${escapeHTML(p.name)}" class="product-img" loading="lazy">
-                </div>
-                <div class="product-info">
-                    <div class="product-rating">
-                        <i class="bi bi-star-fill star-icon"></i>
-                        <span class="fw-bold">${Number(p.rating)}</span>
-                        <span class="review-count">(${Number(p.reviews)})</span>
-                    </div>
-                    <h4 class="product-name" title="${escapeHTML(p.name)}" onclick="openQuickView('${escapeHTML(String(p.id))}')" style="cursor: pointer;">${escapeHTML(p.name)}</h4>
-                    <div class="product-price-row">
-                        <span class="current-price">₹${Number(p.price)}</span>
-                        ${p.mrp ? `<span class="mrp-price">₹${Number(p.mrp)}</span>` : ''}
-                    </div>
-                    <div class="product-unit">${escapeHTML(p.unit)}</div>
-                </div>
-                <div class="product-card-actions">
-                    <div class="stepper-box">
-                        <button class="stepper-btn" onclick="updateItemQuantity('${escapeHTML(String(p.id))}', -1)" aria-label="Decrease quantity">&minus;</button>
-                        <span class="stepper-value" id="stepper-val-${escapeHTML(String(p.id))}">${Number(qty)}</span>
-                        <button class="stepper-btn" onclick="updateItemQuantity('${escapeHTML(String(p.id))}', 1)" aria-label="Increase quantity">&plus;</button>
-                    </div>
-                    <button class="btn-card-add" onclick="addToCart('${escapeHTML(String(p.id))}')">
-                        Add
+            <div class="product-card product-card-customer" id="card-${escapeHTML(String(p.id))}">
+                <div class="product-thumb-wrapper">
+                    ${discountPercent > 0 ? `<span class="discount-badge-pill">${discountPercent}% OFF</span>` : (p.discount ? `<span class="discount-badge-pill">${escapeHTML(p.discount)}</span>` : '')}
+                    <button class="wishlist-toggle-btn ${inWishlist ? 'active' : ''}" 
+                            title="${inWishlist ? 'Remove from Wishlist' : 'Add to Wishlist'}"
+                            onclick="event.stopPropagation(); toggleWishlist(${Number(p.id)}); this.classList.toggle('active');">
+                        <i class="bi bi-heart${inWishlist ? '-fill' : ''}"></i>
                     </button>
+                    <img src="${escapeHTML(p.image)}" alt="${escapeHTML(p.name)}" class="product-thumb-img" 
+                         onclick="openQuickView('${escapeHTML(String(p.id))}')" style="cursor: pointer;" loading="lazy"
+                         onerror="this.onerror=null; this.src='static/images/logo-icon.png';">
+                </div>
+
+                <div class="delivery-eta-tag">
+                    <i class="bi bi-stopwatch"></i> ${escapeHTML(p.eta || '15 MINS')}
+                </div>
+
+                <div class="d-flex align-items-center gap-2 mb-1">
+                    <span class="veg-icon" title="100% Vegetarian"></span>
+                    <span class="product-pack-size mb-0">${escapeHTML(p.unit || '1 unit')}</span>
+                </div>
+
+                <h3 class="product-title-text" onclick="openQuickView('${escapeHTML(String(p.id))}')" style="cursor: pointer;" title="${escapeHTML(p.name)}">
+                    ${escapeHTML(p.name)}
+                </h3>
+
+                <div class="product-rating-line">
+                    <span>★</span>
+                    <span class="text-dark fw-bold">${Number(p.rating || 4.8)}</span>
+                    <span class="text-muted small">(${escapeHTML(String(p.reviews || '120'))})</span>
+                </div>
+
+                <div class="price-box-wrap">
+                    <div>
+                        <span class="curr-price">₹${Number(p.price)}</span>
+                        ${mrpVal > p.price ? `<span class="mrp-strike">₹${Number(mrpVal)}</span>` : ''}
+                    </div>
+                    <div>
+                        ${actionButtonHtml}
+                    </div>
                 </div>
             </div>
         `;

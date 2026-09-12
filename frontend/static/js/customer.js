@@ -679,7 +679,7 @@
 
             return `
                 <div class="col-6 col-md-4 col-lg-3">
-                    <div class="product-card-customer">
+                    <div class="product-card product-card-customer">
                         <div class="product-thumb-wrapper">
                             ${discountPercent > 0 ? `<span class="discount-badge-pill">${discountPercent}% OFF</span>` : ''}
                             <button class="wishlist-toggle-btn ${inWishlist ? 'active' : ''}" 
@@ -688,7 +688,7 @@
                                 <i class="bi bi-heart${inWishlist ? '-fill' : ''}"></i>
                             </button>
                             <img src="${escapeHTML(product.image)}" alt="${escapeHTML(product.name)}" class="product-thumb-img" 
-                                 onclick="window.JG.openProductModal(${Number(product.id)})" style="cursor:pointer;"
+                                 onclick="window.JG.openProductModal(${Number(product.id)})" style="cursor:pointer;" loading="lazy"
                                  onerror="this.onerror=null; this.src='../static/images/logo-icon.png';">
                         </div>
 
@@ -1080,15 +1080,26 @@
         },
 
         handleSearchInput: function (val) {
-            state.searchQuery = val.trim();
-            renderShopView();
+            state.searchQuery = (val || '').trim();
+            const clearBtn = document.getElementById('masterSearchClear');
+            if (clearBtn) clearBtn.style.display = state.searchQuery ? 'flex' : 'none';
+
+            if (document.getElementById('productsGrid')) {
+                renderShopView();
+            } else {
+                renderSearchSuggestionsDropdown(state.searchQuery);
+            }
         },
 
         clearSearch: function () {
             state.searchQuery = '';
-            const input = document.getElementById('masterSearchInput');
-            if (input) input.value = '';
-            renderShopView();
+            const inputs = document.querySelectorAll('#masterSearchInput');
+            inputs.forEach(i => { i.value = ''; });
+            const clearBtn = document.getElementById('masterSearchClear');
+            if (clearBtn) clearBtn.style.display = 'none';
+            const drop = document.getElementById('searchDropdown');
+            if (drop) drop.style.display = 'none';
+            if (document.getElementById('productsGrid')) renderShopView();
         },
 
         handleSortChange: function (val) {
@@ -1622,6 +1633,77 @@
         }
     }
 
+    // ── Header Auth UI Synchronization ──
+    function updateHeaderAuthUI() {
+        const u = state.user;
+        const nameDisplays = document.querySelectorAll('.profile-user-name-display, #headerDropdownUserName');
+        const emailDisplays = document.querySelectorAll('.profile-user-email-display, #headerDropdownUserEmail');
+        const guestActions = document.querySelectorAll('.auth-guest-action, #headerGuestActionRow');
+        const customerActions = document.querySelectorAll('.auth-customer-action');
+        const accountBtnText = document.getElementById('accountBtnText');
+
+        if (u && u.id) {
+            const displayName = u.first_name ? `${u.first_name} ${u.last_name || ''}`.trim() : (u.username || 'Customer');
+            nameDisplays.forEach(el => { el.textContent = displayName; });
+            emailDisplays.forEach(el => { el.textContent = u.email || 'Verified Shopper'; });
+            guestActions.forEach(el => { el.style.display = 'none'; });
+            customerActions.forEach(el => { el.style.display = ''; });
+            if (accountBtnText) accountBtnText.textContent = displayName.split(' ')[0];
+        } else {
+            nameDisplays.forEach(el => { el.textContent = 'Customer Account'; });
+            emailDisplays.forEach(el => { el.textContent = 'Sign in to sync orders'; });
+            guestActions.forEach(el => { el.style.display = ''; });
+            customerActions.forEach(el => { el.style.display = 'none'; });
+            if (accountBtnText) accountBtnText.textContent = 'Sign In';
+        }
+    }
+
+    // ── Live Search Suggestions Dropdown ──
+    function renderSearchSuggestionsDropdown(query) {
+        const drop = document.getElementById('searchDropdown');
+        if (!drop) return;
+        if (!query) {
+            drop.style.display = 'none';
+            return;
+        }
+
+        const matches = state.products.filter(p =>
+            p.name.toLowerCase().includes(query.toLowerCase()) ||
+            (p.categoryName && p.categoryName.toLowerCase().includes(query.toLowerCase()))
+        ).slice(0, 6);
+
+        if (matches.length === 0) {
+            drop.innerHTML = `
+                <div class="p-3 text-center text-muted small">
+                    <i class="bi bi-search me-1 opacity-50"></i> No groceries found for "<strong>${escapeHTML(query)}</strong>"
+                </div>
+            `;
+            drop.style.display = 'block';
+            return;
+        }
+
+        const inCustomer = window.location.pathname.includes('/customer/');
+        const shopPrefix = inCustomer ? 'product.html' : 'customer/product.html';
+
+        drop.innerHTML = matches.map(p => `
+            <a href="${shopPrefix}?id=${p.id}" class="search-suggest-item">
+                <div class="d-flex align-items-center gap-2">
+                    <img src="${escapeHTML(p.image)}" alt="${escapeHTML(p.name)}" style="width: 32px; height: 32px; object-fit: contain; border-radius: 6px;" onerror="this.onerror=null; this.src='../static/images/logo-icon.png';">
+                    <div>
+                        <div class="fw-bold text-dark text-truncate" style="max-width: 260px;">${escapeHTML(p.name)}</div>
+                        <div class="smallest text-muted">${escapeHTML(p.categoryName || 'Groceries')} &bull; ${escapeHTML(p.unit || '1 unit')}</div>
+                    </div>
+                </div>
+                <span class="fw-bold text-success small">₹${p.price}</span>
+            </a>
+        `).join('') + `
+            <a href="${inCustomer ? 'shop.html' : 'customer/shop.html'}?search=${encodeURIComponent(query)}" class="d-block text-center py-2 border-top text-success fw-bold small text-decoration-none bg-light">
+                View all results for "${escapeHTML(query)}" <i class="bi bi-arrow-right"></i>
+            </a>
+        `;
+        drop.style.display = 'block';
+    }
+
     // ── Lifecycle Init ──
     window.addEventListener('DOMContentLoaded', () => {
         updateNavCounters();
@@ -1630,12 +1712,26 @@
         checkAuthSession();
         syncWithServer();
 
-        const searchInput = document.getElementById('masterSearchInput');
-        if (searchInput) {
-            searchInput.addEventListener('input', (e) => {
-                window.JG.handleSearchInput(e.target.value);
-            });
-        }
+        // Close search dropdown on click outside
+        document.addEventListener('click', (e) => {
+            const drop = document.getElementById('searchDropdown');
+            const searchWrap = document.querySelector('.search-form-wrapper');
+            if (drop && searchWrap && !searchWrap.contains(e.target)) {
+                drop.style.display = 'none';
+            }
+        });
+
+        // Listen for components loaded by component-loader
+        window.addEventListener('component:loaded', (e) => {
+            if (e.detail && e.detail.name === 'customer-header') {
+                updateNavCounters();
+                updateHeaderAuthUI();
+                const searchInput = document.getElementById('masterSearchInput');
+                if (searchInput && state.searchQuery) {
+                    searchInput.value = state.searchQuery;
+                }
+            }
+        });
 
         // Listen for reactive updates from EG.cart
         window.addEventListener('cart:updated', (e) => {
@@ -1648,3 +1744,4 @@
     });
 
 })();
+

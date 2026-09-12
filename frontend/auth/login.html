@@ -22,13 +22,14 @@
 
     <!-- Stylesheets -->
     <link rel="stylesheet" href="../static/css/core/variables.css">
+    <link rel="stylesheet" href="../static/css/customer.css">
     <link rel="stylesheet" href="../static/css/homepage.css">
     <style>
         body {
             min-height: 100vh;
             display: flex;
             flex-direction: column;
-            background: linear-gradient(135deg, #f0fdf4 0%, #f8fafc 50%, #ecfdf5 100%);
+            background: radial-gradient(circle at 50% 0%, rgba(16, 185, 129, 0.08) 0%, #f8fafc 60%, #f0fdf4 100%);
         }
         .auth-container {
             max-width: 480px;
@@ -38,15 +39,30 @@
         }
         .auth-card {
             background: #ffffff;
-            border-radius: 20px;
-            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.06), 0 1px 3px rgba(0, 0, 0, 0.04);
-            border: 1px solid rgba(226, 232, 240, 0.8);
+            border-radius: var(--radius-xl, 24px);
+            box-shadow: var(--shadow-xl, 0 20px 40px -15px rgba(0, 0, 0, 0.07));
+            border: 1px solid var(--border-subtle, rgba(226, 232, 240, 0.8));
             padding: 2.5rem 2rem;
+            transition: box-shadow var(--duration-normal) var(--ease-out);
         }
         .auth-brand-logo {
             width: 48px;
             height: 48px;
             object-fit: contain;
+        }
+        .btn-auth-submit {
+            background: linear-gradient(135deg, var(--primary, #059669) 0%, var(--primary-hover, #047857) 100%);
+            color: #fff;
+            border: none;
+            box-shadow: 0 4px 14px rgba(5, 150, 105, 0.25);
+            transition: all var(--duration-fast, 150ms) var(--ease-out, ease-out);
+        }
+        .btn-auth-submit:hover {
+            box-shadow: 0 6px 20px rgba(5, 150, 105, 0.35);
+            transform: translateY(-1px);
+        }
+        .btn-auth-submit:active {
+            transform: scale(0.98);
         }
     </style>
 </head>
@@ -58,8 +74,8 @@
             <a href="../index.html" class="d-inline-flex align-items-center gap-2 text-decoration-none">
                 <img src="../static/images/logo-icon.png" alt="e Grossary Logo" class="auth-brand-logo">
                 <div class="text-start">
-                    <span class="fs-4 fw-bold text-dark font-monospace d-block" style="line-height: 1.1;">e<span class="text-success">Grossary</span></span>
-                    <span class="smallest text-muted fw-semibold">Fresh Groceries Superstore</span>
+                    <span class="brand-title" style="font-family: 'Outfit', sans-serif; font-size: 1.45rem; font-weight: 800; color: #0f172a; line-height: 1.1; display: block;">e<span style="color: var(--primary, #059669);">Grossary</span></span>
+                    <span class="brand-tagline" style="font-size: 0.65rem; font-weight: 700; color: var(--primary, #059669); letter-spacing: 0.08em; text-transform: uppercase;">Fresh Groceries Superstore</span>
                 </div>
             </a>
         </div>
