@@ -36,13 +36,16 @@ def seed_all(app):
     # 4. Essential Administrator Account
     create_admin(app)
 
-    # 5. Dummy/Simulated Data (Disabled by default for Production)
+    # 5. Ensure any dummy/legacy customer accounts are permanently purged
+    from .users import create_customer
+    create_customer(app)
+
+    # 6. Simulated purchases/counter sales (Disabled by default for Production)
     if os.getenv('SEED_DUMMY_DATA', 'false').lower() == 'true':
         from .purchases import seed_purchases
-        from .users import create_customer
         from .orders_and_sales import seed_orders_and_sales
 
         seed_purchases(supplier_map)
-        create_customer(app)
         seed_orders_and_sales()
+
 

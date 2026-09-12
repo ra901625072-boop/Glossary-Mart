@@ -62,6 +62,11 @@
 
     // ── 1. True Authentication & Session Validation Guard ──
     async function verifyAdminAuth() {
+        const localAuth = JSON.parse(localStorage.getItem('jg_auth_user') || 'null');
+        if (!localAuth || localAuth.role !== 'admin') {
+            if (document.body) document.body.style.display = 'none';
+        }
+
         try {
             const fetchFn = window.apiFetch || fetch;
             const res = await fetchFn('/api/auth/me');
@@ -70,6 +75,7 @@
                 if (data && data.authenticated && data.user && data.user.role === 'admin') {
                     state.user = data.user;
                     localStorage.setItem('jg_auth_user', JSON.stringify(data.user));
+                    if (document.body) document.body.style.display = '';
                     updateAdminHeaderUI(data.user);
                     return true;
                 }
@@ -78,30 +84,27 @@
             console.warn('[Admin ERP] Auth verification error:', e);
         }
 
-        // Check if there is valid local admin session in dev
-        const localAuth = JSON.parse(localStorage.getItem('jg_auth_user') || 'null');
-        if (localAuth && localAuth.role === 'admin') {
-            state.user = localAuth;
-            updateAdminHeaderUI(localAuth);
-            return true;
-        }
-
-        // Unauthorized access -> redirect to login
-        console.warn('[Admin ERP] Unauthorized. Redirecting to storefront.');
-        alert('Administrator access required. Please sign in with an authorized admin account.');
+        // Unauthorized access: strictly purge stale client state and redirect to login
+        localStorage.removeItem('jg_auth_user');
+        console.warn('[Admin ERP] Unauthorized access detected. Redirecting to login.');
         const inAdmin = window.location.pathname.includes('/admin/');
-        window.location.href = inAdmin ? '../auth/login.html' : 'auth/login.html';
+        const targetPage = window.location.pathname.split('/').pop() || 'index.html';
+        const redirectParam = encodeURIComponent(inAdmin ? `admin/${targetPage}` : targetPage);
+        const loginUrl = inAdmin ? `../auth/login.html?redirect=${redirectParam}` : `auth/login.html?redirect=${redirectParam}`;
+
+        if (document.body) document.body.style.display = 'none';
+        window.location.replace(loginUrl);
         return false;
     }
 
     function updateAdminHeaderUI(user) {
         const nameEl = document.querySelector('.admin-topbar .fw-bold.small.text-dark');
         if (nameEl && user) {
-            nameEl.textContent = user.full_name || user.username || 'Super Admin';
+            nameEl.textContent = user.full_name || user.username || 'Administrator';
         }
-        const emailEl = document.querySelector('.admin-topbar .smallest.text-muted');
+        const emailEl = document.querySelector('.admin-topbar .smallest.text-muted, .admin-topbar .admin-user-email');
         if (emailEl && user) {
-            emailEl.textContent = user.email || 'admin@mart.com';
+            emailEl.textContent = user.email || '';
         }
     }
 

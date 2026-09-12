@@ -249,6 +249,19 @@
             route = rawHash;
         }
 
+        // Protected routes: require authentication before rendering
+        const protectedRoutes = ['profile', 'checkout'];
+        if (protectedRoutes.includes(route)) {
+            const isAuthenticated = Boolean(state.user && state.user.id);
+            if (!isAuthenticated) {
+                const targetPage = route === 'checkout' ? 'checkout.html' : 'profile.html';
+                const loginPath = inCustomerDir ? `../auth/login.html?redirect=${targetPage}` : `auth/login.html?redirect=customer/${targetPage}`;
+                if (document.body) document.body.style.display = 'none';
+                window.location.replace(loginPath);
+                return;
+            }
+        }
+
         document.querySelectorAll('.app-view').forEach(view => {
             view.classList.remove('active-view');
         });
@@ -564,7 +577,7 @@
         if (!container) return;
 
         if (state.ordersAuthRequired) {
-            const loginLink = window.location.pathname.includes('/customer/') ? '../auth/login.html' : 'auth/login.html';
+            const loginLink = window.location.pathname.includes('/customer/') ? '../auth/login.html?redirect=orders.html' : 'auth/login.html?redirect=customer/orders.html';
             container.innerHTML = `
                 <div class="text-center py-5 bg-white rounded-4 shadow-sm border p-4">
                     <i class="bi bi-shield-lock display-3 text-warning opacity-75 mb-3 d-block"></i>
@@ -1180,7 +1193,21 @@
                     return;
                 }
             }
-        } catch (e) {}
+        } catch (e) {
+            console.debug('Session check deferred:', e);
+        }
+
+        // Unauthenticated on server: clear user state & redirect if on protected page
+        state.user = null;
+        localStorage.removeItem('jg_auth_user');
+        renderProfileView();
+
+        const pathFile = window.location.pathname.split('/').pop().replace('.html', '').toLowerCase();
+        if (['profile', 'checkout'].includes(pathFile)) {
+            const inCustomerDir = window.location.pathname.includes('/customer/');
+            const loginPath = inCustomerDir ? `../auth/login.html?redirect=${pathFile}.html` : `auth/login.html?redirect=customer/${pathFile}.html`;
+            window.location.replace(loginPath);
+        }
     }
 
     // ── Lifecycle Init ──

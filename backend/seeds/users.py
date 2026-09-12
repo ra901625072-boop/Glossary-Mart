@@ -13,7 +13,7 @@ def create_admin(app):
     if not admin:
         admin = User(
             username=app.config['ADMIN_USERNAME'],
-            email='admin@mart.com',
+            email=app.config.get('ADMIN_EMAIL', 'admin@mart.com'),
             password_hash=generate_password_hash(app.config['ADMIN_PASSWORD']),
             role='admin',
             full_name='Administrator — e Grossary'
@@ -24,87 +24,31 @@ def create_admin(app):
 
 
 def create_customer(app):
-    """Create verified local customer accounts and genuine product reviews"""
-    # Permanently purge legacy demo customer account if exists
-    legacy_demo = User.query.filter((User.username == 'customer') | (User.email == 'customer@mart.com')).first()
-    if legacy_demo:
-        Review.query.filter_by(user_id=legacy_demo.id).delete()
-        db.session.delete(legacy_demo)
-        db.session.commit()
-
-    customers_data = [
-        {
-            'username': 'rahul_sharma',
-            'email': 'rahul.sharma@gmail.com',
-            'password': 'customer123',
-            'full_name': 'Rahul Sharma',
-            'phone': '+91 98765 43210',
-            'address': 'Flat 402, Shivam Heights, Station Road, Unjha, Gujarat 384170'
-        },
-        {
-            'username': 'amit_choudhary',
-            'email': 'amit.choudhary@yahoo.com',
-            'password': 'customer123',
-            'full_name': 'Amit Choudhary',
-            'phone': '+91 97240 55667',
-            'address': 'Near Bus Stand, Market Yard, Pali, Gujarat 384260'
-        },
-        {
-            'username': 'ramesh_bhai',
-            'email': 'rameshbhai.patel@gmail.com',
-            'password': 'customer123',
-            'full_name': 'Ramesh Bhai Patel',
-            'phone': '+91 99090 77889',
-            'address': 'Shop 8, Main Bazar, Unjha, Mehsana, Gujarat 384170'
-        }
+    """
+    Ensure all dummy or legacy customer accounts are permanently purged.
+    Customer accounts are created only through genuine customer registration.
+    """
+    dummy_usernames = ['customer', 'rahul_sharma', 'amit_choudhary', 'ramesh_bhai']
+    dummy_emails = [
+        'customer@mart.com',
+        'rahul.sharma@gmail.com',
+        'amit.choudhary@yahoo.com',
+        'rameshbhai.patel@gmail.com'
     ]
 
-    for cdata in customers_data:
-        cust = User.query.filter_by(username=cdata['username']).first()
-        if not cust:
-            cust = User(
-                username=cdata['username'],
-                email=cdata['email'],
-                password_hash=generate_password_hash(cdata['password']),
-                role='customer',
-                full_name=cdata['full_name'],
-                phone=cdata['phone'],
-                address=cdata['address'],
-                is_verified=True
-            )
-            db.session.add(cust)
-        else:
-            if not cust.is_verified:
-                cust.is_verified = True
-            if not cust.full_name or cust.full_name == 'Priya S. (Verified Patron)':
-                cust.full_name = cdata['full_name']
-                cust.phone = cdata['phone']
-                cust.address = cdata['address']
-    db.session.commit()
+    try:
+        dummy_users = User.query.filter(
+            (User.username.in_(dummy_usernames)) | (User.email.in_(dummy_emails))
+        ).all()
 
-    # Seed genuine customer reviews
-    if Review.query.count() < 8:
-        primary_customer = User.query.filter_by(username='rahul_sharma').first() or User.query.filter_by(role='customer').first()
-        reviews_data = [
-            ('Aashirvaad Superior MP Atta 5kg', 5, "Very fresh chakki atta. Rotis turn out super soft every time!"),
-            ('Amul Taaza Fresh Toned Milk 1L', 5, "Daily morning fresh delivery is on time. Amul quality is always reliable."),
-            ('Tata Tea Premium Desh Ki Chai 250g', 5, "Strong aroma and great kadak taste. Our family's go-to tea."),
-            ('Tata Salt Vacuum Evaporated 1kg', 5, "Desh ka namak, pure and fine grain. Genuine product."),
-            ('Fortune Sunlite Refined Sunflower Oil 1L', 4, "Light cooking oil, doesn't absorb too much in deep frying."),
-            ('Maggi 2-Minute Masala Instant Noodles 280g', 5, "Instant snack for late evenings. Fresh packaging with long expiry."),
-            ('Britannia Good Day Cashew Cookies 100g', 5, "Crispy and full of cashew nuts. Kids love it with evening milk."),
-            ('Dabur Red Ayurvedic Toothpaste 300g', 5, "Authentic Ayurvedic formula. Kept teeth and gums healthy for years.")
-        ]
+        if dummy_users:
+            dummy_ids = [u.id for u in dummy_users]
+            Review.query.filter(Review.user_id.in_(dummy_ids)).delete(synchronize_session=False)
+            for u in dummy_users:
+                db.session.delete(u)
+            db.session.commit()
+            app.logger.info(f"Purged {len(dummy_users)} dummy customer account(s).")
+    except Exception as e:
+        db.session.rollback()
+        app.logger.warning(f"Dummy customer purge deferred: {e}")
 
-        for prod_name, rating, comment in reviews_data:
-            prod = Product.query.filter_by(name=prod_name).first()
-            if prod:
-                existing = Review.query.filter_by(product_id=prod.id, user_id=primary_customer.id).first()
-                if not existing:
-                    db.session.add(Review(
-                        product_id=prod.id,
-                        user_id=primary_customer.id,
-                        rating=rating,
-                        comment=comment
-                    ))
-        db.session.commit()

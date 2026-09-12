@@ -56,12 +56,18 @@
                     if (data && data.authenticated && data.user) {
                         this.setUser(data.user);
                         return { authenticated: true, user: data.user };
+                    } else {
+                        this.setUser(null);
+                        return { authenticated: false, user: null };
                     }
+                } else if (res.status === 401) {
+                    this.setUser(null);
+                    return { authenticated: false, user: null };
                 }
             } catch (e) {
                 console.debug('[AuthService] Server verify session deferred:', e);
             }
-            return { authenticated: this.isAuthenticated(), user: this.user };
+            return { authenticated: Boolean(this.user && this.user.id), user: this.user };
         }
 
         async login(emailOrUsername, password) {

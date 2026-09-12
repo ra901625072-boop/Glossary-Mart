@@ -870,7 +870,7 @@
             const res = await fetchFn('/api/auth/me');
             if (res.ok) {
                 const data = await res.json();
-                if (data && data.user) {
+                if (data && data.authenticated && data.user) {
                     const u = data.user;
                     localStorage.setItem('jg_auth_user', JSON.stringify({
                         id: u.id,
@@ -886,17 +886,18 @@
                         accountBtn.title = `Signed in as ${u.email || u.username} (${u.role || 'customer'})`;
                     }
                     return;
-                }
-            } else if (res.status === 401) {
-                // Not authenticated on server; clear stale localStorage if present
-                if (authDataStr) {
+                } else {
                     localStorage.removeItem('jg_auth_user');
                     accountText.innerText = 'Account';
                     if (accountBtn) accountBtn.title = 'Customer Account';
                 }
+            } else if (res.status === 401) {
+                localStorage.removeItem('jg_auth_user');
+                accountText.innerText = 'Account';
+                if (accountBtn) accountBtn.title = 'Customer Account';
             }
         } catch (e) {
-            // Backend offline - retain cached offline state
+            // Backend network error
         }
     }
 
@@ -1008,8 +1009,27 @@
                 localStorage.setItem('jg_auth_user', JSON.stringify(sessionUser));
 
                 showToast(`Welcome back, ${sessionUser.name}!`, 'success');
+
+                // Resolve intended redirect destination if provided
+                const urlParams = new URLSearchParams(window.location.search);
+                const redirectTarget = urlParams.get('redirect');
+                let finalDest;
+
+                if (sessionUser.role === 'admin') {
+                    finalDest = (redirectTarget && redirectTarget.startsWith('admin/'))
+                        ? (isInAuthDir ? `../${redirectTarget}` : redirectTarget)
+                        : adminDest;
+                } else {
+                    if (redirectTarget && !redirectTarget.startsWith('admin/')) {
+                        const cleanTarget = redirectTarget.replace(/^customer\//, '');
+                        finalDest = isInAuthDir ? `../customer/${cleanTarget}` : `customer/${cleanTarget}`;
+                    } else {
+                        finalDest = customerDest;
+                    }
+                }
+
                 setTimeout(() => {
-                    window.location.href = sessionUser.role === 'admin' ? adminDest : customerDest;
+                    window.location.href = finalDest;
                 }, 500);
                 return;
             } else {
