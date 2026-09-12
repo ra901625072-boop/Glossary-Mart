@@ -1768,25 +1768,6 @@ img {
     margin-left: 12px;
 }
 
-.demo-login-chip {
-    background: #f8fafc;
-    border: 1px dashed #cbd5e1;
-    border-radius: 8px;
-    padding: 8px 12px;
-    font-size: 0.8rem;
-    cursor: pointer;
-    transition: all 0.2s ease;
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-}
-
-.demo-login-chip:hover {
-    background: #ecfdf5;
-    border-color: #10b981;
-    color: #065f46;
-}
-
 .auth-section-card {
     background: #ffffff;
     border-radius: 20px;

@@ -1005,9 +1005,6 @@
         }
     }
 
-    function fillDemoCredentials(role) {
-        // Deprecated: demo credentials have been permanently removed
-    }
 
     /**
      * Unified Login Handler
@@ -1259,7 +1256,6 @@
     // Expose Auth Suite methods
     window.switchAuthTab = switchAuthTab;
     window.togglePasswordVisibility = togglePasswordVisibility;
-    window.fillDemoCredentials = fillDemoCredentials;
     window.handleLogin = handleLogin;
     window.handleCustomerLogin = handleCustomerLogin;
     window.handleCustomerRegister = handleCustomerRegister;
