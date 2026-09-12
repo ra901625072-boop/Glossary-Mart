@@ -1,5 +1,5 @@
 """Admin category management routes (CRUD)."""
-from flask import current_app, flash, redirect, render_template, url_for
+from flask import current_app, jsonify, redirect, request, url_for
 
 from database.models import db
 from database.models.product import Category
@@ -11,45 +11,63 @@ from . import admin_bp
 @admin_bp.route('/categories')
 @admin_required
 def categories():
-    """Category management page."""
+    """Category management — returns JSON list."""
     all_categories = db.session.query(Category).order_by(Category.name).all()
-    return render_template('admin/categories.html', categories=all_categories)
+    return jsonify({
+        'categories': [
+            {
+                'id': c.id,
+                'name': c.name,
+                'description': c.description or '',
+                'product_count': len(c.products) if hasattr(c, 'products') else 0,
+            }
+            for c in all_categories
+        ]
+    })
 
 
 @admin_bp.route('/categories/add', methods=['GET', 'POST'])
 @admin_required
 def add_category():
-    """Add a new category."""
+    """Add a new category — returns JSON."""
+    if request.method == 'GET':
+        return jsonify({'fields': ['name', 'description']})
+
     form = CategoryForm()
     if form.validate_on_submit():
         name = form.name.data
         existing = db.session.query(Category).filter_by(name=name).first()
         if existing:
-            flash(f'Category "{name}" already exists.', 'warning')
-            return redirect(url_for('admin.add_category'))
+            return jsonify({'success': False, 'message': f'Category "{name}" already exists.'}), 409
 
         category = Category(name=name, description=form.description.data)
         try:
             db.session.add(category)
             db.session.commit()
-            flash(f'Category "{name}" added successfully!', 'success')
-            return redirect(url_for('admin.categories'))
+            return jsonify({'success': True, 'message': f'Category "{name}" added successfully!', 'category_id': category.id})
         except Exception:
             db.session.rollback()
             current_app.logger.exception(f"Failed to add category '{name}'")
-            flash('Could not add category. Please try again.', 'danger')
+            return jsonify({'success': False, 'message': 'Could not add category. Please try again.'}), 500
 
-    return render_template('admin/add_category.html', form=form)
+    errors = {field: errs for field, errs in form.errors.items()} if form.errors else {}
+    return jsonify({'success': False, 'errors': errors}), 400
 
 
 @admin_bp.route('/categories/edit/<int:category_id>', methods=['GET', 'POST'])
 @admin_required
 def edit_category(category_id):
-    """Edit an existing category."""
+    """Edit an existing category — returns JSON."""
     category = db.session.get(Category, category_id)
     if not category:
-        flash("Category not found.", "danger")
-        return redirect(url_for('admin.categories'))
+        return jsonify({'error': 'Category not found.'}), 404
+
+    if request.method == 'GET':
+        return jsonify({
+            'id': category.id,
+            'name': category.name,
+            'description': category.description or '',
+        })
 
     form = CategoryForm(obj=category)
 
@@ -59,22 +77,21 @@ def edit_category(category_id):
             Category.name == name, Category.id != category_id
         ).first()
         if existing:
-            flash(f'Category "{name}" already exists.', 'warning')
-            return redirect(url_for('admin.edit_category', category_id=category_id))
+            return jsonify({'success': False, 'message': f'Category "{name}" already exists.'}), 409
 
         category.name = name
         category.description = form.description.data
 
         try:
             db.session.commit()
-            flash(f'Category "{name}" updated successfully!', 'success')
-            return redirect(url_for('admin.categories'))
+            return jsonify({'success': True, 'message': f'Category "{name}" updated successfully!'})
         except Exception:
             db.session.rollback()
             current_app.logger.exception(f"Failed to update category #{category_id}")
-            flash('Could not update category. Please try again.', 'danger')
+            return jsonify({'success': False, 'message': 'Could not update category. Please try again.'}), 500
 
-    return render_template('admin/edit_category.html', form=form, category=category)
+    errors = {field: errs for field, errs in form.errors.items()} if form.errors else {}
+    return jsonify({'success': False, 'errors': errors}), 400
 
 
 @admin_bp.route('/categories/delete/<int:category_id>', methods=['POST'])
@@ -83,21 +100,17 @@ def delete_category(category_id):
     """Delete a category — blocked if products are associated."""
     category = db.session.get(Category, category_id)
     if not category:
-        flash("Category not found.", "danger")
-        return redirect(url_for('admin.categories'))
+        return jsonify({'error': 'Category not found.'}), 404
 
     if category.products:
-        flash(f'Cannot delete "{category.name}" — it is associated with products.', 'danger')
-        return redirect(url_for('admin.categories'))
+        return jsonify({'success': False, 'message': f'Cannot delete "{category.name}" — it is associated with products.'}), 409
 
     name = category.name
     try:
         db.session.delete(category)
         db.session.commit()
-        flash(f'Category "{name}" deleted successfully!', 'success')
+        return jsonify({'success': True, 'message': f'Category "{name}" deleted successfully!'})
     except Exception:
         db.session.rollback()
         current_app.logger.exception(f"Failed to delete category #{category_id}")
-        flash('Could not delete category. Please try again.', 'danger')
-
-    return redirect(url_for('admin.categories'))
+        return jsonify({'success': False, 'message': 'Could not delete category. Please try again.'}), 500

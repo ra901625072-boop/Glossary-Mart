@@ -992,6 +992,14 @@
 
     // ── Lifecycle Init ──
     window.addEventListener('DOMContentLoaded', () => {
+        // Authentication Guard for Admin ERP Console
+        const authUser = JSON.parse(localStorage.getItem('jg_auth_user') || 'null');
+        if (!authUser || authUser.role !== 'admin') {
+            console.warn('Admin access required. Redirecting to storefront.');
+            window.location.href = 'index.html';
+            return;
+        }
+
         // Theme check
         const savedTheme = localStorage.getItem('jg_admin_theme');
         if (savedTheme) {

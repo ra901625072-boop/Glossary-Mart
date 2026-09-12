@@ -1,5 +1,5 @@
 """Admin product management routes (CRUD + API endpoint)."""
-from flask import current_app, flash, jsonify, redirect, render_template, request, url_for
+from flask import current_app, flash, jsonify, redirect, request, url_for
 
 from database.models import db
 from database.models.product import Category, Product
@@ -14,19 +14,50 @@ from . import admin_bp
 @admin_bp.route('/products')
 @admin_required
 def products():
-    """Product management page."""
+    """Product management — returns JSON product list."""
     page = request.args.get('page', 1, type=int)
     per_page = 20
     pagination = db.session.query(Product).filter_by(is_active=True).order_by(Product.created_at.desc()).paginate(page=page, per_page=per_page, error_out=False)
-    return render_template('admin/products.html', products=pagination.items, pagination=pagination)
+    return jsonify({
+        'products': [
+            {
+                'id': p.id,
+                'name': p.name,
+                'category': p.category_rel.name if p.category_rel else 'General',
+                'category_id': p.category_id,
+                'cost_price': float(p.cost_price),
+                'selling_price': float(p.selling_price),
+                'stock_quantity': p.stock_quantity,
+                'minimum_stock_alert': p.minimum_stock_alert,
+                'supplier_name': p.supplier_name or '',
+                'image_path': p.image_path or '',
+                'is_active': p.is_active,
+                'created_at': p.created_at.isoformat() if p.created_at else None,
+            }
+            for p in pagination.items
+        ],
+        'pagination': {
+            'page': pagination.page,
+            'pages': pagination.pages,
+            'total': pagination.total,
+            'has_prev': pagination.has_prev,
+            'has_next': pagination.has_next,
+        }
+    })
 
 
 @admin_bp.route('/products/add', methods=['GET', 'POST'])
 @admin_required
 def add_product():
-    """Add new product."""
-    form = ProductForm()
+    """Add new product — GET returns categories for form, POST creates product."""
     categories = db.session.query(Category).order_by(Category.name).all()
+    
+    if request.method == 'GET':
+        return jsonify({
+            'categories': [{'id': c.id, 'name': c.name} for c in categories]
+        })
+
+    form = ProductForm()
     form.category_id.choices = [(c.id, c.name) for c in categories]
 
     if form.validate_on_submit():
@@ -50,27 +81,43 @@ def add_product():
         try:
             db.session.add(product)
             db.session.commit()
-            flash(f'Product "{product.name}" added successfully!', 'success')
-            return redirect(url_for('admin.products'))
+            return jsonify({'success': True, 'message': f'Product "{product.name}" added successfully!', 'product_id': product.id})
         except Exception:
             db.session.rollback()
             current_app.logger.exception("Failed to add product")
-            flash('Could not add product. Please try again.', 'danger')
+            return jsonify({'success': False, 'message': 'Could not add product. Please try again.'}), 500
 
-    return render_template('admin/add_product.html', form=form, categories=categories)
+    errors = {field: errs for field, errs in form.errors.items()} if form.errors else {}
+    return jsonify({'success': False, 'errors': errors}), 400
 
 
 @admin_bp.route('/products/edit/<int:product_id>', methods=['GET', 'POST'])
 @admin_required
 def edit_product(product_id):
-    """Edit product."""
+    """Edit product — GET returns product + categories, POST updates product."""
     product = db.session.get(Product, product_id)
     if not product:
-        flash("Product not found.", "danger")
-        return redirect(url_for('admin.products'))
+        return jsonify({'error': 'Product not found.'}), 404
+
+    categories = db.session.query(Category).order_by(Category.name).all()
+
+    if request.method == 'GET':
+        return jsonify({
+            'product': {
+                'id': product.id,
+                'name': product.name,
+                'category_id': product.category_id,
+                'cost_price': float(product.cost_price),
+                'selling_price': float(product.selling_price),
+                'stock_quantity': product.stock_quantity,
+                'minimum_stock_alert': product.minimum_stock_alert,
+                'supplier_name': product.supplier_name or '',
+                'image_path': product.image_path or '',
+            },
+            'categories': [{'id': c.id, 'name': c.name} for c in categories]
+        })
 
     form = ProductForm(obj=product)
-    categories = db.session.query(Category).order_by(Category.name).all()
     form.category_id.choices = [(c.id, c.name) for c in categories]
 
     if form.validate_on_submit():
@@ -91,14 +138,14 @@ def edit_product(product_id):
 
         try:
             db.session.commit()
-            flash(f'Product "{product.name}" updated successfully!', 'success')
-            return redirect(url_for('admin.products'))
+            return jsonify({'success': True, 'message': f'Product "{product.name}" updated successfully!'})
         except Exception:
             db.session.rollback()
             current_app.logger.exception(f"Failed to update product #{product_id}")
-            flash('Could not update product. Please try again.', 'danger')
+            return jsonify({'success': False, 'message': 'Could not update product. Please try again.'}), 500
 
-    return render_template('admin/edit_product.html', form=form, product=product, categories=categories)
+    errors = {field: errs for field, errs in form.errors.items()} if form.errors else {}
+    return jsonify({'success': False, 'errors': errors}), 400
 
 
 @admin_bp.route('/products/delete/<int:product_id>', methods=['POST'])
@@ -107,8 +154,7 @@ def delete_product(product_id):
     """Soft-delete (deactivate) a product."""
     product = db.session.get(Product, product_id)
     if not product:
-        flash("Product not found.", "danger")
-        return redirect(url_for('admin.products'))
+        return jsonify({'error': 'Product not found.'}), 404
 
     name = product.name
     try:
@@ -116,13 +162,11 @@ def delete_product(product_id):
         _log_action('DEACTIVATE_PRODUCT', 'Product', product_id,
                     details=f'Product "{name}" soft-deleted.')
         db.session.commit()
-        flash(f'Product "{name}" has been disabled.', 'success')
+        return jsonify({'success': True, 'message': f'Product "{name}" has been disabled.'})
     except Exception:
         db.session.rollback()
         current_app.logger.exception(f"Failed to deactivate product #{product_id}")
-        flash('Could not disable product. Please try again.', 'danger')
-
-    return redirect(url_for('admin.products'))
+        return jsonify({'success': False, 'message': 'Could not disable product. Please try again.'}), 500
 
 
 @admin_bp.route('/api/product/<int:product_id>')

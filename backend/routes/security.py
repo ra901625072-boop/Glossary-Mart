@@ -9,8 +9,8 @@ from flask import (
     Blueprint,
     current_app,
     flash,
+    jsonify,
     redirect,
-    render_template,
     request,
     session,
     url_for,
@@ -22,6 +22,7 @@ from backend.extensions import limiter, mail
 from database.models import db
 from database.models.user import User
 from backend.utils.security import hash_token
+from backend.routes.pages import serve_frontend_page
 
 security_bp = Blueprint("security", __name__, url_prefix="/security")
 
@@ -34,8 +35,12 @@ def verify_email(token):
         user.is_verified = True
         user.verification_token = None
         db.session.commit()
+        if request.is_json:
+            return jsonify({"success": True, "message": "Your email has been successfully verified! You can now log in."})
         flash("Your email has been successfully verified! You can now log in.", "success")
     else:
+        if request.is_json:
+            return jsonify({"success": False, "message": "Invalid or expired verification link."}), 400
         flash("Invalid or expired verification link.", "danger")
     return redirect(url_for("auth.customer_login"))
 
@@ -43,29 +48,36 @@ def verify_email(token):
 @security_bp.route("/forgot-password", methods=["GET", "POST"])
 @limiter.limit("5 per minute")
 def forgot_password():
-    if request.method == "POST":
-        email = request.form.get("email", "").strip().lower()
-        user = db.session.query(User).filter_by(email=email).first()
-        if user:
-            token = secrets.token_urlsafe(32)
-            user.reset_token = hash_token(token)
-            db.session.commit()
-            try:
-                msg = Message(
-                    "Password Reset Request | Jay Goga Mart Store",
-                    recipients=[user.email],
-                )
-                reset_url = url_for("security.reset_password", token=token, _external=True)
-                msg.body = f"Click here to reset your password: {reset_url}\nIf you did not request this, please ignore it."
-                mail.send(msg)
-            except Exception:
-                current_app.logger.exception("Failed to send password reset email")
+    if request.method == "GET":
+        return serve_frontend_page("customer.html")
 
-        flash(
-            "If an account matches that email, a password reset link has been sent.", "info"
-        )
-        return redirect(url_for("auth.customer_login"))
-    return render_template("customer/forgot_password.html")
+    # POST — process forgot-password
+    if request.is_json:
+        email = (request.json.get("email", "") or "").strip().lower()
+    else:
+        email = request.form.get("email", "").strip().lower()
+    
+    user = db.session.query(User).filter_by(email=email).first()
+    if user:
+        token = secrets.token_urlsafe(32)
+        user.reset_token = hash_token(token)
+        db.session.commit()
+        try:
+            msg = Message(
+                "Password Reset Request | Jay Goga Mart Store",
+                recipients=[user.email],
+            )
+            reset_url = url_for("security.reset_password", token=token, _external=True)
+            msg.body = f"Click here to reset your password: {reset_url}\nIf you did not request this, please ignore it."
+            mail.send(msg)
+        except Exception:
+            current_app.logger.exception("Failed to send password reset email")
+
+    message = "If an account matches that email, a password reset link has been sent."
+    if request.is_json:
+        return jsonify({"success": True, "message": message})
+    flash(message, "info")
+    return redirect(url_for("auth.customer_login"))
 
 
 @security_bp.route("/reset-password/<token>", methods=["GET", "POST"])
@@ -73,35 +85,57 @@ def forgot_password():
 def reset_password(token):
     user = db.session.query(User).filter_by(reset_token=hash_token(token)).first()
     if not user:
+        if request.is_json:
+            return jsonify({"success": False, "message": "Invalid or expired reset token."}), 400
         flash("Invalid or expired reset token.", "danger")
         return redirect(url_for("auth.customer_login"))
 
-    if request.method == "POST":
+    if request.method == "GET":
+        return serve_frontend_page("customer.html")
+
+    # POST — process password reset
+    if request.is_json:
+        password = request.json.get("password", "")
+        confirm_password = request.json.get("confirm_password", "")
+    else:
         password = request.form.get("password")
         confirm_password = request.form.get("confirm_password")
 
-        if not password or len(password) < 8:
-            flash("Password must be at least 8 characters.", "danger")
-        elif password != confirm_password:
-            flash("Passwords do not match.", "danger")
-        else:
-            from werkzeug.security import generate_password_hash
+    if not password or len(password) < 8:
+        msg = "Password must be at least 8 characters."
+        if request.is_json:
+            return jsonify({"success": False, "message": msg}), 400
+        flash(msg, "danger")
+    elif password != confirm_password:
+        msg = "Passwords do not match."
+        if request.is_json:
+            return jsonify({"success": False, "message": msg}), 400
+        flash(msg, "danger")
+    else:
+        from werkzeug.security import generate_password_hash
 
-            user.password_hash = generate_password_hash(password)
-            user.reset_token = None
-            db.session.commit()
-            flash("Your password has been reset successfully. You can now log in.", "success")
-            return redirect(url_for("auth.customer_login"))
+        user.password_hash = generate_password_hash(password)
+        user.reset_token = None
+        db.session.commit()
+        msg = "Your password has been reset successfully. You can now log in."
+        if request.is_json:
+            return jsonify({"success": True, "message": msg, "redirect": url_for("auth.customer_login")})
+        flash(msg, "success")
+        return redirect(url_for("auth.customer_login"))
 
-    return render_template("customer/reset_password.html", token=token)
+    return serve_frontend_page("customer.html")
 
 
 @security_bp.route("/setup-2fa", methods=["GET", "POST"])
 def setup_2fa():
     if not current_user.is_authenticated or current_user.role != "admin":
+        if request.is_json:
+            return jsonify({"success": False, "message": "Unauthorized."}), 403
         return redirect(url_for("auth.login"))
 
     if current_user.two_factor_enabled:
+        if request.is_json:
+            return jsonify({"success": False, "message": "2FA is already enabled."})
         flash("2FA is already enabled.", "info")
         return redirect(url_for("admin.dashboard"))
 
@@ -121,22 +155,29 @@ def setup_2fa():
         img_io.seek(0)
         qr_b64 = base64.b64encode(img_io.getvalue()).decode("utf-8")
 
-        return render_template(
-            "admin/setup_2fa.html",
-            qr_b64=qr_b64,
-            secret=current_user.two_factor_secret,
-        )
+        return jsonify({
+            "qr_code": f"data:image/png;base64,{qr_b64}",
+            "secret": current_user.two_factor_secret,
+            "provisioning_uri": uri,
+        })
 
     if request.method == "POST":
-        token = request.form.get("token")
+        if request.is_json:
+            token = request.json.get("token", "")
+        else:
+            token = request.form.get("token")
         totp = pyotp.TOTP(current_user.two_factor_secret)
 
         if totp.verify(token):
             current_user.two_factor_enabled = True
             db.session.commit()
+            if request.is_json:
+                return jsonify({"success": True, "message": "2FA successfully enabled!"})
             flash("2FA successfully enabled!", "success")
             return redirect(url_for("admin.dashboard"))
         else:
+            if request.is_json:
+                return jsonify({"success": False, "message": "Invalid code. Please try again."}), 400
             flash("Invalid code. Please try again.", "danger")
             return redirect(url_for("security.setup_2fa"))
 
@@ -144,27 +185,41 @@ def setup_2fa():
 @security_bp.route("/verify-2fa", methods=["GET", "POST"])
 def verify_2fa():
     if "2fa_user_id" not in session or "2fa_expires_at" not in session:
+        if request.is_json:
+            return jsonify({"success": False, "message": "No 2FA session found."}), 400
         return redirect(url_for("auth.login"))
         
     if time.time() > session["2fa_expires_at"]:
         session.pop("2fa_user_id", None)
         session.pop("2fa_expires_at", None)
+        if request.is_json:
+            return jsonify({"success": False, "message": "2FA session expired. Please log in again."}), 400
         flash("2FA session expired. Please log in again.", "warning")
         return redirect(url_for("auth.login"))
 
     user = db.session.get(User, session["2fa_user_id"])
 
-    if request.method == "POST":
+    if request.method == "GET":
+        return serve_frontend_page("admin.html")
+
+    # POST — verify 2FA code
+    if request.is_json:
+        token = request.json.get("token", "")
+    else:
         token = request.form.get("token")
-        totp = pyotp.TOTP(user.two_factor_secret)
+    totp = pyotp.TOTP(user.two_factor_secret)
 
-        if totp.verify(token):
-            login_user(user)
-            session.pop("2fa_user_id", None)
-            session.pop("2fa_expires_at", None)
-            flash("Login successful!", "success")
-            return redirect(url_for("admin.dashboard"))
-        else:
-            flash("Invalid 2FA code.", "danger")
+    if totp.verify(token):
+        login_user(user)
+        session.pop("2fa_user_id", None)
+        session.pop("2fa_expires_at", None)
+        if request.is_json:
+            return jsonify({"success": True, "message": "Login successful!", "redirect": url_for("admin.dashboard")})
+        flash("Login successful!", "success")
+        return redirect(url_for("admin.dashboard"))
+    else:
+        if request.is_json:
+            return jsonify({"success": False, "message": "Invalid 2FA code."}), 400
+        flash("Invalid 2FA code.", "danger")
 
-    return render_template("admin/verify_2fa.html")
+    return serve_frontend_page("admin.html")

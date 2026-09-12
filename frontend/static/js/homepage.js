@@ -14,6 +14,19 @@
 (function () {
     'use strict';
 
+    function escapeHTML(str) {
+        if (!str) return '';
+        return String(str).replace(/[&<>"']/g, function (m) {
+            return {
+                '&': '&amp;',
+                '<': '&lt;',
+                '>': '&gt;',
+                '"': '&quot;',
+                "'": '&#39;'
+            }[m];
+        });
+    }
+
     // ── 1. Real Project Catalog Data (Aligning with Real Database & Mockup) ──
     let DEALS_PRODUCTS = [
         {
@@ -521,7 +534,7 @@
         ).slice(0, 6);
 
         if (matches.length === 0) {
-            dropdown.innerHTML = `<div class="p-3 text-muted small text-center">No grocery products found for "${query}".</div>`;
+            dropdown.innerHTML = `<div class="p-3 text-muted small text-center">No grocery products found for "${escapeHTML(query)}".</div>`;
         } else {
             dropdown.innerHTML = matches.map(p => `
                 <div class="search-suggestion-item" onclick="selectSearchResult('${p.id}')">
@@ -1102,7 +1115,7 @@
         }
 
         if (feedback) {
-            feedback.innerHTML = '<div class="alert alert-success py-2 small mb-3">Password reset instructions have been sent to <strong>' + email + '</strong>. Check your inbox!</div>';
+            feedback.innerHTML = '<div class="alert alert-success py-2 small mb-3">Password reset instructions have been sent to <strong>' + escapeHTML(email) + '</strong>. Check your inbox!</div>';
         }
         showToast('Reset email sent!', 'info');
     }

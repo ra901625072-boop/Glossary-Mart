@@ -1,5 +1,5 @@
 """Admin supplier management routes (CRUD)."""
-from flask import current_app, flash, redirect, render_template, url_for
+from flask import current_app, jsonify, redirect, request, url_for
 
 from database.models import db
 from database.models.inventory import Supplier
@@ -11,15 +11,30 @@ from . import admin_bp
 @admin_bp.route('/suppliers')
 @admin_required
 def suppliers():
-    """Supplier management page."""
+    """Supplier management — returns JSON list."""
     suppliers_list = db.session.query(Supplier).order_by(Supplier.name).all()
-    return render_template('admin/suppliers.html', suppliers=suppliers_list)
+    return jsonify({
+        'suppliers': [
+            {
+                'id': s.id,
+                'name': s.name,
+                'contact_person': s.contact_person or '',
+                'phone': s.phone or '',
+                'email': s.email or '',
+                'address': s.address or '',
+            }
+            for s in suppliers_list
+        ]
+    })
 
 
 @admin_bp.route('/suppliers/add', methods=['GET', 'POST'])
 @admin_required
 def add_supplier():
-    """Add a new supplier."""
+    """Add a new supplier — returns JSON."""
+    if request.method == 'GET':
+        return jsonify({'fields': ['name', 'contact_person', 'phone', 'email', 'address']})
+
     form = SupplierForm()
     if form.validate_on_submit():
         supplier = Supplier(
@@ -32,24 +47,33 @@ def add_supplier():
         try:
             db.session.add(supplier)
             db.session.commit()
-            flash(f'Supplier "{supplier.name}" added successfully!', 'success')
-            return redirect(url_for('admin.suppliers'))
+            return jsonify({'success': True, 'message': f'Supplier "{supplier.name}" added successfully!', 'supplier_id': supplier.id})
         except Exception:
             db.session.rollback()
             current_app.logger.exception("Failed to add supplier")
-            flash('Could not add supplier. Please try again.', 'danger')
+            return jsonify({'success': False, 'message': 'Could not add supplier. Please try again.'}), 500
 
-    return render_template('admin/add_supplier.html', form=form)
+    errors = {field: errs for field, errs in form.errors.items()} if form.errors else {}
+    return jsonify({'success': False, 'errors': errors}), 400
 
 
 @admin_bp.route('/suppliers/edit/<int:supplier_id>', methods=['GET', 'POST'])
 @admin_required
 def edit_supplier(supplier_id):
-    """Edit an existing supplier."""
+    """Edit an existing supplier — returns JSON."""
     supplier = db.session.get(Supplier, supplier_id)
     if not supplier:
-        flash("Supplier not found.", "danger")
-        return redirect(url_for('admin.suppliers'))
+        return jsonify({'error': 'Supplier not found.'}), 404
+
+    if request.method == 'GET':
+        return jsonify({
+            'id': supplier.id,
+            'name': supplier.name,
+            'contact_person': supplier.contact_person or '',
+            'phone': supplier.phone or '',
+            'email': supplier.email or '',
+            'address': supplier.address or '',
+        })
 
     form = SupplierForm(obj=supplier)
 
@@ -62,14 +86,14 @@ def edit_supplier(supplier_id):
 
         try:
             db.session.commit()
-            flash(f'Supplier "{supplier.name}" updated successfully!', 'success')
-            return redirect(url_for('admin.suppliers'))
+            return jsonify({'success': True, 'message': f'Supplier "{supplier.name}" updated successfully!'})
         except Exception:
             db.session.rollback()
             current_app.logger.exception(f"Failed to update supplier #{supplier_id}")
-            flash('Could not update supplier. Please try again.', 'danger')
+            return jsonify({'success': False, 'message': 'Could not update supplier. Please try again.'}), 500
 
-    return render_template('admin/edit_supplier.html', form=form, supplier=supplier)
+    errors = {field: errs for field, errs in form.errors.items()} if form.errors else {}
+    return jsonify({'success': False, 'errors': errors}), 400
 
 
 @admin_bp.route('/suppliers/delete/<int:supplier_id>', methods=['POST'])
@@ -78,21 +102,17 @@ def delete_supplier(supplier_id):
     """Delete a supplier — blocked if linked to past purchases."""
     supplier = db.session.get(Supplier, supplier_id)
     if not supplier:
-        flash("Supplier not found.", "danger")
-        return redirect(url_for('admin.suppliers'))
+        return jsonify({'error': 'Supplier not found.'}), 404
 
     if supplier.purchases:
-        flash(f'Cannot delete "{supplier.name}" — it is linked to past purchases.', 'danger')
-        return redirect(url_for('admin.suppliers'))
+        return jsonify({'success': False, 'message': f'Cannot delete "{supplier.name}" — it is linked to past purchases.'}), 409
 
     name = supplier.name
     try:
         db.session.delete(supplier)
         db.session.commit()
-        flash(f'Supplier "{name}" deleted successfully!', 'success')
+        return jsonify({'success': True, 'message': f'Supplier "{name}" deleted successfully!'})
     except Exception:
         db.session.rollback()
         current_app.logger.exception(f"Failed to delete supplier #{supplier_id}")
-        flash('Could not delete supplier. Please try again.', 'danger')
-
-    return redirect(url_for('admin.suppliers'))
+        return jsonify({'success': False, 'message': 'Could not delete supplier. Please try again.'}), 500

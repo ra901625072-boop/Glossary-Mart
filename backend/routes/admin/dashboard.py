@@ -1,7 +1,7 @@
 """Admin dashboard and analytics routes."""
 from sqlalchemy import func
 
-from flask import redirect, render_template, url_for
+from flask import jsonify, redirect, url_for
 
 from database.models import db
 from database.models.order import Order, OrderItem
@@ -10,6 +10,7 @@ from backend.services.stats_service import (
     get_stock_stats, get_yearly_comparison,
 )
 from backend.routes.decorators import admin_required
+from backend.routes.pages import serve_frontend_page
 from . import admin_bp
 
 
@@ -23,7 +24,7 @@ def admin_base():
 @admin_bp.route('/dashboard')
 @admin_required
 def dashboard():
-    """Analytics dashboard."""
+    """Analytics dashboard — returns JSON stats data for SPA."""
     stats_1_day = get_sales_stats(1)
     stats_7_days = get_sales_stats(7)
     stats_30_days = get_sales_stats(30)
@@ -47,20 +48,28 @@ def dashboard():
         Order.order_status != 'Cancelled'
     ).scalar() or 0
 
-    return render_template(
-        'admin/dashboard.html',
-        stats_1_day=stats_1_day,
-        stats_7_days=stats_7_days,
-        stats_30_days=stats_30_days,
-        monthly_comparison=monthly_comparison,
-        yearly_comparison=yearly_comparison,
-        chart_data=chart_data,
-        stock_stats=stock_stats,
-        total_orders=order_stats.total_orders,
-        total_order_revenue=float(order_stats.total_revenue),
-        total_order_profit=float(total_order_profit),
-        pending_orders=pending_orders,
-    )
+    def _stats_dict(s):
+        if not s:
+            return {'count': 0, 'revenue': 0.0, 'profit': 0.0}
+        return {
+            'count': getattr(s, 'count', 0) or 0,
+            'revenue': float(getattr(s, 'revenue', 0) or 0),
+            'profit': float(getattr(s, 'profit', 0) or 0),
+        }
+
+    return jsonify({
+        'stats_1_day': _stats_dict(stats_1_day),
+        'stats_7_days': _stats_dict(stats_7_days),
+        'stats_30_days': _stats_dict(stats_30_days),
+        'monthly_comparison': monthly_comparison,
+        'yearly_comparison': yearly_comparison,
+        'chart_data': chart_data,
+        'stock_stats': stock_stats,
+        'total_orders': order_stats.total_orders,
+        'total_order_revenue': float(order_stats.total_revenue),
+        'total_order_profit': float(total_order_profit),
+        'pending_orders': pending_orders,
+    })
 
 
 @admin_bp.route('/admin.html')
@@ -68,7 +77,6 @@ def dashboard():
 @admin_bp.route('/erp')
 @admin_bp.route('/master')
 def admin_erp_console():
-    """Consolidated Admin ERP Super-App Console."""
-    return render_template('admin.html')
-
+    """Consolidated Admin ERP Super-App Console — serves the SPA."""
+    return serve_frontend_page('admin.html')
 

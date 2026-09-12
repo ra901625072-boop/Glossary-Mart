@@ -1,0 +1,15 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>Order Confirmation #{{ order.id }}</title>
+</head>
+<body style="font-family: Arial, sans-serif; color: #333; line-height: 1.6; padding: 20px;">
+    <h2>Jay Goga Mart &bull; Order Confirmation</h2>
+    <p>Dear {{ user.full_name or user.username }},</p>
+    <p>Thank you for shopping with us! Your order <strong>#{{ order.id }}</strong> has been placed successfully.</p>
+    <p><strong>Total Amount:</strong> ₹{{ order.total_amount }}</p>
+    <p><strong>Payment Method:</strong> {{ order.payment_method }}</p>
+    <p>We are dispatching your items shortly.</p>
+</body>
+</html>

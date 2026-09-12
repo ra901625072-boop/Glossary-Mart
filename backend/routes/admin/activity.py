@@ -1,5 +1,5 @@
 """Admin audit activity log viewer."""
-from flask import render_template, request
+from flask import jsonify, request
 
 from database.models import db
 from database.models.user import ActivityLog
@@ -11,7 +11,7 @@ from . import admin_bp
 @admin_bp.route('/activity-log')
 @admin_required
 def activity_log():
-    """Audit log viewer — last MAX_ACTIVITY_LOG entries, filterable by action type."""
+    """Audit log viewer — returns JSON list, filterable by action type."""
     action_filter = request.args.get('action', '')
     query = db.session.query(ActivityLog).order_by(ActivityLog.created_at.desc())
 
@@ -28,10 +28,27 @@ def activity_log():
         db.session.query(ActivityLog.action).distinct().order_by(ActivityLog.action).all()
     ]
 
-    return render_template(
-        'admin/activity_log.html',
-        logs=pagination.items,
-        pagination=pagination,
-        action_types=action_types,
-        action_filter=action_filter,
-    )
+    return jsonify({
+        'logs': [
+            {
+                'id': log.id,
+                'user_id': log.user_id,
+                'action': log.action,
+                'entity_type': log.entity_type,
+                'entity_id': log.entity_id,
+                'details': log.details or '',
+                'ip_address': log.ip_address or '',
+                'created_at': log.created_at.isoformat() if log.created_at else None,
+            }
+            for log in pagination.items
+        ],
+        'pagination': {
+            'page': pagination.page,
+            'pages': pagination.pages,
+            'total': pagination.total,
+            'has_prev': pagination.has_prev,
+            'has_next': pagination.has_next,
+        },
+        'action_types': action_types,
+        'action_filter': action_filter,
+    })

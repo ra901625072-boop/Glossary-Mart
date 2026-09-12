@@ -16,14 +16,18 @@ from database.models import db, User
 def create_app(config_class=Config):
     """Application factory — single entry point for all environments."""
     project_root = os.path.abspath(os.path.join(os.path.dirname(__file__), '..'))
-    template_dir = os.path.join(project_root, 'frontend', 'templates')
+    backend_template_dir = os.path.join(os.path.dirname(__file__), 'templates')
     static_dir = os.path.join(project_root, 'frontend', 'static')
 
     app = Flask(
         __name__,
-        template_folder=template_dir,
+        template_folder=backend_template_dir,
         static_folder=static_dir
     )
+
+    import jinja2
+    # Jinja2 is only needed for email templates now (backend/templates/emails/)
+    app.jinja_loader = jinja2.FileSystemLoader([backend_template_dir])
 
     app.config.from_object(config_class)
 

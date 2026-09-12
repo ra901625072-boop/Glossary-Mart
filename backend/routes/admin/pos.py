@@ -1,5 +1,5 @@
 """Admin Point-of-Sale routes (POS interface + checkout API)."""
-from flask import current_app, jsonify, render_template, request
+from flask import current_app, jsonify, request
 
 from database.models import db
 from database.models.product import Product, Sale
@@ -11,14 +11,27 @@ from . import admin_bp
 @admin_bp.route('/pos')
 @admin_required
 def pos():
-    """POS (Point of Sale) interface."""
+    """POS (Point of Sale) — returns JSON product list for POS UI."""
     pos_products = (
         db.session.query(Product)
         .filter(Product.stock_quantity > 0, Product.is_active == True)  # noqa: E712
         .order_by(Product.name)
         .all()
     )
-    return render_template('admin/pos.html', products=pos_products)
+    return jsonify({
+        'products': [
+            {
+                'id': p.id,
+                'name': p.name,
+                'selling_price': float(p.selling_price),
+                'cost_price': float(p.cost_price),
+                'stock_quantity': p.stock_quantity,
+                'category': p.category_rel.name if p.category_rel else 'General',
+                'image_path': p.image_path or '',
+            }
+            for p in pos_products
+        ]
+    })
 
 
 @admin_bp.route('/api/pos/checkout', methods=['POST'])

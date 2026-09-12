@@ -1,7 +1,7 @@
 import os
 import stripe
-from flask import (current_app, flash, jsonify, redirect, render_template,
-                   request, send_from_directory, url_for)
+from flask import (current_app, flash, jsonify, redirect,
+                   render_template, request, url_for)
 from flask_login import current_user
 from flask_mail import Message
 
@@ -14,24 +14,34 @@ from backend.services.order_service import OrderService
 
 from . import customer_bp
 from .decorators import customer_required
+from .pages import serve_frontend_page
 from backend.forms.customer import ProfileForm
 
 @customer_bp.route('/favicon.ico')
 def favicon():
-    return send_from_directory(
-        os.path.join(current_app.root_path, 'static', 'images'),
-        'favicon.ico',
-        mimetype='image/vnd.microsoft.icon'
-    )
+    return current_app.send_static_file('images/favicon.ico')
 
 @customer_bp.route('/')
 @customer_bp.route('/index.html')
 def index():
     """Customer Storefront Homepage"""
     if request.args.get('view') == 'api' or request.args.get('portal') == 'api':
+        # Serve a JSON API portal response instead of Jinja2 template
         frontend_url = current_app.config.get('FRONTEND_URL', 'https://glossary-mart.vercel.app')
-        return render_template('backend_api.html', frontend_url=frontend_url)
-    return render_template('index.html')
+        return jsonify({
+            'service': 'Jay Goga Mart Backend API',
+            'status': 'healthy',
+            'frontend_url': frontend_url,
+            'endpoints': {
+                'health': '/api/health',
+                'products': '/api/products',
+                'cart': '/api/cart',
+                'cart_add': '/api/cart/add',
+                'checkout': '/api/orders/checkout',
+            },
+            'admin_login': '/auth/admin/login',
+        })
+    return serve_frontend_page('index.html')
 
 @customer_bp.route('/customer')
 @customer_bp.route('/customer.html')
@@ -39,18 +49,30 @@ def index():
 @customer_bp.route('/cosummer.html')
 def customer_portal():
     """Consolidated Customer Super-App Portal (Shop, Cart, Checkout, Tracking, Wishlist, Profile)"""
-    return render_template('customer.html')
+    return serve_frontend_page('customer.html')
 
 @customer_bp.route('/admin.html')
 def admin_html():
     """Direct route for admin.html"""
-    return render_template('admin.html')
+    return serve_frontend_page('admin.html')
 
 @customer_bp.route('/api-portal')
 def api_portal():
     """Backend service portal and API documentation page"""
     frontend_url = current_app.config.get('FRONTEND_URL', 'https://glossary-mart.vercel.app')
-    return render_template('backend_api.html', frontend_url=frontend_url)
+    return jsonify({
+        'service': 'Jay Goga Mart Backend API',
+        'status': 'healthy',
+        'frontend_url': frontend_url,
+        'endpoints': {
+            'health': '/api/health',
+            'products': '/api/products',
+            'cart': '/api/cart',
+            'cart_add': '/api/cart/add',
+            'checkout': '/api/orders/checkout',
+        },
+        'admin_login': '/auth/admin/login',
+    })
 
 @customer_bp.route('/orders')
 def orders_redirect():
@@ -60,7 +82,7 @@ def orders_redirect():
 @customer_bp.route('/shop')
 @customer_required
 def shop():
-    """Customer shop page with products"""
+    """Customer shop page — returns JSON product data for SPA."""
     search = request.args.get('search', '')
     category = request.args.get('category', '')
     sort_by = request.args.get('sort', '')
@@ -96,26 +118,73 @@ def shop():
     products = query.all()
     categories = db.session.query(Category).order_by(Category.name).all()
     
-    return render_template('customer/shop.html', 
-                         products=products,
-                         categories=categories,
-                         search=search,
-                         selected_category=category,
-                         sort_by=sort_by)
+    return jsonify({
+        'products': [
+            {
+                'id': p.id,
+                'name': p.name,
+                'category': p.category_rel.name if p.category_rel else 'General',
+                'selling_price': float(p.selling_price),
+                'cost_price': float(p.cost_price),
+                'stock_quantity': p.stock_quantity,
+                'image_path': p.image_path or '',
+                'created_at': p.created_at.isoformat() if p.created_at else None,
+            }
+            for p in products
+        ],
+        'categories': [{'id': c.id, 'name': c.name} for c in categories],
+        'filters': {
+            'search': search,
+            'category': category,
+            'sort': sort_by,
+        }
+    })
 
 @customer_bp.route('/product/<int:product_id>')
 @customer_required
 def product_detail(product_id):
-    """Product detail page"""
-    product = db.session.query(Product).filter_by(id=product_id, is_active=True).first_or_404()
-    return render_template('customer/product_detail.html', product=product)
+    """Product detail — returns JSON for SPA."""
+    product = db.session.query(Product).filter_by(id=product_id, is_active=True).first()
+    if not product:
+        return jsonify({'error': 'Product not found'}), 404
+    
+    reviews = []
+    if hasattr(product, 'reviews'):
+        reviews = [
+            {
+                'id': r.id,
+                'user': r.user.username if r.user else 'Anonymous',
+                'rating': r.rating,
+                'comment': r.comment,
+                'created_at': r.created_at.isoformat() if r.created_at else None,
+            }
+            for r in product.reviews
+        ]
+    
+    return jsonify({
+        'id': product.id,
+        'name': product.name,
+        'category': product.category_rel.name if product.category_rel else 'General',
+        'selling_price': float(product.selling_price),
+        'cost_price': float(product.cost_price),
+        'stock_quantity': product.stock_quantity,
+        'image_path': product.image_path or '',
+        'description': getattr(product, 'description', '') or '',
+        'reviews': reviews,
+    })
 
 @customer_bp.route('/cart/add/<int:product_id>', methods=['POST'])
 def add_to_cart(product_id):
     """Add product to cart (Guest and Authenticated)"""
     try:
-        quantity = int(request.form.get('quantity', 1))
+        # Support both form data and JSON
+        if request.is_json:
+            quantity = int(request.json.get('quantity', 1))
+        else:
+            quantity = int(request.form.get('quantity', 1))
         success, message = CartService.add_item(product_id, quantity)
+        if request.headers.get('X-Requested-With') == 'XMLHttpRequest' or request.is_json:
+            return jsonify({'success': success, 'message': message}), 200 if success else 400
         if success:
             flash(message, 'success')
         else:
@@ -124,27 +193,42 @@ def add_to_cart(product_id):
         if current_user.is_authenticated:
             db.session.rollback()
         message = f'Error adding to cart: {str(e)}'
-        flash(message, 'danger')
-        if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
+        if request.headers.get('X-Requested-With') == 'XMLHttpRequest' or request.is_json:
             return jsonify({'success': False, 'message': message}), 400
+        flash(message, 'danger')
     
-    if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
-        return jsonify({'success': True, 'message': message})
-        
     return redirect(url_for('customer.view_cart'))
 
 @customer_bp.route('/cart')
 def view_cart():
-    """View shopping cart"""
+    """View shopping cart — returns JSON for SPA."""
     cart_items, total = CartService.get_cart_items()
-    return render_template('customer/cart.html', cart_items=cart_items, total=total)
+    items = []
+    for item in cart_items:
+        p = item.product
+        items.append({
+            'cart_id': item.id if hasattr(item, 'id') else str(p.id),
+            'product_id': p.id,
+            'name': p.name,
+            'price': float(p.selling_price),
+            'quantity': item.quantity,
+            'subtotal': float(p.selling_price * item.quantity),
+            'image': p.image_path or '',
+            'stock_available': p.stock_quantity,
+        })
+    return jsonify({'items': items, 'total': float(total)})
 
 @customer_bp.route('/cart/update/<cart_id>', methods=['POST'])
 def update_cart(cart_id):
     """Update cart item quantity"""
     try:
-        quantity = int(request.form.get('quantity', 1))
+        if request.is_json:
+            quantity = int(request.json.get('quantity', 1))
+        else:
+            quantity = int(request.form.get('quantity', 1))
         success, message = CartService.update_item(cart_id, quantity)
+        if request.is_json or request.headers.get('X-Requested-With') == 'XMLHttpRequest':
+            return jsonify({'success': success, 'message': message}), 200 if success else 400
         if success:
             flash(message, 'success' if 'updated' in message else 'info')
         else:
@@ -152,7 +236,10 @@ def update_cart(cart_id):
     except Exception as e:
         if current_user.is_authenticated:
             db.session.rollback()
-        flash(f'Error updating cart: {str(e)}', 'danger')
+        msg = f'Error updating cart: {str(e)}'
+        if request.is_json or request.headers.get('X-Requested-With') == 'XMLHttpRequest':
+            return jsonify({'success': False, 'message': msg}), 400
+        flash(msg, 'danger')
     return redirect(url_for('customer.view_cart'))
 
 @customer_bp.route('/cart/remove/<cart_id>', methods=['POST'])
@@ -160,6 +247,8 @@ def remove_from_cart(cart_id):
     """Remove item from cart"""
     try:
         success, message = CartService.remove_item(cart_id)
+        if request.is_json or request.headers.get('X-Requested-With') == 'XMLHttpRequest':
+            return jsonify({'success': success, 'message': message}), 200 if success else 400
         if success:
             flash(message, 'info')
         else:
@@ -167,79 +256,134 @@ def remove_from_cart(cart_id):
     except Exception as e:
         if current_user.is_authenticated:
             db.session.rollback()
-        flash(f'Error removing item: {str(e)}', 'danger')
+        msg = f'Error removing item: {str(e)}'
+        if request.is_json or request.headers.get('X-Requested-With') == 'XMLHttpRequest':
+            return jsonify({'success': False, 'message': msg}), 400
+        flash(msg, 'danger')
     return redirect(url_for('customer.view_cart'))
 
 @customer_bp.route('/checkout', methods=['GET', 'POST'])
 @customer_required
 def checkout():
-    """Checkout page"""
+    """Checkout — GET returns cart summary JSON, POST processes order."""
     cart_items, total = CartService.get_cart_items()
     if not cart_items:
+        if request.is_json:
+            return jsonify({'error': 'Your cart is empty.'}), 400
         flash('Your cart is empty.', 'warning')
         return redirect(url_for('customer.shop'))
     
-    if request.method == 'POST':
-        try:
+    if request.method == 'GET':
+        # Return cart data for the SPA checkout page
+        items = []
+        for item in cart_items:
+            p = item.product
+            items.append({
+                'product_id': p.id,
+                'name': p.name,
+                'price': float(p.selling_price),
+                'quantity': item.quantity,
+                'subtotal': float(p.selling_price * item.quantity),
+            })
+        return jsonify({
+            'items': items,
+            'total': float(total),
+            'user': {
+                'full_name': current_user.full_name or '',
+                'email': current_user.email or '',
+                'phone': current_user.phone or '',
+                'address': current_user.address or '',
+            }
+        })
+    
+    # POST — process checkout
+    try:
+        if request.is_json:
+            shipping_address = request.json.get('shipping_address', '')
+            payment_method = request.json.get('payment_method', 'COD')
+        else:
             shipping_address = request.form.get('shipping_address')
             payment_method = request.form.get('payment_method', 'COD')
 
-            if not shipping_address or len(shipping_address.strip()) < 15:
-                flash('Please enter a complete shipping address (minimum 15 characters).', 'danger')
-                return redirect(url_for('customer.checkout'))
-            
-            success, order, message = OrderService.process_checkout(cart_items, shipping_address, payment_method)
-            
-            if not success:
-                flash(message, 'danger')
-                return redirect(url_for('customer.view_cart'))
-            
-            if payment_method == 'UDHAR':
-                flash(f'Order placed successfully on Store Credit!', 'success')
-                return redirect(url_for('customer.order_confirmation', order_id=order.id))
-            elif payment_method in ['UPI', 'CARD']:
-                return redirect(url_for('customer.process_payment', order_id=order.id))
-            
-            # COD Flow - Send email
-            try:
-                msg = Message(
-                    f"Order Confirmation - #{order.id} | Jay Goga Mart Store",
-                    recipients=[current_user.email]
-                )
-                msg.html = render_template('emails/order_confirmation.html', order=order, user=current_user)
-                mail.send(msg)
-            except Exception:
-                current_app.logger.exception(f"Failed to send order confirmation email for order #{order.id}")
-            
-            flash(f'Order placed successfully with Cash on Delivery!', 'success')
-            return redirect(url_for('customer.order_confirmation', order_id=order.id))
-        except Exception:
-            db.session.rollback()
-            current_app.logger.exception("Checkout failed")
-            flash('Could not place your order. Please try again.', 'danger')
+        if not shipping_address or len(shipping_address.strip()) < 15:
+            msg = 'Please enter a complete shipping address (minimum 15 characters).'
+            if request.is_json:
+                return jsonify({'success': False, 'message': msg}), 400
+            flash(msg, 'danger')
             return redirect(url_for('customer.checkout'))
-    
-    return render_template('customer/checkout.html', cart_items=cart_items, total=total, user=current_user)
+        
+        success, order, message = OrderService.process_checkout(cart_items, shipping_address, payment_method)
+        
+        if not success:
+            if request.is_json:
+                return jsonify({'success': False, 'message': message}), 400
+            flash(message, 'danger')
+            return redirect(url_for('customer.view_cart'))
+        
+        if payment_method == 'UDHAR':
+            if request.is_json:
+                return jsonify({'success': True, 'order_id': order.id, 'message': 'Order placed on Store Credit!', 'redirect': url_for('customer.order_confirmation', order_id=order.id)})
+            flash(f'Order placed successfully on Store Credit!', 'success')
+            return redirect(url_for('customer.order_confirmation', order_id=order.id))
+        elif payment_method in ['UPI', 'CARD']:
+            if request.is_json:
+                return jsonify({'success': True, 'order_id': order.id, 'redirect': url_for('customer.process_payment', order_id=order.id)})
+            return redirect(url_for('customer.process_payment', order_id=order.id))
+        
+        # COD Flow - Send email
+        try:
+            msg = Message(
+                f"Order Confirmation - #{order.id} | Jay Goga Mart Store",
+                recipients=[current_user.email]
+            )
+            msg.html = render_template('emails/order_confirmation.html', order=order, user=current_user)
+            mail.send(msg)
+        except Exception:
+            current_app.logger.exception(f"Failed to send order confirmation email for order #{order.id}")
+        
+        if request.is_json:
+            return jsonify({'success': True, 'order_id': order.id, 'message': 'Order placed with Cash on Delivery!', 'redirect': url_for('customer.order_confirmation', order_id=order.id)})
+        flash(f'Order placed successfully with Cash on Delivery!', 'success')
+        return redirect(url_for('customer.order_confirmation', order_id=order.id))
+    except Exception:
+        db.session.rollback()
+        current_app.logger.exception("Checkout failed")
+        if request.is_json:
+            return jsonify({'success': False, 'message': 'Could not place your order. Please try again.'}), 500
+        flash('Could not place your order. Please try again.', 'danger')
+        return redirect(url_for('customer.checkout'))
 
 @customer_bp.route('/order/confirmation/<int:order_id>')
 @customer_required
 def order_confirmation(order_id):
-    """Order confirmation page"""
+    """Order confirmation — returns JSON."""
     order = db.session.get(Order, order_id)
     if not order or order.user_id != current_user.id:
-        flash('Unauthorized access.', 'danger')
-        return redirect(url_for('customer.shop'))
-    return render_template('customer/order_confirmation.html', order=order)
+        return jsonify({'error': 'Unauthorized access.'}), 403
+    return jsonify({
+        'order_id': order.id,
+        'total_amount': float(order.total_amount),
+        'order_status': order.order_status,
+        'payment_status': order.payment_status,
+        'payment_method': order.payment_method,
+        'shipping_address': order.shipping_address or '',
+        'created_at': order.created_at.isoformat() if order.created_at else None,
+    })
 
 @customer_bp.route('/payment/process/<int:order_id>')
 @customer_required
 def process_payment(order_id):
-    """Simulated payment processing page"""
+    """Simulated payment processing — returns JSON with payment info."""
     order = db.session.get(Order, order_id)
     if not order or order.user_id != current_user.id:
-        flash('Unauthorized access.', 'danger')
-        return redirect(url_for('customer.shop'))
-    return render_template('customer/payment_processing.html', order=order)
+        return jsonify({'error': 'Unauthorized access.'}), 403
+    return jsonify({
+        'order_id': order.id,
+        'total_amount': float(order.total_amount),
+        'payment_method': order.payment_method,
+        'payment_status': order.payment_status,
+        'stripe_publishable_key': current_app.config.get('STRIPE_PUBLISHABLE_KEY', ''),
+    })
 
 @customer_bp.route('/payment/success/<int:order_id>', methods=['POST'])
 @customer_required
@@ -247,6 +391,8 @@ def payment_success(order_id):
     """Update order after successful simulated payment"""
     order = db.session.get(Order, order_id)
     if not order or order.user_id != current_user.id:
+        if request.is_json:
+            return jsonify({'error': 'Unauthorized.'}), 403
         return redirect(url_for('customer.shop'))
     
     # Verify Stripe Session if API key is configured
@@ -255,6 +401,8 @@ def payment_success(order_id):
     
     if stripe_key:
         if not session_id:
+            if request.is_json:
+                return jsonify({'success': False, 'message': 'Invalid or missing payment session.'}), 400
             flash('Invalid or missing payment session.', 'danger')
             return redirect(url_for('customer.order_confirmation', order_id=order.id))
             
@@ -263,14 +411,18 @@ def payment_success(order_id):
             session = stripe.checkout.Session.retrieve(session_id)
             if session.payment_status == 'paid':
                 order.payment_status = 'Paid'
-                # Record transaction ID if needed
-                # order.transaction_id = session.payment_intent
             else:
-                flash('Payment verification failed. Please contact support.', 'danger')
+                msg = 'Payment verification failed. Please contact support.'
+                if request.is_json:
+                    return jsonify({'success': False, 'message': msg}), 400
+                flash(msg, 'danger')
                 return redirect(url_for('customer.order_confirmation', order_id=order.id))
         except Exception as e:
             current_app.logger.error(f"Stripe verification error: {str(e)}")
-            flash('Error verifying payment. We will update your order status once confirmed.', 'warning')
+            msg = 'Error verifying payment. We will update your order status once confirmed.'
+            if request.is_json:
+                return jsonify({'success': False, 'message': msg}), 400
+            flash(msg, 'warning')
             return redirect(url_for('customer.order_confirmation', order_id=order.id))
     else:
         # Fallback for demo mode (only executes if NO Stripe key is configured server-side)
@@ -290,20 +442,51 @@ def payment_success(order_id):
         except Exception:
             current_app.logger.exception(f"Failed to send payment confirmation email for order #{order.id}")
             
+    if request.is_json:
+        return jsonify({'success': True, 'message': 'Payment successful! Your order has been placed.', 'order_id': order.id})
     flash('Payment successful! Your order has been placed.', 'success')
     return redirect(url_for('customer.order_confirmation', order_id=order.id))
 
 @customer_bp.route('/profile')
 @customer_required
 def profile():
-    """View customer profile"""
+    """View customer profile — returns JSON."""
     recent_orders = db.session.query(Order).filter_by(user_id=current_user.id).order_by(Order.created_at.desc()).limit(5).all()
-    return render_template('customer/profile.html', user=current_user, recent_orders=recent_orders)
+    return jsonify({
+        'user': {
+            'id': current_user.id,
+            'username': current_user.username,
+            'email': current_user.email,
+            'full_name': current_user.full_name or '',
+            'phone': current_user.phone or '',
+            'address': current_user.address or '',
+        },
+        'recent_orders': [
+            {
+                'id': o.id,
+                'total_amount': float(o.total_amount),
+                'order_status': o.order_status,
+                'payment_status': o.payment_status,
+                'created_at': o.created_at.isoformat() if o.created_at else None,
+            }
+            for o in recent_orders
+        ]
+    })
 
 @customer_bp.route('/profile/edit', methods=['GET', 'POST'])
 @customer_required
 def edit_profile():
-    """Edit customer profile"""
+    """Edit customer profile — JSON API."""
+    if request.method == 'GET':
+        return jsonify({
+            'username': current_user.username,
+            'email': current_user.email,
+            'full_name': current_user.full_name or '',
+            'phone': current_user.phone or '',
+            'address': current_user.address or '',
+        })
+    
+    # POST — update profile
     form = ProfileForm(obj=current_user)
     if form.validate_on_submit():
         current_user.full_name = form.full_name.data
@@ -312,23 +495,48 @@ def edit_profile():
         current_user.address = form.address.data
         try:
             db.session.commit()
+            if request.is_json:
+                return jsonify({'success': True, 'message': 'Profile updated successfully!'})
             flash('Profile updated successfully!', 'success')
             return redirect(url_for('customer.profile'))
         except Exception:
             db.session.rollback()
             current_app.logger.exception("Failed to update profile")
+            if request.is_json:
+                return jsonify({'success': False, 'message': 'Could not update profile.'}), 500
             flash('Could not update profile. Please try again.', 'danger')
-    return render_template('customer/edit_profile.html', form=form, user=current_user)
+    
+    errors = {field: errs for field, errs in form.errors.items()} if form.errors else {}
+    if request.is_json:
+        return jsonify({'success': False, 'errors': errors}), 400
+    flash('Could not update profile. Please try again.', 'danger')
+    return redirect(url_for('customer.profile'))
 
 @customer_bp.route('/product/<int:product_id>/review', methods=['POST'])
 @customer_required
 def submit_review(product_id):
     """Submit a product review"""
-    product = db.session.query(Product).filter_by(id=product_id, is_active=True).first_or_404()
-    rating = request.form.get('rating', type=int)
-    comment = request.form.get('comment', '')
+    product = db.session.query(Product).filter_by(id=product_id, is_active=True).first()
+    if not product:
+        if request.is_json:
+            return jsonify({'error': 'Product not found.'}), 404
+        flash('Product not found.', 'danger')
+        return redirect(url_for('customer.shop'))
+    
+    if request.is_json:
+        rating = request.json.get('rating', type=int) if hasattr(request.json.get('rating', 0), '__int__') else None
+        comment = request.json.get('comment', '')
+        try:
+            rating = int(request.json.get('rating'))
+        except (TypeError, ValueError):
+            rating = None
+    else:
+        rating = request.form.get('rating', type=int)
+        comment = request.form.get('comment', '')
     
     if not rating or rating < 1 or rating > 5:
+        if request.is_json:
+            return jsonify({'success': False, 'message': 'Please provide a valid rating (1-5).'}), 400
         flash('Please provide a valid rating (1-5).', 'danger')
         return redirect(url_for('customer.product_detail', product_id=product_id))
     
@@ -337,17 +545,22 @@ def submit_review(product_id):
     if existing_review:
         existing_review.rating = rating
         existing_review.comment = comment
-        flash('Your review has been updated!', 'success')
+        msg = 'Your review has been updated!'
     else:
         review = Review(user_id=current_user.id, product_id=product_id, rating=rating, comment=comment)
         db.session.add(review)
-        flash('Thank you for your review!', 'success')
+        msg = 'Thank you for your review!'
     
     try:
         db.session.commit()
+        if request.is_json:
+            return jsonify({'success': True, 'message': msg})
+        flash(msg, 'success')
     except Exception:
         db.session.rollback()
         current_app.logger.exception(f"Failed to submit review for product #{product_id}")
+        if request.is_json:
+            return jsonify({'success': False, 'message': 'Could not submit review.'}), 500
         flash('Could not submit review. Please try again.', 'danger')
     
     return redirect(url_for('customer.product_detail', product_id=product_id))
@@ -355,19 +568,50 @@ def submit_review(product_id):
 @customer_bp.route('/my-orders')
 @customer_required
 def my_orders():
-    """View customer order history"""
+    """View customer order history — returns JSON."""
     orders = db.session.query(Order).filter_by(user_id=current_user.id).order_by(Order.created_at.desc()).all()
-    return render_template('customer/orders.html', orders=orders)
+    return jsonify({
+        'orders': [
+            {
+                'id': o.id,
+                'total_amount': float(o.total_amount),
+                'order_status': o.order_status,
+                'payment_status': o.payment_status,
+                'payment_method': o.payment_method,
+                'created_at': o.created_at.isoformat() if o.created_at else None,
+            }
+            for o in orders
+        ]
+    })
 
 @customer_bp.route('/my-orders/<int:order_id>')
 @customer_required
 def order_detail(order_id):
-    """View specific order details"""
+    """View specific order details — returns JSON."""
     order = db.session.get(Order, order_id)
     if not order or order.user_id != current_user.id:
-        flash('Unauthorized access.', 'danger')
-        return redirect(url_for('customer.my_orders'))
-    return render_template('customer/order_detail.html', order=order)
+        return jsonify({'error': 'Unauthorized access.'}), 403
+    
+    items = []
+    if hasattr(order, 'items'):
+        for oi in order.items:
+            items.append({
+                'product_name': oi.product.name if oi.product else 'Unknown',
+                'quantity': oi.quantity,
+                'price': float(oi.price),
+                'subtotal': float(oi.price * oi.quantity),
+            })
+    
+    return jsonify({
+        'id': order.id,
+        'total_amount': float(order.total_amount),
+        'order_status': order.order_status,
+        'payment_status': order.payment_status,
+        'payment_method': order.payment_method,
+        'shipping_address': order.shipping_address or '',
+        'created_at': order.created_at.isoformat() if order.created_at else None,
+        'items': items,
+    })
 
 @customer_bp.route('/api/search')
 @customer_required
@@ -415,14 +659,29 @@ def api_get_cart():
 @customer_bp.route('/wishlist')
 @customer_required
 def view_wishlist():
+    """View wishlist — returns JSON."""
     items = db.session.query(Wishlist).filter_by(user_id=current_user.id).all()
-    return render_template('customer/wishlist.html', items=items)
+    return jsonify({
+        'items': [
+            {
+                'id': w.id,
+                'product_id': w.product_id,
+                'product_name': w.product.name if w.product else 'Unknown',
+                'price': float(w.product.selling_price) if w.product else 0,
+                'image': w.product.image_path or '' if w.product else '',
+                'in_stock': w.product.stock_quantity > 0 if w.product else False,
+            }
+            for w in items
+        ]
+    })
 
 @customer_bp.route('/wishlist/add/<int:product_id>', methods=['POST'])
 @customer_required
 def add_to_wishlist(product_id):
     product = db.session.get(Product, product_id)
     if not product:
+        if request.is_json:
+            return jsonify({'success': False, 'message': 'Product not found.'}), 404
         flash('Product not found.', 'danger')
         return redirect(url_for('customer.shop'))
         
@@ -430,9 +689,15 @@ def add_to_wishlist(product_id):
     if not exists:
         db.session.add(Wishlist(user_id=current_user.id, product_id=product_id))
         db.session.commit()
-        flash(f'{product.name} added to your wishlist.', 'success')
+        msg = f'{product.name} added to your wishlist.'
+        if request.is_json:
+            return jsonify({'success': True, 'message': msg})
+        flash(msg, 'success')
     else:
-        flash(f'{product.name} is already in your wishlist.', 'info')
+        msg = f'{product.name} is already in your wishlist.'
+        if request.is_json:
+            return jsonify({'success': False, 'message': msg})
+        flash(msg, 'info')
     return redirect(request.referrer or url_for('customer.shop'))
 
 @customer_bp.route('/wishlist/remove/<int:id>', methods=['POST'])
@@ -442,7 +707,12 @@ def remove_from_wishlist(id):
     if item and item.user_id == current_user.id:
         db.session.delete(item)
         db.session.commit()
+        if request.is_json:
+            return jsonify({'success': True, 'message': 'Item removed from wishlist.'})
         flash('Item removed from wishlist.', 'info')
+    else:
+        if request.is_json:
+            return jsonify({'success': False, 'message': 'Item not found.'}), 404
     return redirect(url_for('customer.view_wishlist'))
 
 @customer_bp.route('/create-checkout-session/<int:order_id>', methods=['POST'])
