@@ -140,6 +140,13 @@
 
         syncUI() {
             const user = this.user;
+            const isAdmin = this.isAdmin();
+
+            // Reveal admin ERP links only for authenticated administrators
+            document.querySelectorAll('.admin-only-link').forEach(el => {
+                el.style.display = isAdmin ? '' : 'none';
+            });
+
             if (!user) return;
 
             document.querySelectorAll('.profile-user-name-display, #accountBtnText').forEach(el => {

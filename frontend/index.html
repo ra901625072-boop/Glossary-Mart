@@ -500,21 +500,18 @@
                 <div class="col-lg-6">
                     <div class="d-inline-flex align-items-center gap-2 px-3 py-1 rounded-pill bg-success bg-opacity-10 text-success fw-bold small mb-3">
                         <i class="bi bi-shield-check"></i>
-                        <span>Secure Customer &amp; Merchant Access</span>
+                        <span>Seamless Member Access</span>
                     </div>
                     <h2 class="fw-bold mb-2">Welcome to e Grossary</h2>
                     <p class="text-muted mb-4">
-                        Sign in to track real-time orders, manage your saved grocery wishlist, unlock member-only coupon discounts, or manage daily retail operations via the Admin ERP.
+                        Sign in to track real-time orders, manage your saved grocery wishlist, unlock member-only coupon discounts, and enjoy ultra-fast doorstep delivery.
                     </p>
                     <div class="d-flex flex-wrap gap-2 mb-3">
                         <button class="btn btn-ss-primary px-4 py-2 rounded-pill fw-bold" onclick="switchAuthTab('login'); new bootstrap.Modal(document.getElementById('authModal')).show();">
-                            <i class="bi bi-box-arrow-in-right me-2"></i>Customer Sign In
+                            <i class="bi bi-box-arrow-in-right me-2"></i>Sign In
                         </button>
                         <button class="btn btn-outline-success px-4 py-2 rounded-pill fw-bold" onclick="switchAuthTab('register'); new bootstrap.Modal(document.getElementById('authModal')).show();">
                             <i class="bi bi-person-plus me-2"></i>Create Account
-                        </button>
-                        <button class="btn btn-outline-dark px-4 py-2 rounded-pill fw-bold" onclick="switchAuthTab('admin'); new bootstrap.Modal(document.getElementById('authModal')).show();">
-                            <i class="bi bi-shield-lock me-2"></i>Admin ERP
                         </button>
                     </div>
                     <div class="small text-muted">
@@ -523,19 +520,25 @@
                 </div>
                 <div class="col-lg-6">
                     <div class="p-3 p-md-4 rounded-4 bg-light border">
-                        <h6 class="fw-bold text-dark mb-3"><i class="bi bi-shield-lock-fill text-success me-2"></i>Authorized Store Operations</h6>
-                        <div class="d-flex flex-column gap-2">
-                            <div class="demo-login-chip bg-white border p-3 rounded-3 cursor-pointer" onclick="fillDemoCredentials('admin'); new bootstrap.Modal(document.getElementById('authModal')).show();">
-                                <div class="d-flex align-items-center gap-3">
-                                    <div class="rounded-circle bg-dark bg-opacity-10 text-dark p-2 d-flex align-items-center justify-content-center" style="width: 40px; height: 40px;">
-                                        <i class="bi bi-shield-lock-fill fs-5"></i>
-                                    </div>
-                                    <div>
-                                        <div class="fw-bold text-dark small">Admin ERP Console</div>
-                                        <div class="text-muted smallest">admin@mart.com &bull; Authorized Personnel Only</div>
-                                    </div>
+                        <h6 class="fw-bold text-dark mb-3"><i class="bi bi-stars text-warning me-2"></i>Why Shop with e Grossary?</h6>
+                        <div class="d-flex flex-column gap-3">
+                            <div class="d-flex align-items-center gap-3 bg-white p-3 rounded-3 border">
+                                <div class="rounded-circle bg-success bg-opacity-10 text-success p-2 d-flex align-items-center justify-content-center" style="width: 42px; height: 42px;">
+                                    <i class="bi bi-lightning-charge-fill fs-5"></i>
                                 </div>
-                                <span class="badge bg-dark bg-opacity-10 text-dark">Access Console &rarr;</span>
+                                <div>
+                                    <div class="fw-bold text-dark small">15-Minute Express Delivery</div>
+                                    <div class="text-muted smallest">Fresh daily groceries delivered to your door in minutes</div>
+                                </div>
+                            </div>
+                            <div class="d-flex align-items-center gap-3 bg-white p-3 rounded-3 border">
+                                <div class="rounded-circle bg-primary bg-opacity-10 text-primary p-2 d-flex align-items-center justify-content-center" style="width: 42px; height: 42px;">
+                                    <i class="bi bi-patch-check-fill fs-5"></i>
+                                </div>
+                                <div>
+                                    <div class="fw-bold text-dark small">100% Quality &amp; Freshness Guarantee</div>
+                                    <div class="text-muted smallest">Direct from verified local farms and top FMCG brands</div>
+                                </div>
                             </div>
                         </div>
                     </div>
@@ -598,7 +601,7 @@
                         <li class="footer-link-item"><a href="#">Privacy Policy</a></li>
                         <li class="footer-link-item"><a href="#">Terms</a></li>
                         <li class="footer-link-item"><a href="#">Refund Policy</a></li>
-                        <li class="footer-link-item"><a href="admin/index.html" class="text-success"><i class="bi bi-shield-lock me-1"></i>Admin ERP</a></li>
+                        <li class="footer-link-item"><a href="customer/orders.html"><i class="bi bi-box-seam me-1"></i>Track My Order</a></li>
                     </ul>
                 </div>
 
@@ -858,7 +861,7 @@
                         <img src="static/images/logo-icon.png" alt="e Grossary logo" style="width: 38px; height: 38px; object-fit: contain;">
                         <div>
                             <h5 class="modal-title fw-bold mb-0">e<span class="text-success">Grossary</span></h5>
-                            <span class="smallest text-muted">Customer &amp; Partner Authentication</span>
+                            <span class="smallest text-muted">Account Sign In &amp; Registration</span>
                         </div>
                     </div>
                     <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
@@ -873,18 +876,15 @@
                         <button type="button" class="auth-nav-btn" id="tabRegisterBtn" onclick="switchAuthTab('register')">
                             <i class="bi bi-person-plus"></i> Sign Up
                         </button>
-                        <button type="button" class="auth-nav-btn" id="tabAdminBtn" onclick="switchAuthTab('admin')">
-                            <i class="bi bi-shield-lock"></i> Admin ERP
-                        </button>
                     </div>
 
-                    <!-- 1. Customer Sign In (Login) Pane -->
+                    <!-- 1. Unified Sign In (Login) Pane -->
                     <div id="authLoginPane">
                         <div id="loginFeedback"></div>
-                        <form onsubmit="handleCustomerLogin(event)">
+                        <form onsubmit="handleLogin(event)">
                             <div class="auth-input-group">
-                                <i class="bi bi-envelope auth-icon"></i>
-                                <input type="text" class="form-control" id="loginEmail" placeholder="Email address or Mobile number" required>
+                                <i class="bi bi-person auth-icon"></i>
+                                <input type="text" class="form-control" id="loginEmail" placeholder="Email address or Username" required>
                             </div>
                             <div class="auth-input-group">
                                 <i class="bi bi-lock auth-icon"></i>
@@ -895,14 +895,14 @@
                             </div>
                             <div class="d-flex justify-content-between align-items-center mb-3">
                                 <label class="small text-muted d-flex align-items-center gap-2 cursor-pointer">
-                                    <input type="checkbox" checked class="form-check-input mt-0">
+                                    <input type="checkbox" checked class="form-check-input mt-0" id="rememberMe">
                                     <span>Remember me</span>
                                 </label>
                                 <a href="javascript:void(0)" onclick="switchAuthTab('forgot')" class="small text-success fw-bold text-decoration-none">Forgot Password?</a>
                             </div>
                             <button type="submit" class="btn-auth-submit">
                                 <i class="bi bi-box-arrow-in-right"></i>
-                                <span>Sign In to Account</span>
+                                <span>Sign In</span>
                             </button>
                         </form>
 
@@ -955,48 +955,6 @@
 
                         <div class="text-center mt-3 pt-2 border-top small text-muted">
                             Already have an account? <a href="javascript:void(0)" onclick="switchAuthTab('login')" class="text-success fw-bold">Sign In here</a>
-                        </div>
-                    </div>
-
-                    <!-- 3. Admin & Staff ERP Portal Pane -->
-                    <div id="authAdminPane" style="display: none;">
-                        <div id="adminFeedback"></div>
-                        <div class="alert alert-warning py-2 small d-flex align-items-center gap-2 mb-3">
-                            <i class="bi bi-shield-lock-fill fs-5"></i>
-                            <span>Restricted Area: Authorized e Grossary Store Personnel Only.</span>
-                        </div>
-                        <form onsubmit="handleAdminLogin(event)">
-                            <div class="auth-input-group">
-                                <i class="bi bi-person-badge auth-icon"></i>
-                                <input type="text" class="form-control" id="adminEmail" placeholder="Admin Username or Email" required>
-                            </div>
-                            <div class="auth-input-group">
-                                <i class="bi bi-key auth-icon"></i>
-                                <input type="password" class="form-control" id="adminPassword" placeholder="Admin Password" required>
-                                <button type="button" class="auth-password-toggle" onclick="togglePasswordVisibility('adminPassword', 'adminPassIcon')" aria-label="Toggle password">
-                                    <i class="bi bi-eye" id="adminPassIcon"></i>
-                                </button>
-                            </div>
-                            <div class="auth-input-group">
-                                <i class="bi bi-qr-code auth-icon"></i>
-                                <input type="text" class="form-control" id="admin2FA" placeholder="2FA Authenticator Code (optional)">
-                            </div>
-                            <button type="submit" class="btn-auth-submit" style="background: linear-gradient(135deg, #1e293b, #0f172a);">
-                                <i class="bi bi-shield-lock"></i>
-                                <span>Enter Admin ERP Console</span>
-                            </button>
-                        </form>
-
-                        <div class="auth-divider">Quick Demo Admin Access</div>
-                        <div class="demo-login-chip" onclick="fillDemoCredentials('admin')">
-                            <div class="d-flex align-items-center gap-2">
-                                <i class="bi bi-speedometer2 text-primary fs-5"></i>
-                                <div>
-                                    <strong class="d-block text-dark">One-Click Admin Demo</strong>
-                                    <span class="text-muted smallest">admin@mart.com &bull; pass: StrongAdmin@2026</span>
-                                </div>
-                            </div>
-                            <span class="badge bg-primary bg-opacity-10 text-primary">Auto-fill</span>
                         </div>
                     </div>
 

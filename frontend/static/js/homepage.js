@@ -903,21 +903,17 @@
     function switchAuthTab(tab) {
         const loginPane = document.getElementById('authLoginPane');
         const registerPane = document.getElementById('authRegisterPane');
-        const adminPane = document.getElementById('authAdminPane');
         const forgotPane = document.getElementById('authForgotPane');
 
         const tabLoginBtn = document.getElementById('tabLoginBtn');
         const tabRegisterBtn = document.getElementById('tabRegisterBtn');
-        const tabAdminBtn = document.getElementById('tabAdminBtn');
 
         if (loginPane) loginPane.style.display = 'none';
         if (registerPane) registerPane.style.display = 'none';
-        if (adminPane) adminPane.style.display = 'none';
         if (forgotPane) forgotPane.style.display = 'none';
 
         if (tabLoginBtn) tabLoginBtn.classList.remove('active');
         if (tabRegisterBtn) tabRegisterBtn.classList.remove('active');
-        if (tabAdminBtn) tabAdminBtn.classList.remove('active');
 
         if (tab === 'login') {
             if (loginPane) loginPane.style.display = 'block';
@@ -925,9 +921,6 @@
         } else if (tab === 'register') {
             if (registerPane) registerPane.style.display = 'block';
             if (tabRegisterBtn) tabRegisterBtn.classList.add('active');
-        } else if (tab === 'admin') {
-            if (adminPane) adminPane.style.display = 'block';
-            if (tabAdminBtn) tabAdminBtn.classList.add('active');
         } else if (tab === 'forgot') {
             if (forgotPane) forgotPane.style.display = 'block';
         }
@@ -954,58 +947,84 @@
     }
 
     function fillDemoCredentials(role) {
-        if (role === 'admin') {
-            switchAuthTab('admin');
-            const adminEmail = document.getElementById('adminEmail');
-            const adminPass = document.getElementById('adminPassword');
-            if (adminEmail) adminEmail.value = 'admin@mart.com';
-            if (adminPass) adminPass.value = 'StrongAdmin@2026';
-            showToast('Admin ERP credentials autofilled!', 'info');
-        }
+        // Deprecated: demo credentials have been permanently removed
     }
 
-    async function handleCustomerLogin(e) {
+    /**
+     * Unified Login Handler
+     * Seamlessly logs in customers and administrators through a single form,
+     * automatically routing to Admin ERP or Customer Shop based on authenticated role.
+     */
+    async function handleLogin(e) {
         if (e) e.preventDefault();
-        const email = document.getElementById('loginEmail')?.value.trim();
-        const password = document.getElementById('loginPassword')?.value;
-        const feedback = document.getElementById('loginFeedback');
+        const loginInput = document.getElementById('loginEmail') || document.getElementById('adminEmail');
+        const passwordInput = document.getElementById('loginPassword') || document.getElementById('adminPassword');
+        const feedback = document.getElementById('loginFeedback') || document.getElementById('adminFeedback');
+        const rememberInput = document.getElementById('rememberMe');
 
-        if (!email || !password) {
-            if (feedback) feedback.innerHTML = '<div class="alert alert-danger py-2 small mb-3">Please enter both email and password.</div>';
+        const credential = loginInput?.value?.trim() || '';
+        const password = passwordInput?.value || '';
+        const remember = rememberInput ? rememberInput.checked : true;
+
+        if (!credential || !password) {
+            if (feedback) feedback.innerHTML = '<div class="alert alert-danger py-2 small mb-3">Please enter your email/username and password.</div>';
             return;
         }
 
-        if (feedback) feedback.innerHTML = '<div class="alert alert-info py-2 small mb-3"><span class="spinner-border spinner-border-sm me-2"></span>Authenticating...</div>';
+        if (feedback) feedback.innerHTML = '<div class="alert alert-info py-2 small mb-3"><span class="spinner-border spinner-border-sm me-2"></span>Signing in...</div>';
 
-        // Attempt live API login
+        // Detect directory context (/auth/ vs root)
+        const isInAuthDir = window.location.pathname.includes('/auth/') || window.location.pathname.endsWith('/auth');
+        const adminDest = isInAuthDir ? '../admin/index.html' : 'admin/index.html';
+        const customerDest = isInAuthDir ? '../customer/shop.html' : 'customer/shop.html';
+
         try {
             const res = await (window.apiFetch || fetch)('/api/auth/login', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ email_or_username: email, username: email, email: email, password: password })
+                body: JSON.stringify({
+                    email_or_username: credential,
+                    username: credential,
+                    email: credential,
+                    password: password,
+                    remember: remember
+                })
             });
             const data = await res.json().catch(() => ({}));
+
             if (res.ok && data.success) {
+                if (data.requires_2fa) {
+                    if (feedback) feedback.innerHTML = '<div class="alert alert-warning py-2 small mb-3">Two-factor authentication code required.</div>';
+                    return;
+                }
+
+                const user = data.user || {};
                 const sessionUser = {
-                    id: data.user?.id || 1,
-                    name: data.user?.name || data.user?.full_name || email.split('@')[0],
-                    email: email,
-                    role: data.user?.role || 'customer'
+                    id: user.id || 1,
+                    name: user.full_name || user.name || user.username || credential.split('@')[0],
+                    email: user.email || credential,
+                    role: user.role || 'customer'
                 };
                 localStorage.setItem('jg_auth_user', JSON.stringify(sessionUser));
+
                 showToast(`Welcome back, ${sessionUser.name}!`, 'success');
-                setTimeout(() => { location.href = sessionUser.role === 'admin' ? 'admin/index.html' : 'customer/shop.html'; }, 600);
+                setTimeout(() => {
+                    window.location.href = sessionUser.role === 'admin' ? adminDest : customerDest;
+                }, 500);
                 return;
             } else {
-                if (feedback) feedback.innerHTML = `<div class="alert alert-danger py-2 small mb-3">${escapeHTML(data.message || 'Invalid username or password.')}</div>`;
+                const errorMsg = data.message || 'Invalid email/username or password. Please try again.';
+                if (feedback) feedback.innerHTML = `<div class="alert alert-danger py-2 small mb-3">${escapeHTML(errorMsg)}</div>`;
                 return;
             }
         } catch (err) {
-            console.warn('Live login network error:', err);
-            if (feedback) feedback.innerHTML = `<div class="alert alert-warning py-2 small mb-3">Backend server unavailable. Please ensure backend is running on port 5000.</div>`;
+            console.warn('Login network error:', err);
+            if (feedback) feedback.innerHTML = '<div class="alert alert-warning py-2 small mb-3">Backend server unavailable. Please ensure backend is running on port 5000.</div>';
             return;
         }
     }
+
+    const handleCustomerLogin = handleLogin;
 
     async function handleCustomerRegister(e) {
         if (e) e.preventDefault();
@@ -1053,55 +1072,8 @@
         }
     }
 
-    async function handleAdminLogin(e) {
-        if (e) e.preventDefault();
-        const email = document.getElementById('adminEmail')?.value.trim();
-        const password = document.getElementById('adminPassword')?.value;
-        const feedback = document.getElementById('adminFeedback');
-
-        if (!email || !password) {
-            if (feedback) feedback.innerHTML = '<div class="alert alert-danger py-2 small mb-3">Please provide Admin credentials.</div>';
-            return;
-        }
-
-        if (feedback) feedback.innerHTML = '<div class="alert alert-info py-2 small mb-3"><span class="spinner-border spinner-border-sm me-2"></span>Validating ERP credentials...</div>';
-
-        // Attempt live API login
-        try {
-            const res = await (window.apiFetch || fetch)('/api/auth/login', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ email_or_username: email, username: email, email: email, password: password })
-            });
-            const data = await res.json().catch(() => ({}));
-            if (res.ok && data.success) {
-                if (data.requires_2fa) {
-                    if (feedback) feedback.innerHTML = `<div class="alert alert-warning py-2 small mb-3">2FA Authenticator code required. Please enter 6-digit code.</div>`;
-                    return;
-                }
-                const adminUser = {
-                    id: data.user?.id || 1,
-                    name: data.user?.full_name || data.user?.username || 'Store Administrator',
-                    email: email,
-                    role: data.user?.role || 'admin'
-                };
-                localStorage.setItem('jg_auth_user', JSON.stringify(adminUser));
-                showToast('Admin authorized. Redirecting to ERP Console...', 'success');
-                setTimeout(() => {
-                    location.href = 'admin/index.html';
-                }, 600);
-                return;
-            } else {
-                if (feedback) feedback.innerHTML = `<div class="alert alert-danger py-2 small mb-3">${escapeHTML(data.message || 'Invalid administrator credentials.')}</div>`;
-                return;
-            }
-        } catch (err) {
-            console.warn('Live admin login error:', err);
-            if (feedback) feedback.innerHTML = `<div class="alert alert-warning py-2 small mb-3">Backend server unavailable on port 5000.</div>`;
-            return;
-        }
-
-    }
+    // Alias for legacy forms or direct invocation
+    const handleAdminLogin = handleLogin;
 
     function handleForgotPassword(e) {
         if (e) e.preventDefault();
@@ -1205,6 +1177,7 @@
     window.switchAuthTab = switchAuthTab;
     window.togglePasswordVisibility = togglePasswordVisibility;
     window.fillDemoCredentials = fillDemoCredentials;
+    window.handleLogin = handleLogin;
     window.handleCustomerLogin = handleCustomerLogin;
     window.handleCustomerRegister = handleCustomerRegister;
     window.handleAdminLogin = handleAdminLogin;
