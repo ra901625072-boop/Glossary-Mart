@@ -1,0 +1,80 @@
+<!-- e Grossary — Admin ERP Sidebar Component -->
+<aside class="admin-sidebar" id="adminSidebar">
+    <div class="sidebar-brand-card">
+        <div class="brand-logo-admin">
+            <img src="../static/images/logo-icon.png" alt="e Grossary logo" style="width: 100%; height: 100%; object-fit: contain;">
+        </div>
+        <div>
+            <div class="fw-bold text-white small">e Grossary ERP</div>
+            <div class="smallest text-secondary">Operations Cluster</div>
+        </div>
+    </div>
+
+    <div class="sidebar-menu-scroll">
+        <div class="sidebar-category-header">Core Operations</div>
+        <a href="index.html" class="admin-nav-item" data-admin-route="dashboard">
+            <i class="bi bi-speedometer2"></i>
+            <span>Dashboard</span>
+        </a>
+        <a href="pos.html" class="admin-nav-item" data-admin-route="pos">
+            <i class="bi bi-calculator"></i>
+            <span>POS Counter</span>
+        </a>
+        <a href="products.html" class="admin-nav-item" data-admin-route="products">
+            <i class="bi bi-box-seam"></i>
+            <span>Inventory &amp; Stock</span>
+        </a>
+        <a href="categories.html" class="admin-nav-item" data-admin-route="categories">
+            <i class="bi bi-grid-fill"></i>
+            <span>Categories</span>
+        </a>
+
+        <div class="sidebar-category-header mt-3">Sales &amp; Customers</div>
+        <a href="orders.html" class="admin-nav-item" data-admin-route="orders">
+            <i class="bi bi-truck"></i>
+            <span>Orders &amp; Dispatch</span>
+        </a>
+        <a href="customers.html" class="admin-nav-item" data-admin-route="customers">
+            <i class="bi bi-people-fill"></i>
+            <span>Customers CRM</span>
+        </a>
+        <a href="sales.html" class="admin-nav-item" data-admin-route="sales">
+            <i class="bi bi-receipt-cutoff"></i>
+            <span>Sales Ledger</span>
+        </a>
+
+        <div class="sidebar-category-header mt-3">Suppliers &amp; Promos</div>
+        <a href="purchases.html" class="admin-nav-item" data-admin-route="purchases">
+            <i class="bi bi-cart-check-fill"></i>
+            <span>Stock In (Purchases)</span>
+        </a>
+        <a href="suppliers.html" class="admin-nav-item" data-admin-route="suppliers">
+            <i class="bi bi-building"></i>
+            <span>Suppliers Directory</span>
+        </a>
+        <a href="coupons.html" class="admin-nav-item" data-admin-route="coupons">
+            <i class="bi bi-ticket-perforated-fill"></i>
+            <span>Promo Coupons</span>
+        </a>
+
+        <div class="sidebar-category-header mt-3">Governance &amp; Logs</div>
+        <a href="activity.html" class="admin-nav-item" data-admin-route="activity">
+            <i class="bi bi-clock-history"></i>
+            <span>Audit Trail Log</span>
+        </a>
+        <a href="security.html" class="admin-nav-item" data-admin-route="security">
+            <i class="bi bi-shield-lock-fill"></i>
+            <span>2FA &amp; Security</span>
+        </a>
+    </div>
+
+    <!-- Sidebar Bottom Quick Action -->
+    <div class="p-3 border-top border-secondary border-opacity-25">
+        <div class="p-2 rounded-3 bg-dark bg-opacity-50 text-white smallest d-flex align-items-center justify-content-between">
+            <div>
+                <i class="bi bi-circle-fill text-success smallest me-1"></i> System Online
+            </div>
+            <span class="badge bg-secondary font-monospace">Pali Node</span>
+        </div>
+    </div>
+</aside>

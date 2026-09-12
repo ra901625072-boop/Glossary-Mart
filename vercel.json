@@ -1,7 +1,7 @@
 {
   "$schema": "https://openapi.vercel.sh/vercel.json",
   "outputDirectory": "frontend",
-  "cleanUrls": false,
+  "cleanUrls": true,
   "rewrites": [
     {
       "source": "/api/:path*",
@@ -13,23 +13,51 @@
     },
     {
       "source": "/admin",
-      "destination": "/admin.html"
+      "destination": "/admin/index.html"
+    },
+    {
+      "source": "/admin/:page",
+      "destination": "/admin/:page.html"
     },
     {
       "source": "/customer",
-      "destination": "/customer.html"
+      "destination": "/customer/shop.html"
     },
     {
       "source": "/shop",
-      "destination": "/customer.html"
+      "destination": "/customer/shop.html"
+    },
+    {
+      "source": "/cart",
+      "destination": "/customer/cart.html"
+    },
+    {
+      "source": "/checkout",
+      "destination": "/customer/checkout.html"
+    },
+    {
+      "source": "/orders",
+      "destination": "/customer/orders.html"
+    },
+    {
+      "source": "/wishlist",
+      "destination": "/customer/wishlist.html"
+    },
+    {
+      "source": "/profile",
+      "destination": "/customer/profile.html"
     },
     {
       "source": "/auth/login",
-      "destination": "/customer.html"
+      "destination": "/auth/login.html"
     },
     {
       "source": "/auth/register",
-      "destination": "/customer.html"
+      "destination": "/auth/register.html"
+    },
+    {
+      "source": "/auth/forgot-password",
+      "destination": "/auth/forgot-password.html"
     }
   ],
   "headers": [

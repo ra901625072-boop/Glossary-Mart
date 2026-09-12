@@ -1,0 +1,97 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+    <title>Secure Payment Gateway &bull; e Grossary</title>
+    
+    <!-- Meta SEO -->
+    <meta name="description" content="Secure instant payment gateway simulation for e Grossary orders.">
+    <meta name="theme-color" content="#059669">
+
+    <!-- Fonts & Icons -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=Outfit:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
+
+    <!-- Favicon -->
+    <link rel="icon" type="image/png" href="../static/images/favicon.png">
+    <link rel="shortcut icon" href="../static/images/favicon.ico">
+
+    <!-- Stylesheets -->
+    <link rel="stylesheet" href="../static/css/core/variables.css">
+    <link rel="stylesheet" href="../static/css/customer.css">
+    <style>
+        body {
+            background-color: #f8fafc;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+        }
+        .payment-wrap {
+            margin: auto;
+            width: 100%;
+            max-width: 520px;
+            padding: 2rem 1rem;
+        }
+    </style>
+</head>
+<body data-page="payment">
+
+    <div class="payment-wrap">
+        <!-- VIEW: PAYMENT SIMULATOR -->
+        <section id="view-payment" class="app-view active-view">
+            <div class="ss-surface-card text-center p-4 p-md-5 shadow-sm">
+                <div class="payment-shield-icon mx-auto mb-3">
+                    <i class="bi bi-shield-lock-fill"></i>
+                </div>
+
+                <h3 class="fw-bold brand-font mb-1 text-dark">e Grossary Secure Payment</h3>
+                <p class="text-muted small mb-4">Scan the UPI QR code or wait for automatic banking authorization</p>
+
+                <div class="upi-qr-display shadow-sm mb-3">
+                    <!-- High-Resolution QR Simulator -->
+                    <img src="https://api.qrserver.com/v1/create-qr-code/?size=180x180&data=upi://pay?pa=egrossary@upi%26pn=eGrossary%26am=412" 
+                         alt="UPI Payment QR" class="img-fluid rounded" style="width: 180px; height: 180px;">
+                    <div class="small fw-bold text-dark mt-2 font-monospace">egrossary@upi</div>
+                </div>
+
+                <div class="my-3">
+                    <div class="text-muted small">Amount to Authorize:</div>
+                    <div class="h2 fw-bold text-success mb-1" id="simPaymentAmount">₹0</div>
+                    <div class="smallest text-muted font-monospace" id="simPaymentOrderId">#JG-XXXXXX</div>
+                </div>
+
+                <!-- Live Progress Simulation -->
+                <div class="progress mb-2" style="height: 8px;">
+                    <div class="progress-bar progress-bar-striped progress-bar-animated bg-success" 
+                         id="paymentSimulatorProgressBar" style="width: 35%;"></div>
+                </div>
+                <div class="smallest fw-bold text-muted mb-4" id="paymentSimulatorStatusText">
+                    Connecting to banking gateway...
+                </div>
+
+                <div class="d-grid gap-2">
+                    <button class="btn btn-success fw-bold rounded-pill py-3 shadow-sm" onclick="window.JG.simulatePaymentSuccess()">
+                        <i class="bi bi-check2-circle me-1"></i> Simulate Instant Payment Success
+                    </button>
+                    <a href="checkout.html" class="btn btn-outline-secondary rounded-pill py-2 small">
+                        <i class="bi bi-arrow-left me-1"></i> Cancel &amp; Change Payment Method
+                    </a>
+                </div>
+            </div>
+        </section>
+    </div>
+
+    <!-- Scripts -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="../static/js/api-config.js"></script>
+    <script src="../static/js/core/utils.js"></script>
+    <script src="../static/js/services/auth.service.js"></script>
+    <script src="../static/js/services/cart.service.js"></script>
+    <script src="../static/js/services/order.service.js"></script>
+    <script src="../static/js/customer.js"></script>
+</body>
+</html>

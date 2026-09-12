@@ -13,6 +13,9 @@
     'use strict';
 
     function escapeHTML(str) {
+        if (window.EG && window.EG.utils && window.EG.utils.escapeHTML) {
+            return window.EG.utils.escapeHTML(str);
+        }
         if (str === null || str === undefined) return '';
         return String(str).replace(/[&<>"']/g, function (m) {
             return {
@@ -86,7 +89,8 @@
         // Unauthorized access -> redirect to login
         console.warn('[Admin ERP] Unauthorized. Redirecting to storefront.');
         alert('Administrator access required. Please sign in with an authorized admin account.');
-        window.location.href = 'index.html#authSection';
+        const inAdmin = window.location.pathname.includes('/admin/');
+        window.location.href = inAdmin ? '../auth/login.html' : 'auth/login.html';
         return false;
     }
 
@@ -139,6 +143,7 @@
                     populatePurchaseProductSelect();
                     renderProducts();
                     renderPOS();
+                    applyCategoryFilterFromURL();
                     return;
                 }
             }
@@ -146,6 +151,19 @@
             console.warn('[Admin ERP] Products load error:', e);
         }
         renderProducts();
+        applyCategoryFilterFromURL();
+    }
+
+    function applyCategoryFilterFromURL() {
+        const catFilter = new URLSearchParams(window.location.search).get('category') || sessionStorage.getItem('adm_filter_category');
+        if (catFilter) {
+            sessionStorage.removeItem('adm_filter_category');
+            const searchInput = document.getElementById('adminMasterSearch');
+            if (searchInput) {
+                searchInput.value = catFilter;
+                setTimeout(() => searchInput.dispatchEvent(new Event('input')), 50);
+            }
+        }
     }
 
     async function loadOrdersData() {
@@ -357,8 +375,31 @@
 
     // ── 3. Router Engine ──
     function router() {
-        const rawHash = window.location.hash || '#dashboard';
-        const route = rawHash.split('?')[0].replace('#', '') || 'dashboard';
+        const pageAttr = document.body ? document.body.getAttribute('data-admin-page') : null;
+        const pathFile = window.location.pathname.split('/').pop().replace('.html', '').toLowerCase();
+        const rawHash = window.location.hash ? window.location.hash.split('?')[0].replace('#', '') : '';
+        const inAdminDir = window.location.pathname.includes('/admin/');
+
+        // If inside /admin/ and a hash points to an admin page not on the current DOM, redirect to that file
+        if (rawHash && inAdminDir && !document.getElementById(`adm-view-${rawHash}`)) {
+            const knownAdminPages = ['dashboard', 'pos', 'products', 'categories', 'orders', 'customers', 'sales', 'purchases', 'suppliers', 'coupons', 'activity', 'security'];
+            if (knownAdminPages.includes(rawHash)) {
+                const targetFile = rawHash === 'dashboard' ? 'index.html' : `${rawHash}.html`;
+                window.location.href = targetFile;
+                return;
+            }
+        }
+
+        let route = 'dashboard';
+        if (rawHash && document.getElementById(`adm-view-${rawHash}`)) {
+            route = rawHash;
+        } else if (pageAttr) {
+            route = pageAttr;
+        } else if (pathFile && pathFile !== 'admin' && pathFile !== 'index') {
+            route = pathFile;
+        } else if (rawHash) {
+            route = rawHash;
+        }
 
         document.querySelectorAll('.adm-view').forEach(view => {
             view.classList.remove('active-view');
@@ -1361,14 +1402,20 @@
         },
 
         filterInventoryByCategory: function (categoryName) {
-            window.location.hash = '#products';
-            setTimeout(() => {
-                const searchInput = document.getElementById('adminMasterSearch');
-                if (searchInput) {
-                    searchInput.value = categoryName;
-                    searchInput.dispatchEvent(new Event('input'));
-                }
-            }, 100);
+            sessionStorage.setItem('adm_filter_category', categoryName);
+            if (document.getElementById('adm-view-products')) {
+                window.location.hash = '#products';
+                setTimeout(() => {
+                    const searchInput = document.getElementById('adminMasterSearch');
+                    if (searchInput) {
+                        searchInput.value = categoryName;
+                        searchInput.dispatchEvent(new Event('input'));
+                    }
+                }, 100);
+            } else {
+                const inAdmin = window.location.pathname.includes('/admin/');
+                window.location.href = (inAdmin ? 'products.html' : 'admin/products.html') + '?category=' + encodeURIComponent(categoryName);
+            }
         },
 
         toggleTheme: function () {

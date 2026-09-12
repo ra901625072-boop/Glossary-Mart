@@ -1,0 +1,59 @@
+<!-- e Grossary — Offcanvas Shopping Cart Drawer Component -->
+<div class="offcanvas offcanvas-end cart-drawer-custom" tabindex="-1" id="cartOffcanvas" aria-labelledby="cartOffcanvasLabel">
+    <div class="offcanvas-header border-bottom">
+        <h5 class="offcanvas-title fw-bold" id="cartOffcanvasLabel"><i class="bi bi-cart3 text-success me-2"></i>My Shopping Bag</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="offcanvas" aria-label="Close"></button>
+    </div>
+
+    <div class="offcanvas-body d-flex flex-column p-0">
+        <!-- Free Shipping Progress -->
+        <div class="p-3 border-bottom">
+            <div class="cart-free-shipping-card">
+                <div class="small fw-bold text-dark" id="freeShippingMsg">Add more for FREE delivery!</div>
+                <div class="free-shipping-progress-bar">
+                    <div class="free-shipping-fill" id="freeShippingFill" style="width: 70%;"></div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Scrollable Items Container -->
+        <div class="cart-items-scroll-box" id="cartItemsContainer"></div>
+
+        <!-- Bill & Checkout Footer -->
+        <div class="cart-footer-bill mt-auto">
+            <!-- Promo Code -->
+            <div class="input-group input-group-sm mb-3">
+                <input type="text" class="form-control" id="couponInput" placeholder="Enter coupon (e.g. FRESH15)">
+                <button class="btn btn-success fw-bold" onclick="applyCouponCode()">Apply</button>
+            </div>
+            <div id="couponFeedback"></div>
+
+            <div class="bill-line-item">
+                <span>Items Subtotal:</span>
+                <span id="billSubtotal">₹0</span>
+            </div>
+            <div class="bill-line-item">
+                <span>Delivery Fee:</span>
+                <span id="billDeliveryFee" class="text-success">FREE</span>
+            </div>
+            <div class="bill-line-item text-success" id="billDiscountRow" style="display: none;">
+                <span>Coupon Savings:</span>
+                <span id="billDiscount">-₹0</span>
+            </div>
+            <div class="bill-line-item total">
+                <span>Grand Total:</span>
+                <span id="billGrandTotal" class="text-success">₹0</span>
+            </div>
+
+            <button class="btn btn-ss-primary w-100 py-3 rounded-pill fw-bold mt-3 d-flex align-items-center justify-content-center gap-2" id="btnProceedCheckout" onclick="initiateCheckout()">
+                <span>Instant Doorstep Checkout</span>
+                <i class="bi bi-arrow-right"></i>
+            </button>
+
+            <div class="d-flex justify-content-between small px-1 mt-2 text-muted">
+                <a href="customer/cart.html" class="text-decoration-none text-muted"><i class="bi bi-box-arrow-up-right me-1"></i>Full Cart</a>
+                <a href="customer/checkout.html" class="text-decoration-none text-success fw-bold"><i class="bi bi-credit-card me-1"></i>Full Checkout</a>
+            </div>
+        </div>
+    </div>
+</div>

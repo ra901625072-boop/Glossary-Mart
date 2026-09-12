@@ -12,6 +12,9 @@
     'use strict';
 
     function escapeHTML(str) {
+        if (window.EG && window.EG.utils && window.EG.utils.escapeHTML) {
+            return window.EG.utils.escapeHTML(str);
+        }
         if (str === null || str === undefined) return '';
         return String(str).replace(/[&<>"']/g, function (m) {
             return {
@@ -221,8 +224,30 @@
 
     // ── View Router Engine ──
     function router() {
-        const rawHash = window.location.hash || '#shop';
-        const route = rawHash.split('?')[0].replace('#', '') || 'shop';
+        const pageAttr = document.body ? document.body.getAttribute('data-page') : null;
+        const pathFile = window.location.pathname.split('/').pop().replace('.html', '').toLowerCase();
+        const rawHash = window.location.hash ? window.location.hash.split('?')[0].replace('#', '') : '';
+        const inCustomerDir = window.location.pathname.includes('/customer/');
+
+        // If user is inside /customer/ and navigates to a hash that does not exist on this page, redirect to that dedicated page
+        if (rawHash && inCustomerDir && !document.getElementById(`view-${rawHash}`)) {
+            const knownPages = ['shop', 'cart', 'checkout', 'payment', 'order-confirmation', 'orders', 'wishlist', 'profile'];
+            if (knownPages.includes(rawHash)) {
+                window.location.href = `${rawHash}.html`;
+                return;
+            }
+        }
+
+        let route = 'shop';
+        if (rawHash && document.getElementById(`view-${rawHash}`)) {
+            route = rawHash;
+        } else if (pageAttr) {
+            route = pageAttr;
+        } else if (pathFile && pathFile !== 'customer' && pathFile !== 'index') {
+            route = pathFile;
+        } else if (rawHash) {
+            route = rawHash;
+        }
 
         document.querySelectorAll('.app-view').forEach(view => {
             view.classList.remove('active-view');
@@ -248,8 +273,32 @@
         else if (route === 'orders') { loadUserOrders(); renderOrdersView(); }
         else if (route === 'wishlist') renderWishlistView();
         else if (route === 'profile') renderProfileView();
+        else if (route === 'order-confirmation') renderOrderConfirmationFromStorage();
+        else if (route === 'payment') renderPaymentSimulationFromStorage();
 
         window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+
+    function renderOrderConfirmationFromStorage() {
+        try {
+            const stored = JSON.parse(sessionStorage.getItem('egm_confirmed_order') || 'null');
+            if (stored) {
+                document.querySelectorAll('.confirmed-order-id-txt').forEach(el => el.textContent = `#${stored.id}`);
+                document.querySelectorAll('.confirmed-order-total-txt').forEach(el => el.textContent = `₹${stored.total}`);
+                document.querySelectorAll('.confirmed-order-pay-txt').forEach(el => el.textContent = stored.paymentMethod || 'COD');
+                const addrEl = document.getElementById('confirmedOrderAddress');
+                if (addrEl && stored.address) addrEl.textContent = stored.address;
+            }
+        } catch (e) {}
+    }
+
+    function renderPaymentSimulationFromStorage() {
+        try {
+            const pending = JSON.parse(sessionStorage.getItem('egm_pending_order') || 'null');
+            if (pending) {
+                initPaymentSimulation(pending);
+            }
+        } catch (e) {}
     }
 
     // ── Shop View Renderer ──
@@ -515,6 +564,7 @@
         if (!container) return;
 
         if (state.ordersAuthRequired) {
+            const loginLink = window.location.pathname.includes('/customer/') ? '../auth/login.html' : 'auth/login.html';
             container.innerHTML = `
                 <div class="text-center py-5 bg-white rounded-4 shadow-sm border p-4">
                     <i class="bi bi-shield-lock display-3 text-warning opacity-75 mb-3 d-block"></i>
@@ -522,7 +572,7 @@
                     <p class="text-muted small mx-auto" style="max-width: 420px;">
                         Sign in with your registered customer account to track live delivery dispatches and download official GST tax invoices.
                     </p>
-                    <a href="index.html#login" class="btn btn-success rounded-pill px-4 fw-bold">
+                    <a href="${loginLink}" class="btn btn-success rounded-pill px-4 fw-bold">
                         <i class="bi bi-box-arrow-in-right me-1"></i> Sign In to Account
                     </a>
                 </div>
@@ -531,12 +581,13 @@
         }
 
         if (state.orders.length === 0) {
+            const shopLink = window.location.pathname.includes('/customer/') ? 'shop.html' : '#shop';
             container.innerHTML = `
                 <div class="text-center py-5">
                     <i class="bi bi-bag-x display-3 text-muted opacity-50 mb-3 d-block"></i>
                     <h4 class="fw-bold">No orders placed yet</h4>
                     <p class="text-muted small">Your grocery journey begins now! Order fresh produce in 15 mins.</p>
-                    <a href="#shop" class="btn btn-success rounded-pill px-4">Start Shopping</a>
+                    <a href="${shopLink}" class="btn btn-success rounded-pill px-4">Start Shopping</a>
                 </div>
             `;
             return;
@@ -703,7 +754,7 @@
             }
             persistState();
             renderShopView();
-            if (window.location.hash === '#cart') renderCartView();
+            if (window.location.hash === '#cart' || document.getElementById('cartItemsList')) renderCartView();
 
             // Fire-and-forget sync to backend
             try {
@@ -726,7 +777,7 @@
             }
             persistState();
             renderShopView();
-            if (window.location.hash === '#cart') renderCartView();
+            if (window.location.hash === '#cart' || document.getElementById('cartItemsList')) renderCartView();
         },
 
         removeCartItem: function (productId) {
@@ -745,7 +796,7 @@
             }
             persistState();
             renderShopView();
-            if (window.location.hash === '#wishlist') renderWishlistView();
+            if (window.location.hash === '#wishlist' || document.getElementById('wishlistGrid')) renderWishlistView();
         },
 
         applyCoupon: async function () {
@@ -853,7 +904,8 @@
             // Verify if user is logged in
             if (!state.user || !state.user.id) {
                 alert('Please sign in or create an account to complete checkout and track your delivery.');
-                window.location.href = 'index.html#authSection';
+                const loginPath = window.location.pathname.includes('/customer/') ? '../auth/login.html' : 'auth/login.html';
+                window.location.href = loginPath;
                 return;
             }
 
@@ -888,7 +940,8 @@
                         status: serverOrder.order_status || 'Pending',
                         step: 1,
                         paymentMethod: serverOrder.payment_method,
-                        total: serverOrder.total_amount
+                        total: serverOrder.total_amount,
+                        address: address
                     };
 
                     // Clear cart
@@ -897,7 +950,6 @@
 
                     // If non-COD, show quick verification animation
                     if (payload.payment_method !== 'COD') {
-                        window.location.hash = '#payment';
                         initPaymentSimulation(confirmedOrder);
                     } else {
                         showOrderConfirmation(confirmedOrder);
@@ -912,10 +964,21 @@
         },
 
         simulatePaymentSuccess: function () {
-            if (window._pendingOrder) {
-                showOrderConfirmation(window._pendingOrder);
+            let order = window._pendingOrder;
+            if (!order) {
+                try {
+                    order = JSON.parse(sessionStorage.getItem('egm_pending_order') || 'null');
+                } catch (e) {}
+            }
+            if (order) {
+                showOrderConfirmation(order);
             } else {
-                window.location.hash = '#orders';
+                if (document.getElementById('view-orders')) {
+                    window.location.hash = '#orders';
+                } else {
+                    const inCustomer = window.location.pathname.includes('/customer/');
+                    window.location.href = inCustomer ? 'orders.html' : 'customer/orders.html';
+                }
             }
         },
 
@@ -983,13 +1046,26 @@
         },
 
         reorder: function (orderId) {
-            window.location.hash = '#shop';
+            if (document.getElementById('view-shop')) {
+                window.location.hash = '#shop';
+            } else {
+                const inCustomer = window.location.pathname.includes('/customer/');
+                window.location.href = inCustomer ? 'shop.html' : 'customer/shop.html';
+            }
             alert('Items added to your bag. Ready for quick checkout!');
         }
     };
 
     function initPaymentSimulation(order) {
         window._pendingOrder = order;
+        sessionStorage.setItem('egm_pending_order', JSON.stringify(order));
+
+        if (!document.getElementById('view-payment')) {
+            const inCustomer = window.location.pathname.includes('/customer/');
+            window.location.href = inCustomer ? 'payment.html' : 'customer/payment.html';
+            return;
+        }
+
         const amountEl = document.getElementById('simPaymentAmount');
         const orderIdEl = document.getElementById('simPaymentOrderId');
         if (amountEl) amountEl.textContent = `₹${order.total}`;
@@ -1017,10 +1093,18 @@
     }
 
     function showOrderConfirmation(order) {
-        window.location.hash = '#order-confirmation';
-        document.querySelectorAll('.confirmed-order-id-txt').forEach(el => el.textContent = `#${order.id}`);
-        document.querySelectorAll('.confirmed-order-total-txt').forEach(el => el.textContent = `₹${order.total}`);
-        document.querySelectorAll('.confirmed-order-pay-txt').forEach(el => el.textContent = order.paymentMethod);
+        sessionStorage.setItem('egm_confirmed_order', JSON.stringify(order));
+        if (document.getElementById('view-order-confirmation')) {
+            window.location.hash = '#order-confirmation';
+            document.querySelectorAll('.confirmed-order-id-txt').forEach(el => el.textContent = `#${order.id}`);
+            document.querySelectorAll('.confirmed-order-total-txt').forEach(el => el.textContent = `₹${order.total}`);
+            document.querySelectorAll('.confirmed-order-pay-txt').forEach(el => el.textContent = order.paymentMethod);
+            const addrEl = document.getElementById('confirmedOrderAddress');
+            if (addrEl && order.address) addrEl.textContent = order.address;
+        } else {
+            const inCustomer = window.location.pathname.includes('/customer/');
+            window.location.href = inCustomer ? 'order-confirmation.html' : 'customer/order-confirmation.html';
+        }
     }
 
     // ── Live Catalog Sync from Backend REST API ──
@@ -1059,6 +1143,10 @@
                             nutrition: { calories: 'N/A' }
                         };
                     });
+                    if (window.EG && window.EG.cart) {
+                        window.EG.cart.setCatalog(state.products);
+                        window.EG.cart.updateBadgeElements();
+                    }
                     renderShopView();
                 }
             }
@@ -1109,6 +1197,15 @@
                 window.JG.handleSearchInput(e.target.value);
             });
         }
+
+        // Listen for reactive updates from EG.cart
+        window.addEventListener('cart:updated', (e) => {
+            if (e.detail && e.detail.cart) {
+                state.cart = e.detail.cart;
+                renderShopView();
+                if (document.getElementById('cartItemsList')) renderCartView();
+            }
+        });
     });
 
 })();

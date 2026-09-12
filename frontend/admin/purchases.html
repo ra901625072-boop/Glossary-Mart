@@ -1,0 +1,251 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+    <title>Stock In &bull; e Grossary ERP</title>
+    
+    <!-- Meta SEO -->
+    <meta name="description" content="Record wholesale purchase deliveries and automatically replenish grocery inventory.">
+    <meta name="theme-color" content="#059669">
+
+    <!-- Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=Outfit:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+
+    <!-- Bootstrap 5.3.3 & Bootstrap Icons -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
+
+    <!-- Favicon -->
+    <link rel="icon" type="image/png" href="../static/images/favicon.png">
+    <link rel="shortcut icon" href="../static/images/favicon.ico">
+
+    <!-- Stylesheet -->
+    <link rel="stylesheet" href="../static/css/core/variables.css">
+    <link rel="stylesheet" href="../static/css/admin.css">
+</head>
+<body class="admin-body" data-admin-page="purchases">
+
+    <!-- Admin Topbar Header -->
+    <header class="admin-topbar justify-content-between">
+        <div class="d-flex align-items-center gap-3">
+            <button class="btn btn-sm btn-outline-secondary d-lg-none" type="button" onclick="window.Adm.toggleSidebar()" aria-label="Toggle Sidebar Navigation">
+                <i class="bi bi-list fs-5"></i>
+            </button>
+            <div class="d-flex align-items-center gap-2">
+                <div class="brand-logo-admin">
+                    <img src="../static/images/logo-icon.png" alt="e Grossary logo" style="width: 100%; height: 100%; object-fit: contain;">
+                </div>
+                <div>
+                    <h5 class="mb-0 fw-bold brand-font text-dark d-none d-sm-block">e Grossary <span class="badge bg-success-subtle text-success fs-6 fw-semibold ms-1">ERP Console</span></h5>
+                    <span class="smallest text-muted d-none d-md-block">Multi-Store Operations (Pali &amp; Unjha)</span>
+                </div>
+            </div>
+        </div>
+
+        <div class="d-flex align-items-center gap-2 gap-sm-3">
+            <a href="../customer/shop.html" class="btn btn-sm btn-outline-success rounded-pill px-3 d-none d-sm-inline-flex align-items-center">
+                <i class="bi bi-shop me-1"></i> Customer Store
+            </a>
+
+            <button class="btn btn-sm btn-light rounded-circle p-2 border" type="button" onclick="window.Adm.toggleTheme()" title="Toggle Dark/Light Mode">
+                <i class="bi bi-moon-stars text-secondary fs-6"></i>
+            </button>
+
+            <div class="dropdown">
+                <button class="btn btn-sm btn-light border rounded-pill d-flex align-items-center gap-2 px-3 py-1" type="button" data-bs-toggle="dropdown" aria-expanded="false">
+                    <span class="bg-success text-white rounded-circle d-inline-flex align-items-center justify-content-center fw-bold" style="width: 26px; height: 26px; font-size: 0.75rem;">AD</span>
+                    <span class="fw-bold small d-none d-md-inline text-dark">Super Admin</span>
+                    <i class="bi bi-chevron-down text-muted smallest"></i>
+                </button>
+                <ul class="dropdown-menu dropdown-menu-end shadow border-0 py-2" style="border-radius: 12px; min-width: 200px;">
+                    <li class="px-3 py-2 border-bottom">
+                        <div class="fw-bold text-dark small">Super Admin</div>
+                        <div class="smallest text-muted">admin@mart.com</div>
+                    </li>
+                    <li><a class="dropdown-item py-2 small" href="security.html"><i class="bi bi-shield-check me-2 text-success"></i>Security &amp; 2FA</a></li>
+                    <li><a class="dropdown-item py-2 small" href="activity.html"><i class="bi bi-clock-history me-2 text-primary"></i>Audit Log</a></li>
+                    <li><hr class="dropdown-divider my-1"></li>
+                    <li><a class="dropdown-item py-2 small text-danger" href="javascript:void(0)" onclick="handleLogout(); return false;"><i class="bi bi-box-arrow-right me-2"></i>Sign Out</a></li>
+                </ul>
+            </div>
+        </div>
+    </header>
+
+    <!-- Master Layout Wrapper -->
+    <div class="admin-layout-wrapper">
+        <!-- Sidebar Navigation -->
+        <aside class="admin-sidebar" id="adminSidebar">
+            <div class="sidebar-brand-card">
+                <div class="brand-logo-admin">
+                    <img src="../static/images/logo-icon.png" alt="e Grossary logo" style="width: 100%; height: 100%; object-fit: contain;">
+                </div>
+                <div>
+                    <div class="fw-bold text-white small">e Grossary ERP</div>
+                    <div class="smallest text-secondary">Operations Cluster</div>
+                </div>
+            </div>
+
+            <div class="sidebar-menu-scroll">
+                <div class="sidebar-category-header">Core Operations</div>
+                <a href="index.html" class="admin-nav-item" data-admin-route="dashboard">
+                    <i class="bi bi-speedometer2"></i>
+                    <span>Dashboard</span>
+                </a>
+                <a href="pos.html" class="admin-nav-item" data-admin-route="pos">
+                    <i class="bi bi-calculator"></i>
+                    <span>POS Counter</span>
+                </a>
+                <a href="products.html" class="admin-nav-item" data-admin-route="products">
+                    <i class="bi bi-box-seam"></i>
+                    <span>Inventory &amp; Stock</span>
+                </a>
+                <a href="categories.html" class="admin-nav-item" data-admin-route="categories">
+                    <i class="bi bi-grid-fill"></i>
+                    <span>Categories</span>
+                </a>
+
+                <div class="sidebar-category-header mt-3">Sales &amp; Customers</div>
+                <a href="orders.html" class="admin-nav-item" data-admin-route="orders">
+                    <i class="bi bi-truck"></i>
+                    <span>Orders &amp; Dispatch</span>
+                </a>
+                <a href="customers.html" class="admin-nav-item" data-admin-route="customers">
+                    <i class="bi bi-people-fill"></i>
+                    <span>Customers CRM</span>
+                </a>
+                <a href="sales.html" class="admin-nav-item" data-admin-route="sales">
+                    <i class="bi bi-receipt-cutoff"></i>
+                    <span>Sales Ledger</span>
+                </a>
+
+                <div class="sidebar-category-header mt-3">Suppliers &amp; Promos</div>
+                <a href="purchases.html" class="admin-nav-item active" data-admin-route="purchases">
+                    <i class="bi bi-cart-check-fill"></i>
+                    <span>Stock In (Purchases)</span>
+                </a>
+                <a href="suppliers.html" class="admin-nav-item" data-admin-route="suppliers">
+                    <i class="bi bi-building"></i>
+                    <span>Suppliers Directory</span>
+                </a>
+                <a href="coupons.html" class="admin-nav-item" data-admin-route="coupons">
+                    <i class="bi bi-ticket-perforated-fill"></i>
+                    <span>Promo Coupons</span>
+                </a>
+
+                <div class="sidebar-category-header mt-3">Governance &amp; Logs</div>
+                <a href="activity.html" class="admin-nav-item" data-admin-route="activity">
+                    <i class="bi bi-clock-history"></i>
+                    <span>Audit Trail Log</span>
+                </a>
+                <a href="security.html" class="admin-nav-item" data-admin-route="security">
+                    <i class="bi bi-shield-lock-fill"></i>
+                    <span>2FA &amp; Security</span>
+                </a>
+            </div>
+
+            <!-- Sidebar Bottom Quick Action -->
+            <div class="p-3 border-top border-secondary border-opacity-25">
+                <div class="p-2 rounded-3 bg-dark bg-opacity-50 text-white smallest d-flex align-items-center justify-content-between">
+                    <div>
+                        <i class="bi bi-circle-fill text-success smallest me-1"></i> System Online
+                    </div>
+                    <span class="badge bg-secondary font-monospace">Pali Node</span>
+                </div>
+            </div>
+        </aside>
+
+        <!-- Main Workspace Stage -->
+        <main class="admin-main-stage">
+            <!-- VIEW: PURCHASES (STOCK IN) -->
+            <section id="adm-view-purchases" class="adm-view active-view">
+                <div class="d-flex flex-wrap align-items-center justify-content-between gap-3 mb-4">
+                    <div>
+                        <h2 class="fw-bold brand-font text-dark mb-1">Stock In / Purchase Orders (PO)</h2>
+                        <p class="text-muted small mb-0">Record wholesale deliveries and automatically replenish stock quantities.</p>
+                    </div>
+                    <button class="btn btn-success rounded-pill px-4 fw-semibold" onclick="window.Adm.openRecordPurchaseModal('Gujarat Co-operative Milk Marketing (Amul)')">
+                        <i class="bi bi-box-arrow-in-down me-1"></i> Record Stock In
+                    </button>
+                </div>
+
+                <div class="kpi-card p-4">
+                    <div class="table-responsive">
+                        <table class="table table-hover align-middle mb-0">
+                            <thead class="table-light">
+                                <tr>
+                                    <th>PO #</th>
+                                    <th>Supplier Invoice</th>
+                                    <th>Supplier</th>
+                                    <th>Date</th>
+                                    <th class="text-center">Quantity</th>
+                                    <th>Total Cost</th>
+                                    <th>Status</th>
+                                </tr>
+                            </thead>
+                            <tbody id="purchasesTableTbody"></tbody>
+                        </table>
+                    </div>
+                </div>
+            </section>
+        </main>
+    </div>
+
+    <!-- Modal: Record Stock In Modal -->
+    <div class="modal fade" id="addPurchaseModal" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content border-0 shadow-lg rounded-4">
+                <div class="modal-header border-0 pb-0">
+                    <h5 class="modal-title fw-bold brand-font text-dark">Record Stock In Delivery</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <form onsubmit="window.Adm.saveNewPurchase(event)">
+                    <div class="modal-body p-4">
+                        <div class="mb-3">
+                            <label class="form-label small fw-bold text-dark">Supplier / Vendor *</label>
+                            <select id="purchaseSupplierSelect" class="form-select rounded-pill" required>
+                                <option value="Gujarat Co-operative Milk Marketing (Amul)">Gujarat Co-operative Milk Marketing (Amul)</option>
+                                <option value="ITC Agro Products Hub">ITC Agro Products Hub</option>
+                                <option value="Unjha Mandi Spices Traders">Unjha Mandi Spices Traders</option>
+                                <option value="Hindustan Unilever Distribution Hub">Hindustan Unilever Distribution Hub</option>
+                            </select>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label small fw-bold text-dark">Supplier Invoice Number</label>
+                            <input type="text" id="purchaseInvoiceNum" class="form-control rounded-pill font-monospace" placeholder="e.g. INV-AMUL-9021">
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label small fw-bold text-dark">Select Inventory Product *</label>
+                            <select id="purchaseProductSelect" class="form-select rounded-pill" required></select>
+                        </div>
+                        <div class="row g-2 mb-3">
+                            <div class="col-6">
+                                <label class="form-label small fw-bold text-dark">Delivered Units *</label>
+                                <input type="number" id="purchaseQty" class="form-control rounded-pill" required min="1" placeholder="50">
+                            </div>
+                            <div class="col-6">
+                                <label class="form-label small fw-bold text-dark">Unit Wholesale Cost (₹) *</label>
+                                <input type="number" id="purchaseUnitCost" class="form-control rounded-pill" required min="1" placeholder="28">
+                            </div>
+                        </div>
+                    </div>
+                    <div class="modal-footer border-0 pt-0">
+                        <button type="button" class="btn btn-secondary rounded-pill px-3" data-bs-dismiss="modal">Cancel</button>
+                        <button type="submit" class="btn btn-success rounded-pill px-4 fw-bold">Confirm Stock In</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- Bootstrap 5.3.3 JS Bundle -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+    <!-- Admin ERP Logic -->
+    <script src="../static/js/api-config.js"></script>
+    <script src="../static/js/core/utils.js"></script>
+    <script src="../static/js/services/auth.service.js"></script>
+    <script src="../static/js/admin.js"></script>
+</body>
+</html>

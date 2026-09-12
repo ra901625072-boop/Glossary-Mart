@@ -126,7 +126,14 @@
             localStorage.removeItem('jg_coupon');
             sessionStorage.clear();
         } catch (e) {}
-        window.location.href = 'index.html#login';
+        let target = 'auth/login.html';
+        const path = window.location.pathname.toLowerCase();
+        if (path.includes('/customer/') || path.includes('/admin/')) {
+            target = '../auth/login.html';
+        } else if (path.includes('/auth/')) {
+            target = 'login.html';
+        }
+        window.location.href = target;
     };
 
     console.log(`%c[e Grossary API]%c Backend target: ${window.API_BASE || '(relative / Vercel proxy)'}`,

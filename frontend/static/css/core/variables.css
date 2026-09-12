@@ -1,0 +1,97 @@
+/**
+ * e Grossary — Design System Tokens & Global CSS Variables (variables.css)
+ * Centralized design tokens across Storefront, Customer Super-App, and ERP Console.
+ */
+
+:root,
+[data-theme="light"] {
+    /* ── Storefront & Customer Brand Palette ── */
+    --brand-dark: #163e2e;
+    --brand-forest: #1b4d3e;
+    --brand-primary: #10b981;
+    --brand-primary-hover: #059669;
+    --brand-primary-active: #047857;
+    --brand-light: #ecfdf5;
+    --brand-light-2: #d1fae5;
+    --primary-rgb: 16, 185, 129;
+
+    /* Customer Super-App Tokens */
+    --ss-primary: #059669;
+    --ss-primary-dark: #047857;
+    --ss-primary-light: #10b981;
+    --ss-primary-rgb: 5, 150, 105;
+    --ss-secondary: #0284c7;
+    --ss-accent: #f59e0b;
+    --ss-danger: #ef4444;
+    --ss-success: #10b981;
+    --ss-dark: #0f172a;
+    --ss-light: #f8fafc;
+    --ss-surface: #ffffff;
+    --ss-border: #e2e8f0;
+    --ss-border-subtle: rgba(226, 232, 240, 0.8);
+    --ss-text-main: #1e293b;
+    --ss-text-muted: #64748b;
+    --ss-radius-sm: 8px;
+    --ss-radius-md: 12px;
+    --ss-radius-lg: 16px;
+    --ss-radius-xl: 24px;
+    --ss-radius-full: 9999px;
+    --ss-shadow-sm: 0 1px 3px rgba(0,0,0,0.06), 0 1px 2px rgba(0,0,0,0.04);
+    --ss-shadow-md: 0 4px 6px -1px rgba(0,0,0,0.08), 0 2px 4px -1px rgba(0,0,0,0.05);
+    --ss-shadow-lg: 0 10px 15px -3px rgba(0,0,0,0.08), 0 4px 6px -2px rgba(0,0,0,0.04);
+    --ss-shadow-xl: 0 20px 25px -5px rgba(0,0,0,0.1), 0 10px 10px -5px rgba(0,0,0,0.04);
+    --ss-shadow-glow: 0 0 20px rgba(5, 150, 105, 0.25);
+    --ss-transition: all 0.22s cubic-bezier(0.4, 0, 0.2, 1);
+
+    /* ── Admin ERP Tokens ── */
+    --adm-primary: #059669;
+    --adm-primary-hover: #047857;
+    --adm-secondary: #0284c7;
+    --adm-accent: #f59e0b;
+    --adm-danger: #ef4444;
+    --adm-success: #10b981;
+    --adm-dark: #0f172a;
+    --adm-sidebar-bg: #0f172a;
+    --adm-sidebar-text: #94a3b8;
+    --adm-sidebar-hover: #1e293b;
+    --adm-sidebar-active: rgba(5, 150, 105, 0.15);
+    --adm-surface: #ffffff;
+    --adm-bg: #f8fafc;
+    --adm-border: #e2e8f0;
+    --adm-text-main: #1e293b;
+    --adm-text-muted: #64748b;
+    --adm-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.07), 0 2px 4px -1px rgba(0, 0, 0, 0.04);
+    --adm-radius: 14px;
+
+    /* ── Typography & Shadows ── */
+    --font-sans: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+    --font-heading: 'Outfit', var(--font-sans);
+}
+
+/* ── Dark Theme Tokens ── */
+[data-theme="dark"] {
+    --brand-dark: #0b1120;
+    --brand-forest: #064e3b;
+    --bg-main: #0b1120;
+    --sur-1: #1e293b;
+    --sur-2: #1e293b;
+    --text-main: #f8fafc;
+    --text-secondary: #cbd5e1;
+    --text-muted: #94a3b8;
+    --border-subtle: #334155;
+
+    /* Customer App Dark */
+    --ss-surface: #1e293b;
+    --ss-light: #0f172a;
+    --ss-border: #334155;
+    --ss-text-main: #f8fafc;
+    --ss-text-muted: #94a3b8;
+
+    /* Admin ERP Dark */
+    --adm-surface: #1e293b;
+    --adm-bg: #0b1120;
+    --adm-border: #334155;
+    --adm-text-main: #f8fafc;
+    --adm-text-muted: #94a3b8;
+    --adm-shadow: 0 4px 10px rgba(0, 0, 0, 0.35);
+}

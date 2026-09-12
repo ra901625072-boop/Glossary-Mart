@@ -15,6 +15,9 @@
     'use strict';
 
     function escapeHTML(str) {
+        if (window.EG && window.EG.utils && window.EG.utils.escapeHTML) {
+            return window.EG.utils.escapeHTML(str);
+        }
         if (!str) return '';
         return String(str).replace(/[&<>"']/g, function (m) {
             return {
@@ -998,7 +1001,7 @@
                 };
                 localStorage.setItem('jg_auth_user', JSON.stringify(sessionUser));
                 showToast(`Welcome back, ${sessionUser.name}!`, 'success');
-                setTimeout(() => { location.href = sessionUser.role === 'admin' ? 'admin.html#dashboard' : 'customer.html#shop'; }, 600);
+                setTimeout(() => { location.href = sessionUser.role === 'admin' ? 'admin/index.html' : 'customer/shop.html'; }, 600);
                 return;
             } else {
                 if (feedback) feedback.innerHTML = `<div class="alert alert-danger py-2 small mb-3">${escapeHTML(data.message || 'Invalid username or password.')}</div>`;
@@ -1044,7 +1047,7 @@
                 const sessionUser = { id: data.user?.id || Date.now(), name: name, email: email, phone: phone, role: 'customer' };
                 localStorage.setItem('jg_auth_user', JSON.stringify(sessionUser));
                 showToast(`Welcome to e Grossary, ${name}!`, 'success');
-                setTimeout(() => { location.href = 'customer.html#shop'; }, 600);
+                setTimeout(() => { location.href = 'customer/shop.html'; }, 600);
                 return;
             } else {
                 if (feedback) feedback.innerHTML = `<div class="alert alert-danger py-2 small mb-3">${escapeHTML(data.message || 'Registration failed.')}</div>`;
@@ -1092,7 +1095,7 @@
                 localStorage.setItem('jg_auth_user', JSON.stringify(adminUser));
                 showToast('Admin authorized. Redirecting to ERP Console...', 'success');
                 setTimeout(() => {
-                    location.href = 'admin.html#dashboard';
+                    location.href = 'admin/index.html';
                 }, 600);
                 return;
             } else {

@@ -25,6 +25,7 @@
     <link rel="apple-touch-icon" href="static/images/logo-icon.png">
 
     <!-- Dedicated Separate Stylesheet (External CSS Architecture) -->
+    <link rel="stylesheet" href="static/css/core/variables.css">
     <link rel="stylesheet" href="static/css/homepage.css">
 </head>
 
@@ -83,7 +84,7 @@
                 </button>
 
                 <!-- Wishlist Trigger -->
-                <button class="header-action-btn" onclick="location.href='customer.html#wishlist'" title="View Wishlist">
+                <button class="header-action-btn" onclick="location.href='customer/wishlist.html'" title="View Wishlist">
                     <i class="bi bi-heart"></i>
                     <span>Wishlist</span>
                     <span class="action-badge-pill" id="wishlistCountBadge">0</span>
@@ -112,12 +113,12 @@
         <div class="container">
             <ul class="sub-nav-menu">
                 <li><a href="/" class="sub-nav-link active">Home</a></li>
-                <li><a href="customer.html#shop" class="sub-nav-link">Shop</a></li>
+                <li><a href="customer/shop.html" class="sub-nav-link">Shop</a></li>
                 <li><a href="#categories" class="sub-nav-link">Categories</a></li>
                 <li><a href="#deals" class="sub-nav-link text-success fw-bold">Offers</a></li>
                 <li><a href="#bestsellers" class="sub-nav-link">Best Sellers</a></li>
-                <li><a href="customer.html#shop?sort=latest" class="sub-nav-link">New Arrivals</a></li>
-                <li><a href="javascript:void(0)" class="sub-nav-link fw-bold" onclick="switchAuthTab('login'); new bootstrap.Modal(document.getElementById('authModal')).show();"><i class="bi bi-box-arrow-in-right me-1"></i>Sign In</a></li>
+                <li><a href="customer/shop.html?sort=latest" class="sub-nav-link">New Arrivals</a></li>
+                <li><a href="auth/login.html" class="sub-nav-link fw-bold"><i class="bi bi-box-arrow-in-right me-1"></i>Sign In</a></li>
             </ul>
         </div>
     </div>
@@ -139,7 +140,7 @@
                         Shop everyday groceries and household essentials at great prices.
                     </p>
                     <div class="hero-cta-group">
-                        <a href="customer.html#shop" class="btn-brand-primary">
+                        <a href="customer/shop.html" class="btn-brand-primary">
                             <span>Shop Now</span>
                             <i class="bi bi-arrow-right"></i>
                         </a>
@@ -583,11 +584,11 @@
                 <div class="col-lg-2 col-md-6">
                     <h6 class="footer-col-title">Shop</h6>
                     <ul class="footer-links-list">
-                        <li class="footer-link-item"><a href="customer.html#shop">All Products</a></li>
+                        <li class="footer-link-item"><a href="customer/shop.html">All Products</a></li>
                         <li class="footer-link-item"><a href="#categories">Categories</a></li>
                         <li class="footer-link-item"><a href="#bestsellers">Best Sellers</a></li>
                         <li class="footer-link-item"><a href="#deals">Offers</a></li>
-                        <li class="footer-link-item"><a href="customer.html#shop?sort=latest">New Arrivals</a></li>
+                        <li class="footer-link-item"><a href="customer/shop.html?sort=latest">New Arrivals</a></li>
                     </ul>
                 </div>
 
@@ -598,7 +599,7 @@
                         <li class="footer-link-item"><a href="#">FAQ</a></li>
                         <li class="footer-link-item"><a href="#">Shipping</a></li>
                         <li class="footer-link-item"><a href="#">Returns</a></li>
-                        <li class="footer-link-item"><a href="customer.html#orders">Track Order</a></li>
+                        <li class="footer-link-item"><a href="customer/orders.html">Track Order</a></li>
                     </ul>
                 </div>
 
@@ -609,7 +610,7 @@
                         <li class="footer-link-item"><a href="#">Privacy Policy</a></li>
                         <li class="footer-link-item"><a href="#">Terms</a></li>
                         <li class="footer-link-item"><a href="#">Refund Policy</a></li>
-                        <li class="footer-link-item"><a href="admin.html#dashboard" class="text-success"><i class="bi bi-shield-lock me-1"></i>Admin ERP</a></li>
+                        <li class="footer-link-item"><a href="admin/index.html" class="text-success"><i class="bi bi-shield-lock me-1"></i>Admin ERP</a></li>
                     </ul>
                 </div>
 
@@ -642,11 +643,11 @@
             <i class="bi bi-house-door"></i>
             <span>Home</span>
         </a>
-        <a href="customer.html#shop" class="mobile-bottom-item">
+        <a href="customer/shop.html" class="mobile-bottom-item">
             <i class="bi bi-grid"></i>
             <span>Shop</span>
         </a>
-        <a href="customer.html#wishlist" class="mobile-bottom-item">
+        <a href="customer/wishlist.html" class="mobile-bottom-item">
             <i class="bi bi-heart"></i>
             <span>Wishlist</span>
             <span class="action-badge-pill" id="mobileWishlistBadge" style="top: -2px; right: 8px;">0</span>
@@ -656,7 +657,7 @@
             <span>Cart</span>
             <span class="action-badge-pill" id="mobileCartBadge" style="top: -2px; right: 8px;">2</span>
         </a>
-        <a href="customer.html#profile" class="mobile-bottom-item">
+        <a href="customer/profile.html" class="mobile-bottom-item">
             <i class="bi bi-person"></i>
             <span>Profile</span>
         </a>
@@ -717,8 +718,8 @@
                 </button>
 
                 <div class="d-flex justify-content-between small px-1 mt-2 text-muted">
-                    <a href="customer.html#cart" class="text-decoration-none text-muted"><i class="bi bi-box-arrow-up-right me-1"></i>Full Cart</a>
-                    <a href="customer.html#checkout" class="text-decoration-none text-success fw-bold"><i class="bi bi-credit-card me-1"></i>Full Checkout</a>
+                    <a href="customer/cart.html" class="text-decoration-none text-muted"><i class="bi bi-box-arrow-up-right me-1"></i>Full Cart</a>
+                    <a href="customer/checkout.html" class="text-decoration-none text-success fw-bold"><i class="bi bi-credit-card me-1"></i>Full Checkout</a>
                 </div>
             </div>
         </div>
@@ -853,7 +854,7 @@
                     <h5 class="fw-bold text-dark font-monospace mb-0" id="confirmedOrderId">#EGM-108245</h5>
                 </div>
                 <div class="d-flex gap-2">
-                    <a href="customer.html#orders" class="btn btn-outline-success flex-grow-1 rounded-pill">View Orders</a>
+                    <a href="customer/orders.html" class="btn btn-outline-success flex-grow-1 rounded-pill">View Orders</a>
                     <button class="btn btn-success flex-grow-1 rounded-pill" data-bs-dismiss="modal">Continue Shopping</button>
                 </div>
             </div>
@@ -1056,6 +1057,10 @@
     <!-- 16. External Scripts (Zero Inline Application Logic) -->
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
     <script src="static/js/api-config.js"></script>
+    <script src="static/js/core/utils.js"></script>
+    <script src="static/js/services/auth.service.js"></script>
+    <script src="static/js/services/cart.service.js"></script>
+    <script src="static/js/services/order.service.js"></script>
     <script src="static/js/homepage.js"></script>
 </body>
 </html>
