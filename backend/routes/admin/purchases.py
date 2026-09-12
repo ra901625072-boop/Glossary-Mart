@@ -1,11 +1,10 @@
 """Admin purchase management routes (record stock-in, list purchases)."""
-from flask import current_app, jsonify, redirect, request, url_for
+from flask import current_app, jsonify, request
 
 from database.models import db
 from database.models.product import Product
 from database.models.inventory import Supplier, Purchase
 from backend.routes.decorators import admin_required
-from backend.forms.admin import PurchaseForm
 from . import admin_bp
 
 
@@ -54,42 +53,47 @@ def add_purchase():
     if not products_list:
         return jsonify({'error': 'Please add a product first before recording a purchase.'}), 400
 
-    form = PurchaseForm()
-    form.supplier_id.choices = [(s.id, s.name) for s in suppliers_list]
-    form.product_id.choices = [(p.id, p.name) for p in products_list]
+    data = request.get_json() if request.is_json else request.form
+    try:
+        supplier_id = int(data.get('supplier_id'))
+        product_id = int(data.get('product_id'))
+        quantity = int(data.get('quantity'))
+        purchase_price = float(data.get('purchase_price'))
+    except (TypeError, ValueError):
+        return jsonify({'success': False, 'message': 'Invalid input data. All fields are required.'}), 400
 
-    if form.validate_on_submit():
-        product = db.session.get(Product, form.product_id.data)
-        quantity = form.quantity.data
-        price_per_unit = form.purchase_price.data
-        total_cost = quantity * price_per_unit
+    if quantity <= 0 or purchase_price <= 0:
+        return jsonify({'success': False, 'message': 'Quantity and purchase price must be greater than zero.'}), 400
 
-        purchase = Purchase(
-            supplier_id=form.supplier_id.data,
-            product_id=form.product_id.data,
-            quantity=quantity,
-            purchase_price=price_per_unit,
-            total_cost=total_cost,
-        )
+    product = db.session.get(Product, product_id)
+    if not product:
+        return jsonify({'success': False, 'message': 'Selected product not found.'}), 404
 
-        # Increase stock and update cost/supplier info from latest purchase
-        product.stock_quantity += quantity
-        product.cost_price = price_per_unit
-        if purchase.supplier:
-            product.supplier_name = purchase.supplier.name
+    total_cost = quantity * purchase_price
+    purchase = Purchase(
+        supplier_id=supplier_id,
+        product_id=product_id,
+        quantity=quantity,
+        purchase_price=purchase_price,
+        total_cost=total_cost,
+    )
 
-        try:
-            db.session.add(purchase)
-            db.session.commit()
-            return jsonify({
-                'success': True,
-                'message': f'Purchase recorded! Stock increased by {quantity}.',
-                'purchase_id': purchase.id,
-            })
-        except Exception:
-            db.session.rollback()
-            current_app.logger.exception("Failed to record purchase")
-            return jsonify({'success': False, 'message': 'Could not record purchase. Please try again.'}), 500
+    # Increase stock and update cost/supplier info from latest purchase
+    product.stock_quantity += quantity
+    product.cost_price = purchase_price
+    supplier = db.session.get(Supplier, supplier_id)
+    if supplier:
+        product.supplier_name = supplier.name
 
-    errors = {field: errs for field, errs in form.errors.items()} if form.errors else {}
-    return jsonify({'success': False, 'errors': errors}), 400
+    try:
+        db.session.add(purchase)
+        db.session.commit()
+        return jsonify({
+            'success': True,
+            'message': f'Purchase recorded! Stock increased by {quantity}.',
+            'purchase_id': purchase.id,
+        })
+    except Exception:
+        db.session.rollback()
+        current_app.logger.exception("Failed to record purchase")
+        return jsonify({'success': False, 'message': 'Could not record purchase. Please try again.'}), 500

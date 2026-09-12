@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Customer Super-App — Jay Goga Mart</title>
+    <title>Customer Super-App — e Grossary</title>
     <!-- Fonts & Icons -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -46,11 +46,11 @@
                 <div class="col-auto">
                     <a href="index.html" class="d-flex align-items-center gap-2 text-decoration-none">
                         <div class="brand-logo-badge">
-                            <img src="static/images/logo-icon.png" alt="e-glossary logo">
+                            <img src="static/images/logo-icon.png" alt="e Grossary logo">
                         </div>
                         <div>
-                            <div class="brand-title">e-glossary</div>
-                            <div class="brand-tagline">Supermarket &bull; Jay Goga</div>
+                            <div class="brand-title">e Grossary</div>
+                            <div class="brand-tagline">Supermarket &bull; Fresh Groceries</div>
                         </div>
                     </a>
                 </div>
@@ -368,7 +368,7 @@
                                 <div class="option-select-card checkout-slot-card selected" data-slot="express" onclick="window.JG.selectCheckoutSlot('express')">
                                     <span class="badge bg-warning text-dark fw-bold mb-2">⚡ 15 MINS</span>
                                     <div class="fw-bold text-dark">Instant Express</div>
-                                    <div class="smallest text-muted">Immediate dispatch from nearest Jay Goga Hub</div>
+                                    <div class="smallest text-muted">Immediate dispatch from nearest e Grossary Hub</div>
                                 </div>
                             </div>
                             <div class="col-md-4">
@@ -484,14 +484,14 @@
                     <i class="bi bi-shield-lock-fill"></i>
                 </div>
 
-                <h3 class="fw-bold brand-font mb-2">Jay Goga Secure Payment</h3>
+                <h3 class="fw-bold brand-font mb-2">e Grossary Secure Payment</h3>
                 <p class="text-muted small mb-4">Scan the UPI QR code or wait for authorization</p>
 
                 <div class="upi-qr-display shadow-sm">
                     <!-- High-Resolution QR Simulator -->
-                    <img src="https://api.qrserver.com/v1/create-qr-code/?size=180x180&data=upi://pay?pa=jaygoga.mart@upi%26pn=JayGogaMart%26am=412" 
+                    <img src="https://api.qrserver.com/v1/create-qr-code/?size=180x180&data=upi://pay?pa=egrossary@upi%26pn=eGrossary%26am=412" 
                          alt="UPI Payment QR" class="img-fluid rounded" style="width: 180px; height: 180px;">
-                    <div class="small fw-bold text-dark mt-2">jaygoga.mart@upi</div>
+                    <div class="small fw-bold text-dark mt-2">egrossary@upi</div>
                 </div>
 
                 <div class="my-3">
@@ -543,7 +543,7 @@
                         <span class="badge bg-success">On Schedule</span>
                     </div>
                     <div class="smallest text-muted">
-                        Assigned Delivery Hero: <strong>Jay Goga Express Delivery</strong> (+91 9313840278)
+                        Assigned Delivery Hero: <strong>e Grossary Express Delivery</strong> (+91 9313840278)
                     </div>
                 </div>
 
@@ -640,7 +640,7 @@
                         <div class="bg-light p-3 rounded-4 border text-start mb-4">
                             <div class="d-flex justify-content-between align-items-center">
                                 <div>
-                                    <div class="smallest text-muted fw-bold text-uppercase">Jay Goga Wallet</div>
+                                    <div class="smallest text-muted fw-bold text-uppercase">e Grossary Wallet</div>
                                     <div class="h4 fw-bold text-success mb-0" id="profileWalletBalance">₹250</div>
                                 </div>
                                 <i class="bi bi-wallet2 fs-2 text-success opacity-75"></i>
@@ -787,15 +787,15 @@
             <div class="modal-content rounded-4 border-0 shadow-lg">
                 <div class="modal-body p-4" id="printableReceipt">
                     <div class="text-center pb-3 border-bottom mb-3">
-                        <img src="static/images/logo-transparent.png" alt="e-glossary logo" style="height: 48px; width: auto; margin-bottom: 6px;">
-                        <div class="fw-bold fs-4 brand-font text-dark">E-GLOSSARY MART</div>
-                        <div class="smallest text-muted">Jay Goga Supermarket &bull; Sector 4, Pali Rajasthan 306401</div>
+                        <img src="static/images/logo-transparent.png" alt="e Grossary logo" style="height: 48px; width: auto; margin-bottom: 6px;">
+                        <div class="fw-bold fs-4 brand-font text-dark">E-GROSSARY</div>
+                        <div class="smallest text-muted">e Grossary Supermarket &bull; Sector 4, Pali Rajasthan 306401</div>
                         <div class="smallest text-muted">GSTIN: 08AAACJ1234F1Z5 | FSSAI: 12221020000456</div>
                     </div>
 
                     <div class="d-flex justify-content-between small mb-2">
                         <span class="text-muted">Order ID:</span>
-                        <span class="fw-bold text-dark" id="invoiceOrderId">#JG-000000</span>
+                        <span class="fw-bold text-dark" id="invoiceOrderId">#EG-000000</span>
                     </div>
                     <div class="d-flex justify-content-between small mb-2">
                         <span class="text-muted">Date &amp; Time:</span>
@@ -828,8 +828,8 @@
                     </div>
 
                     <div class="smallest text-center text-muted mb-3">
-                        Thank you for shopping with Jay Goga Mart!<br>
-                        For complaints: support@jaygoga.com
+                        Thank you for shopping with e Grossary!<br>
+                        For complaints: support@egrossary.com
                     </div>
 
                     <div class="d-flex gap-2">
@@ -909,6 +909,7 @@
 
     <!-- Bootstrap Bundle JS -->
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="static/js/api-config.js"></script>
     <script src="static/js/customer.js"></script>
 </body>
 </html>

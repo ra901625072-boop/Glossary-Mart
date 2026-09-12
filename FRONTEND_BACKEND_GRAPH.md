@@ -1,6 +1,6 @@
 # 🌐 Frontend & Backend Architecture & Connection Graph
 
-> **Project:** Jay Goga Kirana Store (E-Glossary Mart)  
+> **Project:** e Grossary (E-Commerce & Retail ERP)  
 > **Repository:** `d:/mart/mart`  
 > **Tech Stack:** Vanilla JavaScript (ES6+), Bootstrap 5, Python Flask, Flask Blueprints, SQLAlchemy ORM, PostgreSQL / SQLite, Vercel Edge CDN, Render Cloud WSGI.
 
@@ -450,7 +450,7 @@ sequenceDiagram
 
 ## 6. Deployment Topology & Dual-Mode Operation
 
-Jay Goga Mart is architected to operate smoothly in two distinct deployment modes without requiring code refactoring:
+e Grossary is architected to operate smoothly in two distinct deployment modes without requiring code refactoring:
 
 ```mermaid
 graph TD

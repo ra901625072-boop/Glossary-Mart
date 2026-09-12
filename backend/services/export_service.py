@@ -34,7 +34,7 @@ def generate_sales_pdf(sales, start_date=None, end_date=None):
     title_style = ParagraphStyle('TitleStyle', parent=styles['Heading1'], fontSize=24, textColor=colors.HexColor('#1A237E'), spaceAfter=12, alignment=1)
     subtitle_style = ParagraphStyle('SubtitleStyle', parent=styles['Normal'], fontSize=12, textColor=colors.grey, spaceAfter=30, alignment=1)
     
-    elements.append(Paragraph("Jay Goga Mart Store", title_style))
+    elements.append(Paragraph("e Grossary Store", title_style))
     date_range = f"Sales Report: {start_date} to {end_date}" if start_date and end_date else "Full History"
     elements.append(Paragraph(date_range, subtitle_style))
     

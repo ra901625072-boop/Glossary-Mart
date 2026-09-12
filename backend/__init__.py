@@ -9,7 +9,6 @@ from .config import Config
 from .extensions import cors, csrf, limiter, login_manager, mail, migrate
 from .core.middleware import init_middleware
 from .core.hooks import init_hooks
-from .core.context_processors import init_context_processors
 from database.models import db, User
 
 
@@ -22,7 +21,7 @@ def create_app(config_class=Config):
     app = Flask(
         __name__,
         template_folder=backend_template_dir,
-        static_folder=static_dir
+        static_folder=None
     )
 
     import jinja2
@@ -43,7 +42,10 @@ def create_app(config_class=Config):
         app,
         resources={
             r"/api/*": {"origins": app.config.get("CORS_ALLOWED_ORIGINS", "*")},
-            r"/static/uploads/*": {"origins": app.config.get("CORS_ALLOWED_ORIGINS", "*")}
+            r"/static/uploads/*": {"origins": app.config.get("CORS_ALLOWED_ORIGINS", "*")},
+            r"/auth/*": {"origins": app.config.get("CORS_ALLOWED_ORIGINS", "*")},
+            r"/health": {"origins": "*"},
+            r"/": {"origins": "*"}
         },
         supports_credentials=True,
         allow_headers=["Content-Type", "Authorization", "X-Requested-With", "Accept", "Origin", "X-CSRF-Token"],
@@ -66,7 +68,6 @@ def create_app(config_class=Config):
     # Initialize Core Components
     init_middleware(app)
     init_hooks(app)
-    init_context_processors(app)
 
     # Ensure upload folder exists
     os.makedirs(app.config['UPLOAD_FOLDER'], exist_ok=True)
@@ -74,12 +75,20 @@ def create_app(config_class=Config):
     # Register Blueprints
     register_blueprints(app)
 
-    # Health Check Route
+    # Health Check Route — returns clean JSON backend status
     @app.route('/health')
     def health_check():
-        return {'status': 'healthy'}, 200
+        return {
+            "status": "online",
+            "message": "e Grossary API Backend is running. Frontend is hosted separately on Vercel."
+        }, 200
 
-    # Serve Uploaded Files
+    # Favicon for browser requests on backend port
+    @app.route('/favicon.ico')
+    def favicon_route():
+        return '', 204
+
+    # Serve Uploaded Product Files exclusively
     @app.route('/static/uploads/<path:filename>')
     def uploaded_file(filename):
         from flask import send_from_directory
@@ -113,7 +122,7 @@ def setup_logging(app):
             app.logger.addHandler(file_handler)
         
         app.logger.setLevel(logging.INFO)
-        app.logger.info('Jay Goga Mart startup')
+        app.logger.info('e Grossary startup')
 
 def register_blueprints(app):
     """Register application blueprints"""

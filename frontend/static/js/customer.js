@@ -1,5 +1,5 @@
 /**
- * JAY GOGA MART — CONSOLIDATED CUSTOMER SUPER-APP ENGINE (customer.js)
+ * E-GROSSARY — CONSOLIDATED CUSTOMER SUPER-APP ENGINE (customer.js)
  * High-performance state management, client router, cart & checkout, payment simulation, and order tracking.
  */
 
@@ -301,13 +301,13 @@
             address: 'B-12, Radhe Shyam Residency, Pali Road, Mehsana, Gujarat 384002',
             wallet: 150
         },
-        orders: JSON.parse(localStorage.getItem('jg_orders')) || [
+        orders: JSON.parse(localStorage.getItem('eg_orders')) || [
             {
-                id: 'JG-849201',
+                id: 'EG-849201',
                 date: '10 Sep 2026, 07:45 PM',
                 status: 'Out for Delivery',
                 step: 3, // 1: Placed, 2: Packed, 3: Out for Delivery, 4: Delivered
-                rider: 'Jay Goga Express (+91 9313840278)',
+                rider: 'e Grossary Express (+91 9313840278)',
                 paymentMethod: 'UPI (GPay)',
                 total: 244,
                 items: [
@@ -317,11 +317,11 @@
                 ]
             },
             {
-                id: 'JG-732109',
+                id: 'EG-732109',
                 date: '08 Sep 2026, 11:20 AM',
                 status: 'Delivered',
                 step: 4,
-                rider: 'Jay Goga Express (+91 9313840278)',
+                rider: 'e Grossary Express (+91 9313840278)',
                 paymentMethod: 'Cash on Delivery',
                 total: 514,
                 items: [
@@ -1086,7 +1086,7 @@
         const statusTxt = document.getElementById('paymentSimulatorStatusText');
         if (progBar && statusTxt) {
             progBar.style.width = '20%';
-            statusTxt.textContent = 'Connecting to Jay Goga Secure Banking Gateway...';
+            statusTxt.textContent = 'Connecting to e Grossary Secure Banking Gateway...';
 
             setTimeout(() => {
                 progBar.style.width = '65%';
@@ -1112,7 +1112,7 @@
 
     async function syncWithServer() {
         try {
-            const res = await fetch('/api/products?per_page=100');
+            const res = await (window.apiFetch || fetch)('/api/products?per_page=100');
             if (res.ok) {
                 const data = await res.json();
                 if (data.success && data.products && data.products.length > 0) {
@@ -1130,7 +1130,7 @@
                         inStock: p.stock_quantity > 0,
                         eta: "15 MINS",
                         image: p.image_path || 'static/images/logo-icon.png',
-                        description: p.description || `${p.name} — Authentic grocery item available at Jay Goga Mart.`,
+                        description: p.description || `${p.name} — Authentic grocery item available at e Grossary.`,
                         nutrition: { calories: 'N/A' }
                     }));
                     renderShopView();

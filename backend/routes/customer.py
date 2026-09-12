@@ -1,7 +1,5 @@
-import os
 import stripe
-from flask import (current_app, flash, jsonify, redirect,
-                   render_template, request, url_for)
+from flask import current_app, flash, jsonify, redirect, render_template, request, url_for
 from flask_login import current_user
 from flask_mail import Message
 
@@ -15,45 +13,32 @@ from backend.services.order_service import OrderService
 from . import customer_bp
 from .decorators import customer_required
 from .pages import serve_frontend_page
-from backend.forms.customer import ProfileForm
 
 @customer_bp.route('/favicon.ico')
 def favicon():
-    return current_app.send_static_file('images/favicon.ico')
+    return '', 204
 
 @customer_bp.route('/')
 @customer_bp.route('/index.html')
 def index():
-    """Customer Storefront Homepage"""
-    if request.args.get('view') == 'api' or request.args.get('portal') == 'api':
-        # Serve a JSON API portal response instead of Jinja2 template
-        frontend_url = current_app.config.get('FRONTEND_URL', 'https://glossary-mart.vercel.app')
-        return jsonify({
-            'service': 'Jay Goga Mart Backend API',
-            'status': 'healthy',
-            'frontend_url': frontend_url,
-            'endpoints': {
-                'health': '/api/health',
-                'products': '/api/products',
-                'cart': '/api/cart',
-                'cart_add': '/api/cart/add',
-                'checkout': '/api/orders/checkout',
-            },
-            'admin_login': '/auth/admin/login',
-        })
-    return serve_frontend_page('index.html')
+    """Backend API Root — returns backend online status (matching standalone API mode)"""
+    frontend_url = current_app.config.get('FRONTEND_URL', 'https://glossary-mart.vercel.app')
+    return jsonify({
+        "status": "online",
+        "message": "e Grossary API Backend is running. Frontend is hosted separately on Vercel.",
+        "frontend_url": frontend_url,
+        "version": "1.0.0"
+    }), 200
 
 @customer_bp.route('/customer')
 @customer_bp.route('/customer.html')
-@customer_bp.route('/cosummer')
-@customer_bp.route('/cosummer.html')
 def customer_portal():
-    """Consolidated Customer Super-App Portal (Shop, Cart, Checkout, Tracking, Wishlist, Profile)"""
+    """Customer Portal Route — returns backend status indicating frontend is separate"""
     return serve_frontend_page('customer.html')
 
 @customer_bp.route('/admin.html')
 def admin_html():
-    """Direct route for admin.html"""
+    """Admin ERP Route — returns backend status indicating frontend is separate"""
     return serve_frontend_page('admin.html')
 
 @customer_bp.route('/api-portal')
@@ -61,7 +46,7 @@ def api_portal():
     """Backend service portal and API documentation page"""
     frontend_url = current_app.config.get('FRONTEND_URL', 'https://glossary-mart.vercel.app')
     return jsonify({
-        'service': 'Jay Goga Mart Backend API',
+        'service': 'e Grossary Backend API',
         'status': 'healthy',
         'frontend_url': frontend_url,
         'endpoints': {
@@ -333,7 +318,7 @@ def checkout():
         # COD Flow - Send email
         try:
             msg = Message(
-                f"Order Confirmation - #{order.id} | Jay Goga Mart Store",
+                f"Order Confirmation - #{order.id} | e Grossary Store",
                 recipients=[current_user.email]
             )
             msg.html = render_template('emails/order_confirmation.html', order=order, user=current_user)
@@ -434,7 +419,7 @@ def payment_success(order_id):
     if current_app.config.get('MAIL_USERNAME'):
         try:
             msg = Message(
-                f"Order Confirmation - #{order.id} | Jay Goga Mart Store",
+                f"Order Confirmation - #{order.id} | e Grossary Store",
                 recipients=[current_user.email]
             )
             msg.html = render_template('emails/order_confirmation.html', order=order, user=current_user)
@@ -487,30 +472,22 @@ def edit_profile():
         })
     
     # POST — update profile
-    form = ProfileForm(obj=current_user)
-    if form.validate_on_submit():
-        current_user.full_name = form.full_name.data
-        current_user.email = form.email.data
-        current_user.phone = form.phone.data
-        current_user.address = form.address.data
-        try:
-            db.session.commit()
-            if request.is_json:
-                return jsonify({'success': True, 'message': 'Profile updated successfully!'})
-            flash('Profile updated successfully!', 'success')
-            return redirect(url_for('customer.profile'))
-        except Exception:
-            db.session.rollback()
-            current_app.logger.exception("Failed to update profile")
-            if request.is_json:
-                return jsonify({'success': False, 'message': 'Could not update profile.'}), 500
-            flash('Could not update profile. Please try again.', 'danger')
-    
-    errors = {field: errs for field, errs in form.errors.items()} if form.errors else {}
-    if request.is_json:
-        return jsonify({'success': False, 'errors': errors}), 400
-    flash('Could not update profile. Please try again.', 'danger')
-    return redirect(url_for('customer.profile'))
+    data = request.get_json() if request.is_json else request.form
+    if 'full_name' in data:
+        current_user.full_name = data.get('full_name', '').strip()
+    if 'email' in data and data.get('email'):
+        current_user.email = data.get('email', '').strip().lower()
+    if 'phone' in data:
+        current_user.phone = data.get('phone', '').strip()
+    if 'address' in data:
+        current_user.address = data.get('address', '').strip()
+    try:
+        db.session.commit()
+        return jsonify({'success': True, 'message': 'Profile updated successfully!'})
+    except Exception:
+        db.session.rollback()
+        current_app.logger.exception("Failed to update profile")
+        return jsonify({'success': False, 'message': 'Could not update profile.'}), 500
 
 @customer_bp.route('/product/<int:product_id>/review', methods=['POST'])
 @customer_required

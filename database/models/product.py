@@ -97,6 +97,9 @@ class Review(db.Model):
     product = db.relationship('Product', backref=db.backref('reviews', lazy=True, cascade='all, delete-orphan'))
     user = db.relationship('User', backref=db.backref('reviews', lazy=True))
     
+    def __init__(self, **kwargs):
+        super().__init__(**kwargs)
+
     def __repr__(self):
         return f'<Review {self.id} - Product {self.product_id}>'
 

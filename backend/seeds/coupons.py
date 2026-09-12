@@ -1,5 +1,5 @@
 """
-Authentic promotional and discount coupons seed data for Jay Goga Mart.
+Authentic promotional and discount coupons seed data for e Grossary.
 """
 from datetime import datetime, timedelta, timezone
 from decimal import Decimal
@@ -21,7 +21,7 @@ def seed_coupons():
             'is_active': True
         },
         {
-            'code': 'JAYGOGA100',
+            'code': 'EGROSSARY100',
             'discount_type': 'fixed',
             'value': Decimal('100.00'),
             'min_order_amount': Decimal('499.00'),

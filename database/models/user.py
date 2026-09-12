@@ -28,6 +28,9 @@ class User(db.Model, UserMixin):
     cart_items = db.relationship('Cart', backref='user', lazy=True, cascade='all, delete-orphan')
     orders = db.relationship('Order', backref='user', lazy=True, cascade='all, delete-orphan')
     
+    def __init__(self, **kwargs):
+        super().__init__(**kwargs)
+
     def set_password(self, password):
         """Hash and set user password"""
         self.password_hash = generate_password_hash(password)

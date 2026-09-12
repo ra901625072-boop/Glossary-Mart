@@ -3,7 +3,6 @@ from flask import jsonify, request
 
 from database.models import db
 from database.models.user import ActivityLog
-from backend.constants import MAX_ACTIVITY_LOG
 from backend.routes.decorators import admin_required
 from . import admin_bp
 

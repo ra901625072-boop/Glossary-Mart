@@ -1,6 +1,6 @@
-﻿<div align="center">
+<div align="center">
 
-# 🛒 Jay Goga Kirana Store — E-Commerce & Retail ERP System
+# 🛒 e Grossary — E-Commerce & Retail ERP System
 
 <p align="center">
   <img src="https://img.shields.io/badge/Python_Flask-000000?style=for-the-badge&logo=flask&logoColor=white" alt="Flask" />
@@ -16,7 +16,7 @@
 </p>
 
 <p align="center">
-  <img src="https://raw.githubusercontent.com/ra901625072-boop/Portfolio/main/public/assets/images/e-grossary.png" alt="Glossary Mart Preview" width="85%" style="border-radius: 12px; box-shadow: 0 4px 20px rgba(0,0,0,0.3);" />
+  <img src="https://raw.githubusercontent.com/ra901625072-boop/Portfolio/main/public/assets/images/e-grossary.png" alt="e Grossary Preview" width="85%" style="border-radius: 12px; box-shadow: 0 4px 20px rgba(0,0,0,0.3);" />
 </p>
 
 </div>
@@ -25,7 +25,7 @@
 
 ## 🌟 Overview
 
-**Jay Goga Kirana Store** is an enterprise grocery management and e-commerce web platform built with Python Flask and SQLAlchemy. It bridges retail shop operations with an online storefront — providing shopkeepers with inventory tracking, billing, and sales analytics, while offering customers an intuitive ordering portal.
+**e Grossary** is an enterprise grocery management and e-commerce web platform built with Python Flask and SQLAlchemy. It bridges retail shop operations with an online storefront — providing shopkeepers with inventory tracking, billing, and sales analytics, while offering customers an intuitive ordering portal.
 
 ---
 

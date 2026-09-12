@@ -12,7 +12,6 @@ from database.models import db
 from database.models.user import User
 from database.models.order import Cart
 from database.models.product import Product
-from backend.forms.auth import LoginForm, RegistrationForm
 from backend.utils.security import hash_token
 from . import auth_bp
 from .pages import serve_frontend_page
@@ -53,45 +52,44 @@ def login():
         return serve_frontend_page('admin.html')
     
     # POST — process login
-    form = LoginForm()
-    if form.validate_on_submit():
-        login_id = form.email.data.strip()
-        password = form.password.data
-        
-        user = db.session.query(User).filter(
-            (User.email == login_id.lower()) | (User.username == login_id)
-        ).first()
-        
-        if user and check_password_hash(user.password_hash, password):
-            if user.role != 'admin':
-                if request.is_json:
-                    return jsonify({'success': False, 'message': 'Admin access only. Please use customer login.'}), 403
-                flash('Admin access only. Please use customer login.', 'warning')
-                return redirect(url_for('auth.customer_login'))
-            
-            if user.two_factor_enabled:
-                session['2fa_user_id'] = user.id
-                session['2fa_expires_at'] = time.time() + 300  # 5 minutes timeout
-                if request.is_json:
-                    return jsonify({'success': True, 'requires_2fa': True, 'redirect': url_for('security.verify_2fa')})
-                return redirect(url_for('security.verify_2fa'))
-            else:
-                login_user(user)
-                if request.is_json:
-                    return jsonify({'success': True, 'message': 'Login successful!', 'redirect': url_for('admin.admin_erp_console')})
-                flash('Login successful!', 'success')
-                return redirect(url_for('admin.admin_erp_console'))
-        else:
+    data = request.get_json() if request.is_json else request.form
+    login_id = (data.get('email') or data.get('username') or '').strip()
+    password = data.get('password') or ''
+    
+    if not login_id or not password:
+        if request.is_json:
+            return jsonify({'success': False, 'message': 'Username/email and password are required.'}), 400
+        flash('Username/email and password are required.', 'danger')
+        return redirect(url_for('auth.login'))
+    
+    user = db.session.query(User).filter(
+        (User.email == login_id.lower()) | (User.username == login_id)
+    ).first()
+    
+    if user and check_password_hash(user.password_hash, password):
+        if user.role != 'admin':
             if request.is_json:
-                return jsonify({'success': False, 'message': 'Invalid username/email or password.'}), 401
-            flash('Invalid username/email or password.', 'danger')
+                return jsonify({'success': False, 'message': 'Admin access only. Please use customer login.'}), 403
+            flash('Admin access only. Please use customer login.', 'warning')
+            return redirect(url_for('auth.customer_login'))
+        
+        if user.two_factor_enabled:
+            session['2fa_user_id'] = user.id
+            session['2fa_expires_at'] = time.time() + 300  # 5 minutes timeout
+            if request.is_json:
+                return jsonify({'success': True, 'requires_2fa': True, 'redirect': url_for('security.verify_2fa')})
+            return redirect(url_for('security.verify_2fa'))
+        else:
+            login_user(user)
+            if request.is_json:
+                return jsonify({'success': True, 'message': 'Login successful!', 'redirect': url_for('admin.admin_erp_console')})
+            flash('Login successful!', 'success')
+            return redirect(url_for('admin.admin_erp_console'))
     else:
         if request.is_json:
-            errors = {field: errs for field, errs in form.errors.items()} if form.errors else {'form': ['Invalid form data.']}
-            return jsonify({'success': False, 'errors': errors}), 400
-    
-    # Fallback for non-JSON POST (serve the SPA page)
-    return serve_frontend_page('admin.html')
+            return jsonify({'success': False, 'message': 'Invalid username/email or password.'}), 401
+        flash('Invalid username/email or password.', 'danger')
+        return redirect(url_for('auth.login'))
 
 @auth_bp.route('/logout')
 @login_required
@@ -115,61 +113,59 @@ def customer_register():
     if request.method == 'GET':
         return serve_frontend_page('customer.html')
 
-    form = RegistrationForm()
-    if form.validate_on_submit():
-        try:
-            token = secrets.token_urlsafe(32)
-            is_verified = not current_app.config.get('MAIL_USERNAME')
-            new_user = User(
-                username=form.username.data.strip(),
-                email=form.email.data.strip().lower(),
-                password_hash=generate_password_hash(form.password.data),
-                role='customer',
-                full_name=form.full_name.data,
-                phone=form.phone.data,
-                address=form.address.data,
-                verification_token=hash_token(token),
-                is_verified=is_verified
-            )
-            
-            db.session.add(new_user)
-            db.session.commit()
-            
-            if not is_verified:
-                # Send verification email
-                try:
-                    msg = Message("Verify Your Email | Jay Goga Mart Store", recipients=[new_user.email])
-                    verify_url = url_for('security.verify_email', token=token, _external=True)
-                    msg.body = f"Welcome! Click here to verify your email address: {verify_url}"
-                    mail.send(msg)
-                    message = 'Registration successful! Please check your email to verify your account.'
-                except Exception:
-                    current_app.logger.exception("Failed to send verification email")
-                    message = 'Account created, but we couldn\'t send a verification email.'
-                
-                if request.is_json:
-                    return jsonify({'success': True, 'message': message, 'redirect': url_for('auth.customer_login')})
-                flash(message, 'success')
-                return redirect(url_for('auth.customer_login'))
-            else:
-                login_user(new_user)
-                if request.is_json:
-                    return jsonify({'success': True, 'message': 'Registration successful! Welcome to Jay Goga Mart Store.', 'redirect': url_for('customer.customer_portal')})
-                flash('Registration successful! Welcome to Jay Goga Mart Store.', 'success')
-                return redirect(url_for('customer.customer_portal'))
-            
-        except Exception:
-            db.session.rollback()
-            logging.exception("Customer registration failed")
-            if request.is_json:
-                return jsonify({'success': False, 'message': 'Registration failed due to a server error. Please try again.'}), 500
-            flash('Registration failed due to a server error. Please try again.', 'danger')
-    else:
-        if request.is_json:
-            errors = {field: errs for field, errs in form.errors.items()} if form.errors else {'form': ['Invalid form data.']}
-            return jsonify({'success': False, 'errors': errors}), 400
+    data = request.get_json() if request.is_json else request.form
+    username = (data.get('username') or '').strip()
+    email = (data.get('email') or '').strip().lower()
+    password = data.get('password') or ''
     
-    return serve_frontend_page('customer.html')
+    if not username or not email or not password:
+        return jsonify({'success': False, 'message': 'Username, email, and password are required.'}), 400
+    
+    existing_user = db.session.query(User).filter(
+        (User.username == username) | (User.email == email)
+    ).first()
+    if existing_user:
+        return jsonify({'success': False, 'message': 'Username or email is already registered.'}), 409
+    
+    try:
+        token = secrets.token_urlsafe(32)
+        is_verified = not current_app.config.get('MAIL_USERNAME')
+        new_user = User(
+            username=username,
+            email=email,
+            password_hash=generate_password_hash(password),
+            role='customer',
+            full_name=data.get('full_name', ''),
+            phone=data.get('phone', ''),
+            address=data.get('address', ''),
+            verification_token=hash_token(token),
+            is_verified=is_verified
+        )
+        
+        db.session.add(new_user)
+        db.session.commit()
+        
+        if not is_verified:
+            # Send verification email
+            try:
+                msg = Message("Verify Your Email | e Grossary Store", recipients=[new_user.email])
+                verify_url = url_for('security.verify_email', token=token, _external=True)
+                msg.body = f"Welcome! Click here to verify your email address: {verify_url}"
+                mail.send(msg)
+                message = 'Registration successful! Please check your email to verify your account.'
+            except Exception:
+                current_app.logger.exception("Failed to send verification email")
+                message = 'Account created, but we couldn\'t send a verification email.'
+            
+            return jsonify({'success': True, 'message': message, 'redirect': url_for('auth.customer_login')})
+        else:
+            login_user(new_user)
+            return jsonify({'success': True, 'message': 'Registration successful! Welcome to e Grossary Store.', 'redirect': url_for('customer.customer_portal')})
+        
+    except Exception:
+        db.session.rollback()
+        logging.exception("Customer registration failed")
+        return jsonify({'success': False, 'message': 'Registration failed due to a server error. Please try again.'}), 500
 
 @auth_bp.route('/customer/register', methods=['GET', 'POST'])
 def customer_register_redirect():
@@ -193,45 +189,45 @@ def customer_login():
     if request.method == 'GET':
         return serve_frontend_page('customer.html')
     
-    form = LoginForm()
-    if form.validate_on_submit():
-        login_id = form.email.data.strip()
-        password = form.password.data
-        
-        # Check both email (lowercase) and username
-        user = db.session.query(User).filter(
-            (User.email == login_id.lower()) | (User.username == login_id)
-        ).first()
-        
-        if user and check_password_hash(user.password_hash, password):
-            if user.role == 'customer' and not getattr(user, 'is_verified', True):
-                if request.is_json:
-                    return jsonify({'success': False, 'message': 'Please verify your email address before logging in.'}), 403
-                flash('Please verify your email address before logging in.', 'warning')
-                return redirect(url_for('auth.customer_login'))
-            login_user(user)
-            
-            if user.role == 'admin':
-                if request.is_json:
-                    return jsonify({'success': True, 'message': f'Welcome back, Admin!', 'redirect': url_for('admin.admin_erp_console')})
-                flash(f'Welcome back, Admin!', 'success')
-                return redirect(url_for('admin.admin_erp_console'))
-            
-            merge_session_cart(user)
+    data = request.get_json() if request.is_json else request.form
+    login_id = (data.get('email') or data.get('username') or '').strip()
+    password = data.get('password') or ''
+    
+    if not login_id or not password:
+        if request.is_json:
+            return jsonify({'success': False, 'message': 'Email/username and password are required.'}), 400
+        flash('Email/username and password are required.', 'danger')
+        return redirect(url_for('auth.customer_login'))
+    
+    # Check both email (lowercase) and username
+    user = db.session.query(User).filter(
+        (User.email == login_id.lower()) | (User.username == login_id)
+    ).first()
+    
+    if user and check_password_hash(user.password_hash, password):
+        if user.role == 'customer' and not getattr(user, 'is_verified', True):
             if request.is_json:
-                return jsonify({'success': True, 'message': f'Welcome back, {user.full_name or user.username}!', 'redirect': url_for('customer.customer_portal')})
-            flash(f'Welcome back, {user.full_name or user.username}!', 'success')
-            return redirect(url_for('customer.customer_portal'))
-        else:
+                return jsonify({'success': False, 'message': 'Please verify your email address before logging in.'}), 403
+            flash('Please verify your email address before logging in.', 'warning')
+            return redirect(url_for('auth.customer_login'))
+        login_user(user)
+        
+        if user.role == 'admin':
             if request.is_json:
-                return jsonify({'success': False, 'message': 'Invalid email/username or password.'}), 401
-            flash('Invalid email/username or password.', 'danger')
+                return jsonify({'success': True, 'message': 'Welcome back, Admin!', 'redirect': url_for('admin.admin_erp_console')})
+            flash('Welcome back, Admin!', 'success')
+            return redirect(url_for('admin.admin_erp_console'))
+        
+        merge_session_cart(user)
+        if request.is_json:
+            return jsonify({'success': True, 'message': f'Welcome back, {user.full_name or user.username}!', 'redirect': url_for('customer.customer_portal')})
+        flash(f'Welcome back, {user.full_name or user.username}!', 'success')
+        return redirect(url_for('customer.customer_portal'))
     else:
         if request.is_json:
-            errors = {field: errs for field, errs in form.errors.items()} if form.errors else {'form': ['Invalid form data.']}
-            return jsonify({'success': False, 'errors': errors}), 400
-    
-    return serve_frontend_page('customer.html')
+            return jsonify({'success': False, 'message': 'Invalid email/username or password.'}), 401
+        flash('Invalid email/username or password.', 'danger')
+        return redirect(url_for('auth.customer_login'))
 
 @auth_bp.route('/customer/login', methods=['GET', 'POST'])
 def customer_login_redirect():

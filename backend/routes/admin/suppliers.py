@@ -1,10 +1,9 @@
 """Admin supplier management routes (CRUD)."""
-from flask import current_app, jsonify, redirect, request, url_for
+from flask import current_app, jsonify, request
 
 from database.models import db
 from database.models.inventory import Supplier
 from backend.routes.decorators import admin_required
-from backend.forms.admin import SupplierForm
 from . import admin_bp
 
 
@@ -35,26 +34,26 @@ def add_supplier():
     if request.method == 'GET':
         return jsonify({'fields': ['name', 'contact_person', 'phone', 'email', 'address']})
 
-    form = SupplierForm()
-    if form.validate_on_submit():
-        supplier = Supplier(
-            name=form.name.data,
-            contact_person=form.contact_person.data,
-            phone=form.phone.data,
-            email=form.email.data,
-            address=form.address.data,
-        )
-        try:
-            db.session.add(supplier)
-            db.session.commit()
-            return jsonify({'success': True, 'message': f'Supplier "{supplier.name}" added successfully!', 'supplier_id': supplier.id})
-        except Exception:
-            db.session.rollback()
-            current_app.logger.exception("Failed to add supplier")
-            return jsonify({'success': False, 'message': 'Could not add supplier. Please try again.'}), 500
+    data = request.get_json() if request.is_json else request.form
+    name = (data.get('name') or '').strip()
+    if not name:
+        return jsonify({'success': False, 'message': 'Supplier name is required.'}), 400
 
-    errors = {field: errs for field, errs in form.errors.items()} if form.errors else {}
-    return jsonify({'success': False, 'errors': errors}), 400
+    supplier = Supplier(
+        name=name,
+        contact_person=(data.get('contact_person') or '').strip(),
+        phone=(data.get('phone') or '').strip(),
+        email=(data.get('email') or '').strip(),
+        address=(data.get('address') or '').strip(),
+    )
+    try:
+        db.session.add(supplier)
+        db.session.commit()
+        return jsonify({'success': True, 'message': f'Supplier "{supplier.name}" added successfully!', 'supplier_id': supplier.id})
+    except Exception:
+        db.session.rollback()
+        current_app.logger.exception("Failed to add supplier")
+        return jsonify({'success': False, 'message': 'Could not add supplier. Please try again.'}), 500
 
 
 @admin_bp.route('/suppliers/edit/<int:supplier_id>', methods=['GET', 'POST'])
@@ -75,25 +74,28 @@ def edit_supplier(supplier_id):
             'address': supplier.address or '',
         })
 
-    form = SupplierForm(obj=supplier)
+    data = request.get_json() if request.is_json else request.form
+    name = (data.get('name') or '').strip()
+    if not name:
+        return jsonify({'success': False, 'message': 'Supplier name is required.'}), 400
 
-    if form.validate_on_submit():
-        supplier.name = form.name.data
-        supplier.contact_person = form.contact_person.data
-        supplier.phone = form.phone.data
-        supplier.email = form.email.data
-        supplier.address = form.address.data
+    supplier.name = name
+    if 'contact_person' in data:
+        supplier.contact_person = (data.get('contact_person') or '').strip()
+    if 'phone' in data:
+        supplier.phone = (data.get('phone') or '').strip()
+    if 'email' in data:
+        supplier.email = (data.get('email') or '').strip()
+    if 'address' in data:
+        supplier.address = (data.get('address') or '').strip()
 
-        try:
-            db.session.commit()
-            return jsonify({'success': True, 'message': f'Supplier "{supplier.name}" updated successfully!'})
-        except Exception:
-            db.session.rollback()
-            current_app.logger.exception(f"Failed to update supplier #{supplier_id}")
-            return jsonify({'success': False, 'message': 'Could not update supplier. Please try again.'}), 500
-
-    errors = {field: errs for field, errs in form.errors.items()} if form.errors else {}
-    return jsonify({'success': False, 'errors': errors}), 400
+    try:
+        db.session.commit()
+        return jsonify({'success': True, 'message': f'Supplier "{supplier.name}" updated successfully!'})
+    except Exception:
+        db.session.rollback()
+        current_app.logger.exception(f"Failed to update supplier #{supplier_id}")
+        return jsonify({'success': False, 'message': 'Could not update supplier. Please try again.'}), 500
 
 
 @admin_bp.route('/suppliers/delete/<int:supplier_id>', methods=['POST'])

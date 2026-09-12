@@ -1,5 +1,5 @@
 """
-Seed orchestrator for Jay Goga Mart.
+Seed orchestrator for e Grossary.
 Loads all authentic FMCG categories, products, suppliers, purchases, coupons,
 customer profiles, historical orders, and counter POS sales into the database.
 """

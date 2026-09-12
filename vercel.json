@@ -20,10 +20,6 @@
       "destination": "/customer.html"
     },
     {
-      "source": "/consumer",
-      "destination": "/consumer.html"
-    },
-    {
       "source": "/auth/login",
       "destination": "/customer.html"
     },

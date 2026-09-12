@@ -50,10 +50,11 @@ def test_admin_dashboard_and_analytics(client, admin_user, test_product, session
     }, follow_redirects=True)
     assert login_resp.status_code == 200
 
-    # 2. View Dashboard
+    # 2. View Dashboard (returns JSON analytics)
     dash_resp = client.get('/admin/dashboard')
     assert dash_resp.status_code == 200
-    assert b'Jay Goga' in dash_resp.data or b'Dashboard' in dash_resp.data
+    dash_json = dash_resp.get_json()
+    assert 'chart_data' in dash_json or 'stats_1_day' in dash_json
 
     # 3. View Coupons list (tests Coupon.created_at field)
     coupon = Coupon(
@@ -203,7 +204,7 @@ def test_customer_checkout_cod_and_udhar(client, customer_user, test_product, se
         'payment_method': 'COD'
     }, follow_redirects=True)
     assert checkout_resp.status_code == 200
-    assert b'Order' in checkout_resp.data or b'Confirmation' in checkout_resp.data
+    assert b'order_id' in checkout_resp.data or b'order_status' in checkout_resp.data
 
     # Verify Order in DB
     order = session.query(Order).filter_by(user_id=customer_user.id).order_by(Order.id.desc()).first()

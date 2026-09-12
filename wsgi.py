@@ -14,7 +14,7 @@ except Exception as e:
 
 if __name__ == '__main__':
     port = int(os.getenv('PORT', 5000))
-    print(f"Starting Jay Goga Mart on port {port}...")
+    print(f"Starting e Grossary on port {port}...")
     for rule in app.url_map.iter_rules():
         print(f"ROUTE: {rule} -> {rule.endpoint}")
     app.run(host='0.0.0.0', port=port, debug=False)

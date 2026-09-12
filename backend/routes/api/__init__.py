@@ -8,6 +8,10 @@ from . import products, cart, auth, orders  # noqa: F401, E402
 @api_bp.route("/health")
 def api_health():
     """API health status"""
-    return {"status": "healthy", "service": "jay-goga-mart-api"}, 200
+    return {
+        "status": "online",
+        "service": "e-grossary-api",
+        "message": "e Grossary API Backend is running. Frontend is hosted separately on Vercel."
+    }, 200
 
 __all__ = ["api_bp"]

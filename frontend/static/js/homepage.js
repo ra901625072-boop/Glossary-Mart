@@ -1,5 +1,5 @@
 /**
- * E-Glossary Mart — Frontend Engine (homepage.js)
+ * e Grossary — Frontend Engine (homepage.js)
  * Standalone, robust client-side e-commerce engine:
  * - Product catalog rendering (Today's Deals, Best Sellers, Category exploration)
  * - Reactive Cart drawer with quantity steppers & free shipping progress bar (threshold ₹499)
@@ -324,7 +324,7 @@
         // Asynchronously sync with Flask backend session & database cart
         const numericId = parseInt(product.id, 10);
         if (!isNaN(numericId)) {
-            fetch('/api/cart/add', {
+            (window.apiFetch || fetch)('/api/cart/add', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ product_id: numericId, quantity: qtyToAdd })
@@ -784,7 +784,7 @@
     // ── 17. Backend Live API Synchronization ──
     async function loadCatalogFromBackend() {
         try {
-            const res = await fetch('/api/products?per_page=50');
+            const res = await (window.apiFetch || fetch)('/api/products?per_page=50');
             if (res.ok) {
                 const data = await res.json();
                 if (data && data.products && data.products.length > 0) {
@@ -819,7 +819,7 @@
 
     async function syncCartFromBackend() {
         try {
-            const res = await fetch('/api/cart');
+            const res = await (window.apiFetch || fetch)('/api/cart');
             if (res.ok) {
                 const data = await res.json();
                 if (data && data.items && data.items.length > 0) {
@@ -951,7 +951,7 @@
 
         // Attempt live API login if server available
         try {
-            const res = await fetch('/api/auth/login', {
+            const res = await (window.apiFetch || fetch)('/api/auth/login', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ email_or_username: email, username: email, email: email, password: password })
@@ -1018,7 +1018,7 @@
 
         // Attempt live API register if server available
         try {
-            const res = await fetch('/api/auth/register', {
+            const res = await (window.apiFetch || fetch)('/api/auth/register', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ username: email.split('@')[0], full_name: name, name: name, email: email, phone: phone, password: password })
@@ -1026,7 +1026,7 @@
             if (res.ok) {
                 const sessionUser = { id: Date.now(), name: name, email: email, phone: phone, role: 'customer' };
                 localStorage.setItem('jg_auth_user', JSON.stringify(sessionUser));
-                showToast(`Welcome to Jay Goga Mart, ${name}!`, 'success');
+                showToast(`Welcome to e Grossary, ${name}!`, 'success');
                 setTimeout(() => { location.href = 'customer.html#shop'; }, 600);
                 return;
             }
@@ -1064,7 +1064,7 @@
 
         // Attempt live API login if server available
         try {
-            const res = await fetch('/api/auth/login', {
+            const res = await (window.apiFetch || fetch)('/api/auth/login', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ email_or_username: email, username: email, email: email, password: password })

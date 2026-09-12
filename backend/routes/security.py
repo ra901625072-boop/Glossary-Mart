@@ -8,7 +8,6 @@ import qrcode
 from flask import (
     Blueprint,
     current_app,
-    flash,
     jsonify,
     redirect,
     request,
@@ -64,7 +63,7 @@ def forgot_password():
         db.session.commit()
         try:
             msg = Message(
-                "Password Reset Request | Jay Goga Mart Store",
+                "Password Reset Request | e Grossary Store",
                 recipients=[user.email],
             )
             reset_url = url_for("security.reset_password", token=token, _external=True)
@@ -146,7 +145,7 @@ def setup_2fa():
 
         totp = pyotp.TOTP(current_user.two_factor_secret)
         uri = totp.provisioning_uri(
-            name=current_user.email, issuer_name="Jay Goga Mart Store"
+            name=current_user.email, issuer_name="e Grossary Store"
         )
 
         qr = qrcode.make(uri)

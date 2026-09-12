@@ -14,7 +14,6 @@ services:
         - requirements.txt
         - wsgi.py
         - build.sh
-        - runtime.txt
       ignoredPaths:
         - other/**
         - README.md

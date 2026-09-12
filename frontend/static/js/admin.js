@@ -1,5 +1,5 @@
 /**
- * JAY GOGA MART — CONSOLIDATED ADMIN ERP CONSOLE ENGINE (admin.js)
+ * E-GROSSARY — CONSOLIDATED ADMIN ERP CONSOLE ENGINE (admin.js)
  * Enterprise state management, multi-module hash router, Chart.js analytics, POS billing, and inventory controls.
  */
 
@@ -964,7 +964,7 @@
 
     async function syncAdminWithServer() {
         try {
-            const res = await fetch('/api/products?per_page=100');
+            const res = await (window.apiFetch || fetch)('/api/products?per_page=100');
             if (res.ok) {
                 const data = await res.json();
                 if (data.success && data.products && data.products.length > 0) {

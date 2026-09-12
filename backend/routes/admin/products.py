@@ -1,12 +1,11 @@
 """Admin product management routes (CRUD + API endpoint)."""
-from flask import current_app, flash, jsonify, redirect, request, url_for
+from flask import current_app, jsonify, request
 
 from database.models import db
 from database.models.product import Category, Product
 from backend.services.storage_service import StorageService
 from backend.utils.files import allowed_file
 from backend.routes.decorators import admin_required
-from backend.forms.admin import ProductForm
 from .helpers import _log_action
 from . import admin_bp
 
@@ -57,38 +56,45 @@ def add_product():
             'categories': [{'id': c.id, 'name': c.name} for c in categories]
         })
 
-    form = ProductForm()
-    form.category_id.choices = [(c.id, c.name) for c in categories]
+    data = request.get_json() if request.is_json else request.form
+    name = (data.get('name') or '').strip()
+    if not name:
+        return jsonify({'success': False, 'message': 'Product name is required.'}), 400
 
-    if form.validate_on_submit():
-        image_path = None
-        if 'image' in request.files:
-            file = request.files['image']
-            if file and file.filename and allowed_file(file.filename, current_app.config['ALLOWED_EXTENSIONS']):
-                image_path = StorageService.upload_file(file)
+    try:
+        category_id = int(data.get('category_id'))
+        cost_price = float(data.get('cost_price', 0.0))
+        selling_price = float(data.get('selling_price', 0.0))
+        stock_quantity = int(data.get('stock_quantity', 0))
+        minimum_stock_alert = int(data.get('minimum_stock_alert', 5))
+    except (TypeError, ValueError):
+        return jsonify({'success': False, 'message': 'Invalid numerical inputs for price or stock.'}), 400
 
-        product = Product(
-            name=form.name.data,
-            category_id=form.category_id.data,
-            cost_price=form.cost_price.data,
-            selling_price=form.selling_price.data,
-            stock_quantity=form.stock_quantity.data,
-            minimum_stock_alert=form.minimum_stock_alert.data,
-            supplier_name=form.supplier_name.data,
-            image_path=image_path,
-        )
+    image_path = None
+    if 'image' in request.files:
+        file = request.files['image']
+        if file and file.filename and allowed_file(file.filename, current_app.config['ALLOWED_EXTENSIONS']):
+            image_path = StorageService.upload_file(file)
 
-        try:
-            db.session.add(product)
-            db.session.commit()
-            return jsonify({'success': True, 'message': f'Product "{product.name}" added successfully!', 'product_id': product.id})
-        except Exception:
-            db.session.rollback()
-            current_app.logger.exception("Failed to add product")
-            return jsonify({'success': False, 'message': 'Could not add product. Please try again.'}), 500
+    product = Product(
+        name=name,
+        category_id=category_id,
+        cost_price=cost_price,
+        selling_price=selling_price,
+        stock_quantity=stock_quantity,
+        minimum_stock_alert=minimum_stock_alert,
+        supplier_name=(data.get('supplier_name') or '').strip(),
+        image_path=image_path,
+    )
 
-    errors = {field: errs for field, errs in form.errors.items()} if form.errors else {}
-    return jsonify({'success': False, 'errors': errors}), 400
+    try:
+        db.session.add(product)
+        db.session.commit()
+        return jsonify({'success': True, 'message': f'Product "{product.name}" added successfully!', 'product_id': product.id})
+    except Exception:
+        db.session.rollback()
+        current_app.logger.exception("Failed to add product")
+        return jsonify({'success': False, 'message': 'Could not add product. Please try again.'}), 500
 
 
 @admin_bp.route('/products/edit/<int:product_id>', methods=['GET', 'POST'])
@@ -117,35 +123,43 @@ def edit_product(product_id):
             'categories': [{'id': c.id, 'name': c.name} for c in categories]
         })
 
-    form = ProductForm(obj=product)
-    form.category_id.choices = [(c.id, c.name) for c in categories]
+    data = request.get_json() if request.is_json else request.form
+    name = (data.get('name') or '').strip()
+    if not name:
+        return jsonify({'success': False, 'message': 'Product name is required.'}), 400
 
-    if form.validate_on_submit():
-        product.name = form.name.data
-        product.category_id = form.category_id.data
-        product.cost_price = form.cost_price.data
-        product.selling_price = form.selling_price.data
-        product.stock_quantity = form.stock_quantity.data
-        product.minimum_stock_alert = form.minimum_stock_alert.data
-        product.supplier_name = form.supplier_name.data
+    try:
+        if 'category_id' in data:
+            product.category_id = int(data.get('category_id'))
+        if 'cost_price' in data:
+            product.cost_price = float(data.get('cost_price'))
+        if 'selling_price' in data:
+            product.selling_price = float(data.get('selling_price'))
+        if 'stock_quantity' in data:
+            product.stock_quantity = int(data.get('stock_quantity'))
+        if 'minimum_stock_alert' in data:
+            product.minimum_stock_alert = int(data.get('minimum_stock_alert'))
+    except (TypeError, ValueError):
+        return jsonify({'success': False, 'message': 'Invalid numerical inputs for price or stock.'}), 400
 
-        if 'image' in request.files:
-            file = request.files['image']
-            if file and file.filename and allowed_file(file.filename, current_app.config['ALLOWED_EXTENSIONS']):
-                if product.image_path:
-                    StorageService.delete_file(product.image_path)
-                product.image_path = StorageService.upload_file(file)
+    product.name = name
+    if 'supplier_name' in data:
+        product.supplier_name = (data.get('supplier_name') or '').strip()
 
-        try:
-            db.session.commit()
-            return jsonify({'success': True, 'message': f'Product "{product.name}" updated successfully!'})
-        except Exception:
-            db.session.rollback()
-            current_app.logger.exception(f"Failed to update product #{product_id}")
-            return jsonify({'success': False, 'message': 'Could not update product. Please try again.'}), 500
+    if 'image' in request.files:
+        file = request.files['image']
+        if file and file.filename and allowed_file(file.filename, current_app.config['ALLOWED_EXTENSIONS']):
+            if product.image_path:
+                StorageService.delete_file(product.image_path)
+            product.image_path = StorageService.upload_file(file)
 
-    errors = {field: errs for field, errs in form.errors.items()} if form.errors else {}
-    return jsonify({'success': False, 'errors': errors}), 400
+    try:
+        db.session.commit()
+        return jsonify({'success': True, 'message': f'Product "{product.name}" updated successfully!'})
+    except Exception:
+        db.session.rollback()
+        current_app.logger.exception(f"Failed to update product #{product_id}")
+        return jsonify({'success': False, 'message': 'Could not update product. Please try again.'}), 500
 
 
 @admin_bp.route('/products/delete/<int:product_id>', methods=['POST'])

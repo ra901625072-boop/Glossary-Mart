@@ -1,26 +1,20 @@
 """
-Utility for serving static frontend SPA pages.
+Decoupled API Backend Status Utility.
 
-After removing Jinja2 templates, backend routes serve the pre-built
-SPA HTML files (index.html, customer.html, admin.html) directly from
-the frontend/ directory using Flask's send_from_directory.
+The frontend is completely decoupled and hosted separately (on Vercel in production
+or via a local static server during development). When the backend receives requests
+for pages, it returns an informative JSON status confirming the backend API is online.
 """
-import os
-
-from flask import send_from_directory
-
-_FRONTEND_DIR = os.path.abspath(
-    os.path.join(os.path.dirname(__file__), '..', '..', 'frontend')
-)
+from flask import current_app, jsonify
 
 
-def serve_frontend_page(filename):
-    """Serve a static HTML page from the frontend directory.
+def serve_frontend_page(filename=None):
+    """Return backend status indicating the API is online and frontend is decoupled."""
+    frontend_url = current_app.config.get('FRONTEND_URL', 'https://glossary-mart.vercel.app')
+    return jsonify({
+        "status": "online",
+        "message": "e Grossary API Backend is running. Frontend is hosted separately on Vercel.",
+        "frontend_url": frontend_url,
+        "page_requested": filename
+    }), 200
 
-    Args:
-        filename: The HTML filename to serve (e.g. 'index.html', 'admin.html').
-
-    Returns:
-        Flask Response with the static file contents.
-    """
-    return send_from_directory(_FRONTEND_DIR, filename)

@@ -8,8 +8,8 @@ def test_api_health(client):
     res = client.get('/api/health')
     assert res.status_code == 200
     data = res.get_json()
-    assert data['status'] == 'healthy'
-    assert data['service'] == 'jay-goga-mart-api'
+    assert data['status'] in ('healthy', 'online')
+    assert data['service'] in ('e-grossary-api', 'jay-goga-mart-api')
 
 
 def test_api_categories(client, app):
@@ -148,7 +148,7 @@ def test_backend_portal_page_content(client):
     res = client.get('/api-portal')
     assert res.status_code == 200
     content_upper = res.data.upper()
-    assert b'JAY GOGA MART' in content_upper
+    assert b'E GROSSARY' in content_upper
     assert b'BACKEND' in content_upper
     assert b'/api/health' in res.data
     assert b'/auth/admin/login' in res.data

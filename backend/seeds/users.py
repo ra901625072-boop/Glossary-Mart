@@ -16,7 +16,7 @@ def create_admin(app):
             email='admin@mart.com',
             password_hash=generate_password_hash(app.config['ADMIN_PASSWORD']),
             role='admin',
-            full_name='Administrator — Jay Goga Mart'
+            full_name='Administrator — e Grossary'
         )
         db.session.add(admin)
         db.session.commit()

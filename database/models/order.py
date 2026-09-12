@@ -19,6 +19,9 @@ class Cart(db.Model):
     # Relationship with product
     product = db.relationship('Product', backref='cart_items')
     
+    def __init__(self, **kwargs):
+        super().__init__(**kwargs)
+
     def __repr__(self):
         return f'<Cart {self.id} - User {self.user_id}>'
     
@@ -127,3 +130,6 @@ class Wishlist(db.Model):
     __table_args__ = (
         UniqueConstraint('user_id', 'product_id', name='uq_wishlist_user_product'),
     )
+
+    def __init__(self, **kwargs):
+        super().__init__(**kwargs)

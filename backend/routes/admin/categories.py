@@ -1,10 +1,9 @@
 """Admin category management routes (CRUD)."""
-from flask import current_app, jsonify, redirect, request, url_for
+from flask import current_app, jsonify, request
 
 from database.models import db
 from database.models.product import Category
 from backend.routes.decorators import admin_required
-from backend.forms.admin import CategoryForm
 from . import admin_bp
 
 
@@ -33,25 +32,24 @@ def add_category():
     if request.method == 'GET':
         return jsonify({'fields': ['name', 'description']})
 
-    form = CategoryForm()
-    if form.validate_on_submit():
-        name = form.name.data
-        existing = db.session.query(Category).filter_by(name=name).first()
-        if existing:
-            return jsonify({'success': False, 'message': f'Category "{name}" already exists.'}), 409
+    data = request.get_json() if request.is_json else request.form
+    name = (data.get('name') or '').strip()
+    if not name:
+        return jsonify({'success': False, 'message': 'Category name is required.'}), 400
 
-        category = Category(name=name, description=form.description.data)
-        try:
-            db.session.add(category)
-            db.session.commit()
-            return jsonify({'success': True, 'message': f'Category "{name}" added successfully!', 'category_id': category.id})
-        except Exception:
-            db.session.rollback()
-            current_app.logger.exception(f"Failed to add category '{name}'")
-            return jsonify({'success': False, 'message': 'Could not add category. Please try again.'}), 500
+    existing = db.session.query(Category).filter_by(name=name).first()
+    if existing:
+        return jsonify({'success': False, 'message': f'Category "{name}" already exists.'}), 409
 
-    errors = {field: errs for field, errs in form.errors.items()} if form.errors else {}
-    return jsonify({'success': False, 'errors': errors}), 400
+    category = Category(name=name, description=(data.get('description') or '').strip())
+    try:
+        db.session.add(category)
+        db.session.commit()
+        return jsonify({'success': True, 'message': f'Category "{name}" added successfully!', 'category_id': category.id})
+    except Exception:
+        db.session.rollback()
+        current_app.logger.exception(f"Failed to add category '{name}'")
+        return jsonify({'success': False, 'message': 'Could not add category. Please try again.'}), 500
 
 
 @admin_bp.route('/categories/edit/<int:category_id>', methods=['GET', 'POST'])
@@ -69,29 +67,28 @@ def edit_category(category_id):
             'description': category.description or '',
         })
 
-    form = CategoryForm(obj=category)
+    data = request.get_json() if request.is_json else request.form
+    name = (data.get('name') or '').strip()
+    if not name:
+        return jsonify({'success': False, 'message': 'Category name is required.'}), 400
 
-    if form.validate_on_submit():
-        name = form.name.data
-        existing = db.session.query(Category).filter(
-            Category.name == name, Category.id != category_id
-        ).first()
-        if existing:
-            return jsonify({'success': False, 'message': f'Category "{name}" already exists.'}), 409
+    existing = db.session.query(Category).filter(
+        Category.name == name, Category.id != category_id
+    ).first()
+    if existing:
+        return jsonify({'success': False, 'message': f'Category "{name}" already exists.'}), 409
 
-        category.name = name
-        category.description = form.description.data
+    category.name = name
+    if 'description' in data:
+        category.description = (data.get('description') or '').strip()
 
-        try:
-            db.session.commit()
-            return jsonify({'success': True, 'message': f'Category "{name}" updated successfully!'})
-        except Exception:
-            db.session.rollback()
-            current_app.logger.exception(f"Failed to update category #{category_id}")
-            return jsonify({'success': False, 'message': 'Could not update category. Please try again.'}), 500
-
-    errors = {field: errs for field, errs in form.errors.items()} if form.errors else {}
-    return jsonify({'success': False, 'errors': errors}), 400
+    try:
+        db.session.commit()
+        return jsonify({'success': True, 'message': f'Category "{name}" updated successfully!'})
+    except Exception:
+        db.session.rollback()
+        current_app.logger.exception(f"Failed to update category #{category_id}")
+        return jsonify({'success': False, 'message': 'Could not update category. Please try again.'}), 500
 
 
 @admin_bp.route('/categories/delete/<int:category_id>', methods=['POST'])

@@ -1,5 +1,5 @@
 """
-Authentic FMCG and grocery distributors seed data for Jay Goga Mart.
+Authentic FMCG and grocery distributors seed data for e Grossary.
 """
 from database.models import db
 from database.models.inventory import Supplier

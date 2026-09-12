@@ -23,7 +23,6 @@ def init_hooks(app):
         if request.path in [
             '/', '/index.html',
             '/customer', '/customer.html',
-            '/cosummer', '/cosummer.html',
             '/admin', '/admin.html',
             '/admin/console', '/admin/erp', '/admin/master',
             '/health', '/favicon.ico'

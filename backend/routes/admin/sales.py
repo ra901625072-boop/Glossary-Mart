@@ -1,13 +1,12 @@
 """Admin sales management routes (record, history, export, bill)."""
 from datetime import datetime, timedelta
 
-from flask import Response, current_app, jsonify, make_response, redirect, request, url_for
+from flask import Response, current_app, jsonify, make_response, request
 
 from database.models import db
 from database.models.product import Product, Sale
 from backend.services.inventory_service import InventoryService
 from backend.services.export_service import generate_sales_csv, generate_sales_pdf
-from backend.constants import MAX_SALES_HISTORY
 from backend.routes.decorators import admin_required
 from . import admin_bp
 

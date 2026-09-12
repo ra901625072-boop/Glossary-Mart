@@ -2,19 +2,19 @@ def test_landing_page(client):
     """Test that the landing page loads successfully"""
     response = client.get('/')
     assert response.status_code == 200
-    assert b'Jay Goga Mart' in response.data
+    assert b'e Grossary' in response.data
 
 def test_login_page(client):
-    """Test that the customer login page loads"""
+    """Test that customer login route returns decoupled backend status"""
     response = client.get('/auth/login')
     assert response.status_code == 200
-    assert b'Login' in response.data or b'Customer' in response.data or b'Email' in response.data
+    assert b'e Grossary' in response.data or b'customer.html' in response.data
 
 def test_admin_login_page(client):
-    """Test that the admin login page loads"""
+    """Test that admin login route returns decoupled backend status"""
     response = client.get('/auth/admin/login')
     assert response.status_code == 200
-    assert b'Institutional Access' in response.data or b'Login' in response.data
+    assert b'e Grossary' in response.data or b'admin.html' in response.data
 
 def test_shop_page_redirects_unauthenticated(client):
     """Test that shop page redirects if not logged in"""
@@ -35,7 +35,7 @@ def test_shop_page_authenticated(client, customer_user, app):
         }, follow_redirects=True)
         
         assert response.status_code == 200
-        assert b'Customer Super-App' in response.data or b'Jay Goga Mart' in response.data
+        assert b'Customer Super-App' in response.data or b'e Grossary' in response.data
         
         # Now access shop
         shop_response = c.get('/shop')
