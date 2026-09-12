@@ -1,0 +1,426 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+    <title id="pageTitle">Product Details &bull; e Grossary</title>
+    
+    <!-- Meta SEO -->
+    <meta name="description" content="Order fresh everyday grocery essentials online with 15-minute doorstep delivery at e Grossary.">
+    <meta name="theme-color" content="#10b981">
+
+    <!-- Fonts & Icons -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=Outfit:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
+
+    <!-- Favicon -->
+    <link rel="icon" type="image/png" href="../static/images/favicon.png">
+    <link rel="shortcut icon" href="../static/images/favicon.ico">
+
+    <!-- Stylesheets -->
+    <link rel="stylesheet" href="../static/css/core/variables.css">
+    <link rel="stylesheet" href="../static/css/customer.css">
+</head>
+<body data-page="product">
+
+    <!-- Top Announcement Strip -->
+    <div class="top-announcement-strip py-1 px-3 d-flex justify-content-between align-items-center">
+        <div class="d-flex align-items-center gap-2">
+            <span>⚡ <strong>15-Minute Express Grocery Delivery</strong> &bull; Free on orders &gt; ₹499 &bull; Fresh Farm Produce</span>
+        </div>
+        <div class="d-none d-md-flex align-items-center gap-3">
+            <span><i class="bi bi-shield-check me-1 text-warning"></i>100% Quality Guarantee</span>
+            <span><i class="bi bi-clock-history me-1"></i>Open Daily: 7 AM - 11 PM</span>
+        </div>
+    </div>
+
+    <!-- Master Header -->
+    <header class="master-header py-2 border-bottom sticky-top bg-white">
+        <div class="container d-flex align-items-center justify-content-between gap-3">
+            <div class="d-flex align-items-center gap-3">
+                <a href="../index.html" class="brand-logo-wrap text-decoration-none d-flex align-items-center gap-2">
+                    <img src="../static/images/logo-icon.png" alt="e Grossary" style="width: 38px; height: 38px; object-fit: contain;">
+                    <div>
+                        <div class="brand-title" style="font-family: 'Outfit', sans-serif; font-size: 1.35rem; font-weight: 800; color: #0f172a; line-height: 1.1;">
+                            e<span style="color: #10b981;">Grossary</span>
+                        </div>
+                        <div class="brand-tagline" style="font-size: 0.65rem; font-weight: 700; color: #059669; letter-spacing: 0.08em; text-transform: uppercase;">
+                            Fresh Groceries Superstore
+                        </div>
+                    </div>
+                </a>
+            </div>
+
+            <!-- Delivery Location Selector -->
+            <div class="col-auto d-none d-lg-block">
+                <div class="location-selector-chip d-flex align-items-center gap-2 cursor-pointer" data-bs-toggle="modal" data-bs-target="#locationModal">
+                    <i class="bi bi-geo-alt-fill text-success fs-5"></i>
+                    <div class="text-truncate">
+                        <div class="smallest text-muted fw-bold text-uppercase" style="font-size: 0.65rem;">Delivering to</div>
+                        <div class="small fw-bold text-dark text-truncate" style="max-width: 140px;" id="headerDeliveryAddress">Pali Sector 4 Central Hub</div>
+                    </div>
+                    <i class="bi bi-chevron-down smallest text-muted ms-1"></i>
+                </div>
+            </div>
+
+            <!-- Live Search Bar -->
+            <div class="col">
+                <div class="search-container-box">
+                    <i class="bi bi-search search-icon-pos"></i>
+                    <input type="text" id="masterSearchInput" class="search-input-field" 
+                           placeholder="Search fresh vegetables, milk, atta, snacks, dairy products..."
+                           onkeydown="if(event.key === 'Enter') window.location.href = 'shop.html?search=' + encodeURIComponent(this.value)">
+                </div>
+            </div>
+
+            <!-- Nav Actions -->
+            <div class="col-auto d-flex align-items-center gap-1 gap-md-2">
+                <a href="shop.html" class="nav-action-btn d-none d-md-inline-flex" data-route-link="shop">
+                    <i class="bi bi-grid-fill text-success"></i>
+                    <span>Shop</span>
+                </a>
+
+                <a href="orders.html" class="nav-action-btn d-none d-md-inline-flex" data-route-link="orders">
+                    <i class="bi bi-clock-history"></i>
+                    <span>Orders</span>
+                </a>
+
+                <a href="wishlist.html" class="nav-action-btn" data-route-link="wishlist" title="Wishlist">
+                    <i class="bi bi-heart fs-5"></i>
+                    <span class="d-none d-lg-inline">Wishlist</span>
+                    <span class="nav-badge wishlist-counter-badge" style="display: none;">0</span>
+                </a>
+
+                <!-- Cart Bag Trigger -->
+                <button class="nav-action-btn border-0 bg-transparent" type="button" data-bs-toggle="offcanvas" data-bs-target="#cartOffcanvas" aria-controls="cartOffcanvas" title="Shopping Bag">
+                    <i class="bi bi-bag-check-fill fs-5 text-success"></i>
+                    <span class="cart-total-header-pill badge bg-success text-white fw-bold px-2 py-1">₹0</span>
+                    <span class="nav-badge cart-counter-badge" style="display: none;">0</span>
+                </button>
+
+                <!-- Profile Dropdown -->
+                <div class="dropdown">
+                    <button class="nav-action-btn dropdown-toggle border-0" type="button" data-bs-toggle="dropdown">
+                        <i class="bi bi-person-circle fs-5"></i>
+                        <span class="d-none d-xl-inline profile-user-name-display">Account</span>
+                    </button>
+                    <ul class="dropdown-menu dropdown-menu-end shadow-lg border-0 rounded-4 p-2 mt-2" style="min-width: 230px;">
+                        <li class="px-3 py-2 border-bottom">
+                            <div class="fw-bold profile-user-name-display text-dark">Customer Account</div>
+                            <div class="smallest text-muted profile-user-email-display">Sign in to sync orders</div>
+                        </li>
+                        <li class="auth-guest-action px-3 py-2" style="display: none;">
+                            <a href="../auth/login.html" class="btn btn-success btn-sm w-100 rounded-pill fw-bold mb-1">
+                                <i class="bi bi-box-arrow-in-right me-1"></i>Sign In
+                            </a>
+                            <div class="smallest text-center text-muted">
+                                New here? <a href="../auth/register.html" class="text-success fw-bold">Sign Up</a>
+                            </div>
+                        </li>
+                        <li><a class="dropdown-item rounded-3 py-2 mt-1" href="profile.html"><i class="bi bi-person me-2 text-primary"></i>My Profile &amp; Settings</a></li>
+                        <li><a class="dropdown-item rounded-3 py-2" href="orders.html"><i class="bi bi-box-seam me-2 text-success"></i>My Orders &amp; Tracking</a></li>
+                        <li><a class="dropdown-item rounded-3 py-2" href="wishlist.html"><i class="bi bi-heart me-2 text-danger"></i>My Saved Wishlist</a></li>
+                        <li><a class="dropdown-item rounded-3 py-2" href="cart.html"><i class="bi bi-bag-check me-2 text-success"></i>Full Shopping Bag</a></li>
+                        <li class="auth-customer-action"><hr class="dropdown-divider"></li>
+                        <li class="auth-customer-action"><a class="dropdown-item rounded-3 py-2 text-danger" href="javascript:void(0)" onclick="handleLogout(); return false;"><i class="bi bi-box-arrow-right me-2"></i>Sign Out</a></li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+
+        <!-- Sub-Navigation Menu -->
+        <div class="sub-nav-bar mt-2">
+            <div class="container">
+                <ul class="sub-nav-menu">
+                    <li><a href="../index.html" class="sub-nav-link"><i class="bi bi-house-door me-1"></i>Home</a></li>
+                    <li><a href="shop.html" class="sub-nav-link active">All Products</a></li>
+                    <li><a href="shop.html?category=vegetables" class="sub-nav-link">🥦 Fresh Vegetables</a></li>
+                    <li><a href="shop.html?category=dairy" class="sub-nav-link">🥛 Milk &amp; Dairy</a></li>
+                    <li><a href="shop.html?category=staples" class="sub-nav-link">🌾 Atta &amp; Staples</a></li>
+                    <li><a href="shop.html?category=snacks" class="sub-nav-link">🍿 Snacks &amp; Munchies</a></li>
+                    <li><a href="shop.html?sort=discount" class="sub-nav-link text-success fw-bold">🔥 Hot Deals</a></li>
+                    <li><a href="shop.html?sort=latest" class="sub-nav-link">✨ New Arrivals</a></li>
+                    <li><a href="about.html" class="sub-nav-link">About Us</a></li>
+                    <li><a href="faq.html" class="sub-nav-link">FAQs</a></li>
+                </ul>
+            </div>
+        </div>
+    </header>
+
+    <!-- Main Container -->
+    <main class="container my-3 my-md-4">
+        <!-- Breadcrumb Navigation -->
+        <nav aria-label="breadcrumb" class="mb-3">
+            <ol class="breadcrumb small">
+                <li class="breadcrumb-item"><a href="../index.html" class="text-decoration-none text-muted">Home</a></li>
+                <li class="breadcrumb-item"><a href="shop.html" class="text-decoration-none text-muted">Shop</a></li>
+                <li class="breadcrumb-item"><a href="shop.html" id="breadcrumbCategory" class="text-decoration-none text-muted">Groceries</a></li>
+                <li class="breadcrumb-item active text-dark fw-bold" id="breadcrumbProductName" aria-current="page">Product</li>
+            </ol>
+        </nav>
+
+        <!-- Product Hero Grid -->
+        <section class="row g-4 g-lg-5 mb-5">
+            <!-- Left Column: Gallery -->
+            <div class="col-lg-5">
+                <div class="product-detail-gallery shadow-sm">
+                    <div class="d-flex justify-content-between align-items-center mb-2">
+                        <span class="badge bg-success bg-opacity-10 text-success fw-bold px-3 py-1 rounded-pill" id="productDiscountPill">
+                            15% OFF
+                        </span>
+                        <button class="btn btn-sm btn-outline-danger rounded-circle" id="productWishlistToggleBtn" title="Add to Wishlist" onclick="toggleCurrentProductWishlist()">
+                            <i class="bi bi-heart" id="productWishlistIcon"></i>
+                        </button>
+                    </div>
+
+                    <img src="" alt="Product" id="productMainImage" class="product-detail-main-img img-fluid">
+
+                    <div class="d-flex justify-content-center gap-2 mt-3 pt-3 border-top">
+                        <span class="product-spec-badge"><i class="bi bi-patch-check-fill text-success"></i> 100% Quality Inspected</span>
+                        <span class="product-spec-badge"><i class="bi bi-stopwatch-fill text-warning"></i> 15-Min Delivery</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Right Column: Details & Purchase Actions -->
+            <div class="col-lg-7">
+                <div class="bg-white p-4 p-md-5 rounded-4 border shadow-sm">
+                    <!-- Brand / Category / Veg Tag -->
+                    <div class="d-flex align-items-center gap-2 mb-2">
+                        <span class="badge bg-light text-success border fw-bold" id="productCategoryTag">Category</span>
+                        <span class="badge bg-success-subtle text-success fw-bold" id="productStockTag"><i class="bi bi-check2-circle me-1"></i>In Stock</span>
+                    </div>
+
+                    <!-- Title -->
+                    <h1 class="h2 fw-bold text-dark mb-2 brand-font" id="productDetailTitle">Product Name</h1>
+
+                    <!-- Unit & Rating Row -->
+                    <div class="d-flex align-items-center gap-3 mb-3 pb-3 border-bottom">
+                        <span class="text-muted fw-semibold" id="productDetailUnit">1 kg</span>
+                        <span class="text-muted">&bull;</span>
+                        <div class="d-flex align-items-center gap-1 text-warning fw-bold">
+                            <span>★</span>
+                            <span class="text-dark" id="productDetailRating">4.8</span>
+                            <span class="text-muted small" id="productDetailReviews">(1,240 reviews)</span>
+                        </div>
+                    </div>
+
+                    <!-- Price & Savings Row -->
+                    <div class="d-flex align-items-baseline gap-3 mb-4">
+                        <span class="h1 fw-bold text-success mb-0" id="productDetailPrice">₹0</span>
+                        <span class="h4 text-muted text-decoration-line-through mb-0" id="productDetailMrp">₹0</span>
+                        <span class="badge bg-success text-white px-3 py-1 rounded-pill fw-bold" id="productSavingsBadge">Save ₹0</span>
+                    </div>
+
+                    <!-- Description -->
+                    <p class="text-muted mb-4" id="productDetailDesc" style="line-height: 1.6;">
+                        High-quality fresh essentials delivered right from our regional fulfillment hub in under 15 minutes.
+                    </p>
+
+                    <!-- Pincode / Delivery Promise Banner -->
+                    <div class="p-3 rounded-3 bg-light border mb-4 d-flex align-items-center gap-3">
+                        <div class="fs-2 text-success">⚡</div>
+                        <div>
+                            <div class="fw-bold text-dark small">Express Delivery: Within 15 Minutes</div>
+                            <div class="smallest text-muted">Dispatched from Pali / Unjha APMC Hub. Free delivery on orders above ₹499.</div>
+                        </div>
+                    </div>
+
+                    <!-- Quantity Stepper & Dual Buy Action CTAs -->
+                    <div class="d-flex flex-wrap gap-3 align-items-center mb-4">
+                        <!-- Stepper -->
+                        <div class="d-flex align-items-center border rounded-pill p-1 bg-light">
+                            <button class="btn btn-sm btn-white rounded-circle shadow-sm px-3 fw-bold" onclick="adjustProductQty(-1)">&minus;</button>
+                            <span class="px-3 fw-bold text-dark" id="productDetailSelectedQty">1</span>
+                            <button class="btn btn-sm btn-white rounded-circle shadow-sm px-3 fw-bold" onclick="adjustProductQty(1)">&plus;</button>
+                        </div>
+
+                        <!-- Add to Bag -->
+                        <button class="btn btn-outline-success flex-grow-1 py-3 rounded-pill fw-bold shadow-sm d-flex align-items-center justify-content-center gap-2" id="btnAddProductBag" onclick="handleDetailAddToCart()">
+                            <i class="bi bi-cart-plus fs-5"></i>
+                            <span>Add to Bag</span>
+                        </button>
+
+                        <!-- Buy Now (Instant Checkout) -->
+                        <button class="btn btn-success flex-grow-1 py-3 rounded-pill fw-bold shadow-sm d-flex align-items-center justify-content-center gap-2" id="btnBuyNowDirect" onclick="handleDetailBuyNow()">
+                            <i class="bi bi-lightning-charge-fill"></i>
+                            <span>Buy Now</span>
+                        </button>
+                    </div>
+
+                    <!-- Trust Pillars Strip -->
+                    <div class="row g-2 pt-3 border-top text-center text-muted smallest">
+                        <div class="col-4">
+                            <i class="bi bi-arrow-counterclockwise text-success fs-5 d-block mb-1"></i>
+                            <span>Easy Doorstep Returns</span>
+                        </div>
+                        <div class="col-4">
+                            <i class="bi bi-shield-check text-success fs-5 d-block mb-1"></i>
+                            <span>100% Secure Checkout</span>
+                        </div>
+                        <div class="col-4">
+                            <i class="bi bi-truck text-success fs-5 d-block mb-1"></i>
+                            <span>15-Min Express Dispatch</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Product Details, Nutrition & Reviews Tabs -->
+        <section class="mb-5">
+            <div class="bg-white p-4 p-md-5 rounded-4 border shadow-sm">
+                <ul class="nav nav-tabs border-bottom mb-4" id="productTab" role="tablist">
+                    <li class="nav-item">
+                        <button class="nav-link active fw-bold" id="nutrition-tab" data-bs-toggle="tab" data-bs-target="#tab-nutrition" type="button">Nutrition &amp; Storage</button>
+                    </li>
+                    <li class="nav-item">
+                        <button class="nav-link fw-bold" id="reviews-tab" data-bs-toggle="tab" data-bs-target="#tab-reviews" type="button">Verified Reviews (<span id="tabReviewCount">4</span>)</button>
+                    </li>
+                </ul>
+
+                <div class="tab-content">
+                    <!-- Tab 1: Nutrition & Info -->
+                    <div class="tab-pane fade show active" id="tab-nutrition">
+                        <div class="row g-4">
+                            <div class="col-md-6">
+                                <h6 class="fw-bold text-dark mb-3">Nutritional Information (Per 100g approx.)</h6>
+                                <table class="nutrition-table" id="nutritionTableBody">
+                                    <tr><td>Energy / Calories</td><td class="fw-bold text-dark" id="nutEnergy">350 kcal</td></tr>
+                                    <tr><td>Carbohydrates</td><td class="fw-bold text-dark" id="nutCarbs">72 g</td></tr>
+                                    <tr><td>Protein</td><td class="fw-bold text-dark" id="nutProtein">12 g</td></tr>
+                                    <tr><td>Fat</td><td class="fw-bold text-dark" id="nutFat">1.5 g</td></tr>
+                                    <tr><td>Dietary Fiber</td><td class="fw-bold text-dark" id="nutFiber">10 g</td></tr>
+                                </table>
+                            </div>
+                            <div class="col-md-6">
+                                <h6 class="fw-bold text-dark mb-3">Storage &amp; Handling</h6>
+                                <p class="text-muted small mb-2">Store in a cool, dry place away from direct sunlight. After opening, keep inside an airtight container for maximum freshness.</p>
+                                <p class="text-muted small mb-0"><strong>FSSAI License:</strong> 10019021004123 (Certified Quality &amp; Hygiene Standards).</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Tab 2: Reviews -->
+                    <div class="tab-pane fade" id="tab-reviews">
+                        <div class="row g-4">
+                            <div class="col-md-4 text-center border-end">
+                                <div class="display-4 fw-bold text-success mb-1" id="reviewSummaryRating">4.8</div>
+                                <div class="text-warning mb-2">★★★★★</div>
+                                <p class="small text-muted mb-0">Based on 1,240 verified customer purchases</p>
+                            </div>
+                            <div class="col-md-8">
+                                <div id="productReviewsContainer">
+                                    <div class="review-card-item">
+                                        <div class="d-flex justify-content-between mb-1">
+                                            <strong class="text-dark">Suresh Patel</strong>
+                                            <span class="text-warning small">★★★★★</span>
+                                        </div>
+                                        <div class="smallest text-muted mb-2"><i class="bi bi-patch-check-fill text-success me-1"></i>Verified Buyer &bull; 2 days ago</div>
+                                        <p class="small text-muted mb-0">Super fast 15-minute delivery in Pali! Fresh packing and high quality produce.</p>
+                                    </div>
+                                    <div class="review-card-item">
+                                        <div class="d-flex justify-content-between mb-1">
+                                            <strong class="text-dark">Pooja Sharma</strong>
+                                            <span class="text-warning small">★★★★★</span>
+                                        </div>
+                                        <div class="smallest text-muted mb-2"><i class="bi bi-patch-check-fill text-success me-1"></i>Verified Buyer &bull; 1 week ago</div>
+                                        <p class="small text-muted mb-0">Completely genuine product at wholesale rates. Loved the express doorstep service.</p>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Similar / Related Products Section -->
+        <section class="mb-5">
+            <div class="d-flex justify-content-between align-items-center mb-4">
+                <h3 class="h4 fw-bold text-dark mb-0 brand-font">Frequently Bought Together</h3>
+                <a href="shop.html" class="text-success fw-bold text-decoration-none small">View Full Catalog <i class="bi bi-arrow-right"></i></a>
+            </div>
+            <div class="row g-3 g-md-4" id="relatedProductsGrid">
+                <!-- Dynamically injected -->
+            </div>
+        </section>
+    </main>
+
+    <!-- Location Modal -->
+    <div class="modal fade" id="locationModal" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content rounded-4 border-0 shadow-lg">
+                <div class="modal-header border-0 pb-0">
+                    <h5 class="fw-bold modal-title"><i class="bi bi-geo-alt-fill text-success me-2"></i>Choose Delivery Location</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body p-4">
+                    <div class="mb-3">
+                        <label class="form-label small fw-bold">Select Hub / City</label>
+                        <select class="form-select" id="hubCitySelector">
+                            <option value="pali">Pali Central Hub (Sector 1 to 8, 15 Mins)</option>
+                            <option value="unjha">Unjha APMC Yard Hub (Market Area, 15 Mins)</option>
+                        </select>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label small fw-bold">Address Line / Landmark</label>
+                        <input type="text" class="form-control" id="modalAddressInput" value="Flat 302, Gokul Heights, Main Market Road, Pali 306401">
+                    </div>
+                    <button class="btn btn-success w-100 rounded-pill fw-bold py-2" data-bs-dismiss="modal" onclick="
+                        const addr = document.getElementById('modalAddressInput').value;
+                        document.getElementById('headerDeliveryAddress').textContent = addr;
+                    ">
+                        Set Location
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Slide-over Offcanvas Cart Drawer -->
+    <div data-component="cart-drawer"></div>
+
+    <!-- Master Footer -->
+    <div data-component="customer-footer"></div>
+
+    <!-- Mobile Sticky Bottom Nav -->
+    <nav class="mobile-bottom-nav d-md-none">
+        <a href="../index.html" class="mobile-nav-item" data-route-link="home">
+            <i class="bi bi-house-door-fill"></i>
+            <span>Home</span>
+        </a>
+        <a href="shop.html" class="mobile-nav-item active" data-route-link="shop">
+            <i class="bi bi-grid-fill"></i>
+            <span>Shop</span>
+        </a>
+        <a href="cart.html" class="mobile-nav-item position-relative" data-route-link="cart">
+            <i class="bi bi-bag-check-fill text-success"></i>
+            <span>Bag</span>
+            <span class="nav-badge cart-counter-badge" style="display: none;">0</span>
+        </a>
+        <a href="wishlist.html" class="mobile-nav-item" data-route-link="wishlist">
+            <i class="bi bi-heart-fill"></i>
+            <span>Wishlist</span>
+            <span class="nav-badge wishlist-counter-badge" style="display: none;">0</span>
+        </a>
+        <a href="profile.html" class="mobile-nav-item" data-route-link="profile">
+            <i class="bi bi-person-circle"></i>
+            <span>Profile</span>
+        </a>
+    </nav>
+
+    <!-- Scripts -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="../static/js/api-config.js"></script>
+    <script src="../static/js/core/utils.js"></script>
+    <script src="../static/js/core/component-loader.js"></script>
+    <script src="../static/js/services/auth.service.js"></script>
+    <script src="../static/js/services/cart.service.js"></script>
+    <script src="../static/js/services/order.service.js"></script>
+    <script src="../static/js/customer.js"></script>
+</body>
+</html>

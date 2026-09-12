@@ -1,14 +1,14 @@
 <!-- e Grossary — Offcanvas Shopping Cart Drawer Component -->
-<div class="offcanvas offcanvas-end cart-drawer-custom" tabindex="-1" id="cartOffcanvas" aria-labelledby="cartOffcanvasLabel">
+<div class="offcanvas offcanvas-end cart-drawer-custom" tabindex="-1" id="cartOffcanvas" aria-labelledby="cartOffcanvasLabel" style="z-index: 1065;">
     <div class="offcanvas-header border-bottom">
-        <h5 class="offcanvas-title fw-bold" id="cartOffcanvasLabel"><i class="bi bi-cart3 text-success me-2"></i>My Shopping Bag</h5>
+        <h5 class="offcanvas-title fw-bold" id="cartOffcanvasLabel"><i class="bi bi-bag-check-fill text-success me-2"></i>My Shopping Bag</h5>
         <button type="button" class="btn-close" data-bs-dismiss="offcanvas" aria-label="Close"></button>
     </div>
 
     <div class="offcanvas-body d-flex flex-column p-0">
         <!-- Free Shipping Progress -->
-        <div class="p-3 border-bottom">
-            <div class="cart-free-shipping-card">
+        <div class="p-3 border-bottom bg-light">
+            <div class="cart-free-shipping-card mb-0">
                 <div class="small fw-bold text-dark" id="freeShippingMsg">Add more for FREE delivery!</div>
                 <div class="free-shipping-progress-bar">
                     <div class="free-shipping-fill" id="freeShippingFill" style="width: 70%;"></div>
@@ -17,43 +17,53 @@
         </div>
 
         <!-- Scrollable Items Container -->
-        <div class="cart-items-scroll-box" id="cartItemsContainer"></div>
+        <div class="cart-items-scroll-box p-3" id="cartItemsContainer" style="flex: 1; overflow-y: auto;"></div>
 
         <!-- Bill & Checkout Footer -->
-        <div class="cart-footer-bill mt-auto">
+        <div class="cart-footer-bill mt-auto p-3 border-top bg-white">
             <!-- Promo Code -->
             <div class="input-group input-group-sm mb-3">
-                <input type="text" class="form-control" id="couponInput" placeholder="Enter coupon (e.g. FRESH15)">
-                <button class="btn btn-success fw-bold" onclick="applyCouponCode()">Apply</button>
+                <input type="text" class="form-control rounded-start-pill" id="couponInput" placeholder="Enter coupon (e.g. FRESH15)">
+                <button class="btn btn-success fw-bold rounded-end-pill px-3" onclick="if(window.applyCouponCode) window.applyCouponCode(); else if(window.JG && window.JG.applyCoupon) window.JG.applyCoupon();">Apply</button>
             </div>
-            <div id="couponFeedback"></div>
+            <div id="couponFeedback" class="small mb-2"></div>
 
-            <div class="bill-line-item">
+            <div class="bill-line-item d-flex justify-content-between small text-muted mb-1">
                 <span>Items Subtotal:</span>
-                <span id="billSubtotal">₹0</span>
+                <span id="billSubtotal" class="fw-bold text-dark">₹0</span>
             </div>
-            <div class="bill-line-item">
-                <span>Delivery Fee:</span>
-                <span id="billDeliveryFee" class="text-success">FREE</span>
+            <div class="bill-line-item d-flex justify-content-between small text-muted mb-1">
+                <span>15-Min Delivery Fee:</span>
+                <span id="billDeliveryFee" class="text-success fw-bold">FREE</span>
             </div>
-            <div class="bill-line-item text-success" id="billDiscountRow" style="display: none;">
+            <div class="bill-line-item text-success d-flex justify-content-between small mb-1" id="billDiscountRow" style="display: none;">
                 <span>Coupon Savings:</span>
                 <span id="billDiscount">-₹0</span>
             </div>
-            <div class="bill-line-item total">
+            <div class="bill-line-item total d-flex justify-content-between fw-bold fs-5 border-top pt-2 mt-2">
                 <span>Grand Total:</span>
                 <span id="billGrandTotal" class="text-success">₹0</span>
             </div>
 
-            <button class="btn btn-ss-primary w-100 py-3 rounded-pill fw-bold mt-3 d-flex align-items-center justify-content-center gap-2" id="btnProceedCheckout" onclick="initiateCheckout()">
+            <button class="btn btn-success w-100 py-3 rounded-pill fw-bold mt-3 d-flex align-items-center justify-content-center gap-2 shadow-sm" id="btnProceedCheckout" 
+                    onclick="
+                        const inCustomer = window.location.pathname.includes('/customer/');
+                        const checkoutUrl = inCustomer ? 'checkout.html' : 'customer/checkout.html';
+                        window.location.href = checkoutUrl;
+                    ">
                 <span>Instant Doorstep Checkout</span>
                 <i class="bi bi-arrow-right"></i>
             </button>
 
             <div class="d-flex justify-content-between small px-1 mt-2 text-muted">
-                <a href="customer/cart.html" class="text-decoration-none text-muted"><i class="bi bi-box-arrow-up-right me-1"></i>Full Cart</a>
-                <a href="customer/checkout.html" class="text-decoration-none text-success fw-bold" onclick="return handleCheckoutNavigation(event)"><i class="bi bi-credit-card me-1"></i>Full Checkout</a>
-
+                <a href="javascript:void(0)" class="text-decoration-none text-muted" 
+                   onclick="window.location.href = window.location.pathname.includes('/customer/') ? 'cart.html' : 'customer/cart.html';">
+                    <i class="bi bi-box-arrow-up-right me-1"></i>Full Cart
+                </a>
+                <a href="javascript:void(0)" class="text-decoration-none text-success fw-bold" 
+                   onclick="window.location.href = window.location.pathname.includes('/customer/') ? 'checkout.html' : 'customer/checkout.html';">
+                    <i class="bi bi-credit-card me-1"></i>Full Checkout
+                </a>
             </div>
         </div>
     </div>

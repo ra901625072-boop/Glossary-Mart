@@ -1,0 +1,187 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+    <title>Contact Customer Care &bull; e Grossary</title>
+    
+    <!-- Meta SEO -->
+    <meta name="description" content="Reach e Grossary Customer Support. 24/7 helpline, WhatsApp support, and delivery hub locations in Pali & Unjha.">
+    <meta name="theme-color" content="#10b981">
+
+    <!-- Fonts & Icons -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=Outfit:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
+
+    <!-- Favicon -->
+    <link rel="icon" type="image/png" href="../static/images/favicon.png">
+    <link rel="shortcut icon" href="../static/images/favicon.ico">
+
+    <!-- Stylesheets -->
+    <link rel="stylesheet" href="../static/css/core/variables.css">
+    <link rel="stylesheet" href="../static/css/customer.css">
+</head>
+<body data-page="contact">
+
+    <!-- Header Component Placeholder -->
+    <div data-component="customer-header"></div>
+
+    <!-- Main Container -->
+    <main class="container my-4 my-md-5">
+        <!-- Hero Header -->
+        <div class="text-center mb-5">
+            <span class="badge bg-success-subtle text-success px-3 py-1 rounded-pill fw-bold mb-2">24/7 CUSTOMER HAPPINESS</span>
+            <h1 class="display-6 fw-bold brand-font text-dark mb-2">We're Here to Help You</h1>
+            <p class="text-muted small mx-auto" style="max-width: 520px;">
+                Have questions about your 15-minute order, delivery hubs, or wholesale supplies? Connect directly with our regional support specialists.
+            </p>
+        </div>
+
+        <div class="row g-4 mb-5">
+            <!-- Left: Contact Form -->
+            <div class="col-lg-7">
+                <div class="bg-white p-4 p-md-5 rounded-4 border shadow-sm h-100">
+                    <h3 class="h4 fw-bold brand-font text-dark mb-2">Send Us a Direct Message</h3>
+                    <p class="text-muted small mb-4">We usually respond within 10 minutes during active hub hours (7 AM - 11 PM).</p>
+
+                    <form onsubmit="handleContactFormSubmit(event)">
+                        <div class="row g-3 mb-3">
+                            <div class="col-md-6">
+                                <label class="form-label small fw-bold text-dark">Your Name</label>
+                                <input type="text" class="form-control rounded-3" id="contactName" placeholder="e.g. Ramesh Patel" required>
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label small fw-bold text-dark">Phone Number</label>
+                                <input type="tel" class="form-control rounded-3" id="contactPhone" placeholder="+91 98765 43210" required>
+                            </div>
+                        </div>
+
+                        <div class="mb-3">
+                            <label class="form-label small fw-bold text-dark">Email Address</label>
+                            <input type="email" class="form-control rounded-3" id="contactEmail" placeholder="yourname@example.com" required>
+                        </div>
+
+                        <div class="mb-3">
+                            <label class="form-label small fw-bold text-dark">Subject / Order ID (if applicable)</label>
+                            <input type="text" class="form-control rounded-3" id="contactSubject" placeholder="e.g. Question regarding Order #JG-10248">
+                        </div>
+
+                        <div class="mb-4">
+                            <label class="form-label small fw-bold text-dark">Message Details</label>
+                            <textarea class="form-control rounded-3" id="contactMessage" rows="4" placeholder="How can our support team assist you today?" required></textarea>
+                        </div>
+
+                        <div id="contactFormAlert" class="alert alert-success py-2 px-3 small mb-3" style="display: none;">
+                            <i class="bi bi-check-circle-fill me-1"></i> Thank you! Your message has been sent to our customer care team.
+                        </div>
+
+                        <button type="submit" class="btn btn-success w-100 py-3 rounded-pill fw-bold shadow-sm d-flex align-items-center justify-content-center gap-2">
+                            <i class="bi bi-send-fill"></i>
+                            <span>Send Message to Support</span>
+                        </button>
+                    </form>
+                </div>
+            </div>
+
+            <!-- Right: Direct Channels & Fulfillment Hubs -->
+            <div class="col-lg-5">
+                <div class="d-flex flex-column gap-4">
+                    <!-- Quick Channels Card -->
+                    <div class="bg-white p-4 rounded-4 border shadow-sm">
+                        <h4 class="h5 fw-bold brand-font text-dark mb-3">Direct Support Channels</h4>
+                        <div class="d-flex align-items-center gap-3 mb-3 pb-3 border-bottom">
+                            <div class="rounded-circle bg-success bg-opacity-10 text-success d-flex align-items-center justify-content-center" style="width: 48px; height: 48px;">
+                                <i class="bi bi-telephone-fill fs-5"></i>
+                            </div>
+                            <div>
+                                <div class="smallest text-muted fw-bold text-uppercase">Customer Care Helpline</div>
+                                <a href="tel:+919313840278" class="fw-bold text-dark text-decoration-none fs-6">+91 93138 40278</a>
+                            </div>
+                        </div>
+
+                        <div class="d-flex align-items-center gap-3 mb-3 pb-3 border-bottom">
+                            <div class="rounded-circle bg-success bg-opacity-10 text-success d-flex align-items-center justify-content-center" style="width: 48px; height: 48px;">
+                                <i class="bi bi-whatsapp fs-5"></i>
+                            </div>
+                            <div>
+                                <div class="smallest text-muted fw-bold text-uppercase">Instant WhatsApp Support</div>
+                                <a href="https://wa.me/919313840278" target="_blank" rel="noopener" class="fw-bold text-success text-decoration-none fs-6">Chat on WhatsApp (Live)</a>
+                            </div>
+                        </div>
+
+                        <div class="d-flex align-items-center gap-3">
+                            <div class="rounded-circle bg-success bg-opacity-10 text-success d-flex align-items-center justify-content-center" style="width: 48px; height: 48px;">
+                                <i class="bi bi-envelope-fill fs-5"></i>
+                            </div>
+                            <div>
+                                <div class="smallest text-muted fw-bold text-uppercase">Official Email</div>
+                                <a href="mailto:support@egrossary.com" class="fw-bold text-dark text-decoration-none fs-6">support@egrossary.com</a>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Fulfillment Hub 1: Pali -->
+                    <div class="hub-contact-card">
+                        <div class="d-flex align-items-center gap-2 mb-2">
+                            <span class="badge bg-success text-white px-2 py-1 rounded">HUB 01</span>
+                            <h5 class="fw-bold text-dark mb-0">Pali Central Hub</h5>
+                        </div>
+                        <p class="small text-muted mb-2">
+                            <i class="bi bi-geo-alt-fill text-success me-1"></i> Shop 4-6, Gokul Heights Commercial Complex, Sector 4, Opposite Krishi Mandi Road, Pali, Rajasthan 306401
+                        </p>
+                        <div class="smallest text-muted">
+                            <i class="bi bi-clock-history me-1"></i> Dispatch Hours: 7:00 AM &ndash; 11:00 PM Daily
+                        </div>
+                    </div>
+
+                    <!-- Fulfillment Hub 2: Unjha -->
+                    <div class="hub-contact-card">
+                        <div class="d-flex align-items-center gap-2 mb-2">
+                            <span class="badge bg-primary text-white px-2 py-1 rounded">HUB 02</span>
+                            <h5 class="fw-bold text-dark mb-0">Unjha APMC Yard Hub</h5>
+                        </div>
+                        <p class="small text-muted mb-2">
+                            <i class="bi bi-geo-alt-fill text-primary me-1"></i> Block B, Spices &amp; Grain Market Yard, Station Road, Unjha, Gujarat 384170
+                        </p>
+                        <div class="smallest text-muted">
+                            <i class="bi bi-clock-history me-1"></i> Dispatch Hours: 6:30 AM &ndash; 10:30 PM Daily
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <!-- Master Footer -->
+    <div data-component="customer-footer"></div>
+
+    <!-- Mobile Bottom Nav -->
+    <div data-component="mobile-bottom-nav"></div>
+
+    <!-- Slide-over Cart Offcanvas -->
+    <div data-component="cart-drawer"></div>
+
+    <!-- Scripts -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="../static/js/api-config.js"></script>
+    <script src="../static/js/core/utils.js"></script>
+    <script src="../static/js/core/component-loader.js"></script>
+    <script src="../static/js/services/auth.service.js"></script>
+    <script src="../static/js/services/cart.service.js"></script>
+    <script src="../static/js/customer.js"></script>
+    <script>
+        function handleContactFormSubmit(e) {
+            e.preventDefault();
+            const alertBox = document.getElementById('contactFormAlert');
+            if (alertBox) {
+                alertBox.style.display = 'block';
+                e.target.reset();
+                setTimeout(() => alertBox.style.display = 'none', 5000);
+            }
+        }
+    </script>
+</body>
+</html>

@@ -582,9 +582,9 @@
         };
         const realCat = catMap[categoryKey] || categoryKey;
         if (realCat && realCat !== 'all') {
-            window.location.href = `/shop?category=${encodeURIComponent(realCat)}`;
+            window.location.href = `customer/shop.html?category=${encodeURIComponent(realCat)}`;
         } else {
-            window.location.href = '/shop';
+            window.location.href = 'customer/shop.html';
         }
     }
 
@@ -631,6 +631,20 @@
     }
 
     // ── 11. Quick View Modal ──
+    window.buyNowFromHome = function (productId) {
+        addToCart(productId);
+        const modalEl = document.getElementById('quickViewModal');
+        if (modalEl && window.bootstrap) {
+            const modal = bootstrap.Modal.getInstance(modalEl);
+            if (modal) modal.hide();
+        }
+        if (!isCustomerAuthenticated()) {
+            window.location.href = 'auth/login.html?redirect=customer/checkout.html';
+        } else {
+            window.location.href = 'customer/checkout.html';
+        }
+    };
+
     function openQuickView(productId) {
         const product = ALL_PRODUCTS.find(p => String(p.id) === String(productId));
         if (!product) return;
@@ -658,11 +672,14 @@
                         <span class="small text-muted ms-2">Unit: ${product.unit}</span>
                     </div>
                     <div class="d-flex flex-wrap gap-2">
-                        <button class="btn btn-ss-primary px-4 py-2 rounded-pill fw-bold" onclick="addToCart('${product.id}'); bootstrap.Modal.getInstance(document.getElementById('quickViewModal')).hide();">
+                        <button class="btn btn-ss-primary px-3 py-2 rounded-pill fw-bold" onclick="addToCart('${product.id}'); bootstrap.Modal.getInstance(document.getElementById('quickViewModal')).hide();">
                             <i class="bi bi-cart-plus me-1"></i> Add to Bag
                         </button>
-                        <a href="/product/${product.id}" class="btn btn-outline-success px-4 py-2 rounded-pill fw-bold">
-                            <i class="bi bi-box-arrow-up-right me-1"></i> Full Details &amp; Reviews
+                        <button class="btn btn-success px-3 py-2 rounded-pill fw-bold" onclick="buyNowFromHome('${product.id}')">
+                            <i class="bi bi-lightning-charge-fill me-1"></i> Buy Now
+                        </button>
+                        <a href="customer/product.html?id=${product.id}" class="btn btn-outline-success px-3 py-2 rounded-pill fw-bold">
+                            <i class="bi bi-box-arrow-up-right me-1"></i> Details
                         </a>
                     </div>
                 </div>

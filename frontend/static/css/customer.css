@@ -755,6 +755,273 @@ h1, h2, h3, h4, h5, h6, .brand-font {
     color: var(--ss-primary);
 }
 
+/* ── Sub-Navigation Bar ── */
+.sub-nav-bar {
+    background: #ffffff;
+    border-bottom: 1px solid var(--ss-border);
+    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.02);
+}
+
+.sub-nav-menu {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    display: flex;
+    align-items: center;
+    gap: 20px;
+    overflow-x: auto;
+    white-space: nowrap;
+    scrollbar-width: none;
+}
+
+.sub-nav-menu::-webkit-scrollbar {
+    display: none;
+}
+
+.sub-nav-link {
+    display: inline-block;
+    padding: 10px 4px;
+    font-size: 0.88rem;
+    font-weight: 600;
+    color: var(--ss-text-muted);
+    text-decoration: none;
+    border-bottom: 2px solid transparent;
+    transition: all 0.2s ease;
+}
+
+.sub-nav-link:hover {
+    color: var(--ss-primary);
+}
+
+.sub-nav-link.active {
+    color: var(--ss-primary);
+    border-bottom-color: var(--ss-primary);
+    font-weight: 700;
+}
+
+/* ── Master Footer (Shared Across Storefront & Customer App) ── */
+.master-footer {
+    background-color: var(--brand-dark, #163e2e);
+    color: #ffffff;
+    padding: 55px 0 25px;
+    font-size: 0.88rem;
+    margin-top: 60px;
+    position: relative;
+    z-index: 10;
+}
+
+.footer-brand-title {
+    font-size: 1.5rem;
+    font-weight: 800;
+    color: #ffffff;
+    margin-bottom: 6px;
+    letter-spacing: -0.02em;
+    font-family: 'Outfit', sans-serif;
+}
+
+.footer-brand-title span {
+    color: #10b981;
+}
+
+.footer-tagline {
+    font-size: 0.82rem;
+    color: #9ca3af;
+    margin-bottom: 16px;
+}
+
+.footer-col-title {
+    font-size: 0.95rem;
+    font-weight: 700;
+    color: #ffffff;
+    margin-bottom: 16px;
+    letter-spacing: 0.02em;
+    font-family: 'Outfit', sans-serif;
+}
+
+.footer-links-list {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 9px;
+}
+
+.footer-link-item a {
+    color: #9ca3af;
+    text-decoration: none;
+    transition: all 0.18s ease;
+    display: inline-flex;
+    align-items: center;
+}
+
+.footer-link-item a:hover {
+    color: #ffffff;
+    transform: translateX(3px);
+}
+
+.footer-social-row {
+    display: flex;
+    gap: 10px;
+    margin-top: 14px;
+}
+
+.footer-social-icon {
+    width: 36px;
+    height: 36px;
+    border-radius: 50%;
+    background: rgba(255, 255, 255, 0.1);
+    color: #ffffff;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1rem;
+    transition: all 0.2s ease;
+    text-decoration: none;
+}
+
+.footer-social-icon:hover {
+    background: #10b981;
+    color: #ffffff;
+    transform: translateY(-2px);
+}
+
+.footer-payments-list {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+    margin-top: 8px;
+}
+
+.payment-pill {
+    background: rgba(255, 255, 255, 0.1);
+    color: #d1d5db;
+    font-size: 0.74rem;
+    font-weight: 600;
+    padding: 5px 11px;
+    border-radius: 6px;
+    display: inline-flex;
+    align-items: center;
+}
+
+.footer-bottom-row {
+    border-top: 1px solid rgba(255, 255, 255, 0.1);
+    margin-top: 40px;
+    padding-top: 20px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    font-size: 0.82rem;
+    color: #9ca3af;
+    flex-wrap: wrap;
+    gap: 12px;
+}
+
+.footer-bottom-links {
+    display: flex;
+    gap: 18px;
+}
+
+.footer-bottom-links a {
+    color: #9ca3af;
+    text-decoration: none;
+    transition: color 0.18s ease;
+}
+
+.footer-bottom-links a:hover {
+    color: #ffffff;
+}
+
+/* ── Dedicated Product Details Page Styles ── */
+.product-detail-gallery {
+    position: sticky;
+    top: 100px;
+    background: #ffffff;
+    border: 1px solid var(--ss-border);
+    border-radius: 20px;
+    padding: 2rem;
+    text-align: center;
+}
+
+.product-detail-main-img {
+    max-height: 380px;
+    width: 100%;
+    object-fit: contain;
+    transition: transform 0.3s ease;
+}
+
+.product-detail-main-img:hover {
+    transform: scale(1.04);
+}
+
+.product-spec-badge {
+    background: #ecfdf5;
+    color: #047857;
+    font-size: 0.78rem;
+    font-weight: 700;
+    padding: 6px 12px;
+    border-radius: 9999px;
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+}
+
+.nutrition-table {
+    width: 100%;
+    font-size: 0.86rem;
+}
+
+.nutrition-table td {
+    padding: 8px 12px;
+    border-bottom: 1px solid var(--ss-border);
+}
+
+.review-card-item {
+    background: #f8fafc;
+    border: 1px solid var(--ss-border);
+    border-radius: 14px;
+    padding: 16px;
+    margin-bottom: 12px;
+}
+
+/* ── Info & Policy Pages ── */
+.info-hero-banner {
+    background: linear-gradient(135deg, #163e2e 0%, #1b4d3e 50%, #047857 100%);
+    color: #ffffff;
+    border-radius: 24px;
+    padding: 3rem 2rem;
+    margin-bottom: 2.5rem;
+    position: relative;
+    overflow: hidden;
+}
+
+.info-hero-banner::after {
+    content: '';
+    position: absolute;
+    right: -40px;
+    bottom: -40px;
+    width: 240px;
+    height: 240px;
+    background: radial-gradient(circle, rgba(16, 185, 129, 0.25) 0%, transparent 70%);
+    border-radius: 50%;
+}
+
+.hub-contact-card {
+    background: #ffffff;
+    border: 1px solid var(--ss-border);
+    border-radius: 18px;
+    padding: 24px;
+    box-shadow: 0 4px 6px -1px rgba(0,0,0,0.04);
+    height: 100%;
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.hub-contact-card:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 10px 20px rgba(0,0,0,0.06);
+    border-color: #10b981;
+}
+
 /* Printable Bill / Invoice */
 @media print {
     body * {

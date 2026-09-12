@@ -11,13 +11,18 @@
             var search = window.location.search || '';
             var routeMap = {
                 'shop': 'customer/shop.html',
+                'product': 'customer/product.html',
                 'cart': 'customer/cart.html',
                 'checkout': 'customer/checkout.html',
                 'payment': 'customer/payment.html',
                 'order-confirmation': 'customer/order-confirmation.html',
                 'orders': 'customer/orders.html',
                 'wishlist': 'customer/wishlist.html',
-                'profile': 'customer/profile.html'
+                'profile': 'customer/profile.html',
+                'about': 'customer/about.html',
+                'contact': 'customer/contact.html',
+                'faq': 'customer/faq.html',
+                'terms': 'customer/terms.html'
             };
             var protectedPages = ['checkout', 'payment', 'order-confirmation', 'orders', 'wishlist', 'profile'];
             if (protectedPages.indexOf(rawHash) !== -1) {

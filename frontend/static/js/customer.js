@@ -272,9 +272,43 @@
         const rawHash = window.location.hash ? window.location.hash.split('?')[0].replace('#', '') : '';
         const inCustomerDir = window.location.pathname.includes('/customer/');
 
+        // Parse URL Search Parameters (?category=..., ?search=..., ?sort=..., ?id=...)
+        const urlParams = new URLSearchParams(window.location.search);
+        const catParam = urlParams.get('category');
+        const searchParam = urlParams.get('search');
+        const sortParam = urlParams.get('sort');
+
+        if (catParam) {
+            const raw = decodeURIComponent(catParam).toLowerCase();
+            if (raw.includes('fruit') || raw.includes('veg')) state.selectedCategory = 'vegetables';
+            else if (raw.includes('dairy') || raw.includes('milk') || raw.includes('breakfast')) state.selectedCategory = 'dairy';
+            else if (raw.includes('atta') || raw.includes('staple') || raw.includes('grain') || raw.includes('rice')) state.selectedCategory = 'staples';
+            else if (raw.includes('snack') || raw.includes('biscuit') || raw.includes('munchies') || raw.includes('chips')) state.selectedCategory = 'snacks';
+            else if (raw.includes('bev') || raw.includes('tea') || raw.includes('drink') || raw.includes('juice')) state.selectedCategory = 'beverages';
+            else if (raw.includes('clean') || raw.includes('house') || raw.includes('care') || raw.includes('soap')) state.selectedCategory = 'cleaning';
+            else if (raw.includes('spice') || raw.includes('masala')) state.selectedCategory = 'spices';
+            else state.selectedCategory = raw;
+
+            document.querySelectorAll('.cat-pill-btn').forEach(btn => {
+                btn.classList.toggle('active', btn.getAttribute('data-category') === state.selectedCategory);
+            });
+        }
+
+        if (searchParam) {
+            state.searchQuery = searchParam.trim();
+            const inputs = document.querySelectorAll('#masterSearchInput');
+            inputs.forEach(input => { input.value = state.searchQuery; });
+        }
+
+        if (sortParam) {
+            state.sortBy = sortParam;
+            const sortSelector = document.getElementById('sortSelector');
+            if (sortSelector) sortSelector.value = sortParam;
+        }
+
         // If user is inside /customer/ and navigates to a hash that does not exist on this page, redirect to that dedicated page
         if (rawHash && inCustomerDir && !document.getElementById(`view-${rawHash}`)) {
-            const knownPages = ['shop', 'cart', 'checkout', 'payment', 'order-confirmation', 'orders', 'wishlist', 'profile'];
+            const knownPages = ['shop', 'cart', 'checkout', 'payment', 'order-confirmation', 'orders', 'wishlist', 'profile', 'product', 'about', 'contact', 'faq', 'terms'];
             if (knownPages.includes(rawHash)) {
                 window.location.href = `${rawHash}.html`;
                 return;
@@ -324,6 +358,7 @@
         });
 
         if (route === 'shop') renderShopView();
+        else if (route === 'product') renderProductDetailView();
         else if (route === 'cart') renderCartView();
         else if (route === 'checkout') renderCheckoutView();
         else if (route === 'orders') { loadUserOrders(); renderOrdersView(); }
@@ -331,6 +366,10 @@
         else if (route === 'profile') renderProfileView();
         else if (route === 'order-confirmation') renderOrderConfirmationFromStorage();
         else if (route === 'payment') renderPaymentSimulationFromStorage();
+
+        if (document.getElementById('productDetailTitle')) {
+            renderProductDetailView();
+        }
 
         window.scrollTo({ top: 0, behavior: 'smooth' });
     }
@@ -356,6 +395,223 @@
             }
         } catch (e) {}
     }
+
+    // ── Dedicated Product Details View Renderer ──
+    let currentDetailQty = 1;
+    let currentDetailProduct = null;
+
+    function renderProductDetailView() {
+        if (!document.getElementById('productDetailTitle')) return;
+
+        const urlParams = new URLSearchParams(window.location.search);
+        const prodIdParam = urlParams.get('id');
+        const prodId = prodIdParam ? Number(prodIdParam) : 1;
+
+        let prod = state.products.find(p => Number(p.id) === prodId);
+        if (!prod) {
+            prod = state.products[0] || DEFAULT_CATALOG[0];
+        }
+        if (!prod) return;
+
+        currentDetailProduct = prod;
+        currentDetailQty = 1;
+
+        // Breadcrumbs
+        const bcCat = document.getElementById('breadcrumbCategory');
+        if (bcCat) {
+            bcCat.textContent = prod.categoryName || 'Groceries';
+            bcCat.href = `shop.html?category=${prod.category || 'all'}`;
+        }
+        const bcName = document.getElementById('breadcrumbProductName');
+        if (bcName) bcName.textContent = prod.name;
+
+        // Product Title, Unit, Category
+        const titleEl = document.getElementById('productDetailTitle');
+        if (titleEl) titleEl.textContent = prod.name;
+
+        const catTag = document.getElementById('productCategoryTag');
+        if (catTag) catTag.textContent = prod.categoryName || 'General Grocery';
+
+        const unitEl = document.getElementById('productDetailUnit');
+        if (unitEl) unitEl.textContent = prod.unit || '1 unit';
+
+        const stockTag = document.getElementById('productStockTag');
+        if (stockTag) {
+            if (prod.inStock) {
+                stockTag.className = 'badge bg-success-subtle text-success fw-bold';
+                stockTag.innerHTML = '<i class="bi bi-check2-circle me-1"></i>In Stock (15-Min Delivery)';
+            } else {
+                stockTag.className = 'badge bg-danger-subtle text-danger fw-bold';
+                stockTag.innerHTML = '<i class="bi bi-x-circle me-1"></i>Temporarily Out of Stock';
+            }
+        }
+
+        // Rating & Reviews
+        const ratingEl = document.getElementById('productDetailRating');
+        if (ratingEl) ratingEl.textContent = prod.rating || 4.8;
+        const revEl = document.getElementById('productDetailReviews');
+        if (revEl) revEl.textContent = `(${prod.ratingCount || 120} reviews)`;
+        const tabRevEl = document.getElementById('tabReviewCount');
+        if (tabRevEl) tabRevEl.textContent = prod.ratingCount || 120;
+        const summaryRating = document.getElementById('reviewSummaryRating');
+        if (summaryRating) summaryRating.textContent = prod.rating || 4.8;
+
+        // Pricing & Savings
+        const mrp = prod.mrp || Math.round(prod.price * 1.15);
+        const savings = Math.max(0, mrp - prod.price);
+        const discountPct = mrp > prod.price ? Math.round(((mrp - prod.price) / mrp) * 100) : 0;
+
+        const priceEl = document.getElementById('productDetailPrice');
+        if (priceEl) priceEl.textContent = `₹${prod.price}`;
+
+        const mrpEl = document.getElementById('productDetailMrp');
+        if (mrpEl) mrpEl.textContent = `₹${mrp}`;
+
+        const savingsBadge = document.getElementById('productSavingsBadge');
+        if (savingsBadge) {
+            if (savings > 0) {
+                savingsBadge.textContent = `Save ₹${savings} (${discountPct}% OFF)`;
+                savingsBadge.style.display = 'inline-block';
+            } else {
+                savingsBadge.style.display = 'none';
+            }
+        }
+
+        const discountPill = document.getElementById('productDiscountPill');
+        if (discountPill) {
+            if (discountPct > 0) {
+                discountPill.textContent = `${discountPct}% OFF`;
+                discountPill.style.display = 'inline-block';
+            } else {
+                discountPill.style.display = 'none';
+            }
+        }
+
+        // Image
+        const mainImg = document.getElementById('productMainImage');
+        if (mainImg) {
+            mainImg.src = prod.image;
+            mainImg.alt = prod.name;
+        }
+
+        // Description
+        const descEl = document.getElementById('productDetailDesc');
+        if (descEl) descEl.textContent = prod.description || `${prod.name} — Authentic fresh grocery item sourced for eGrossary customers.`;
+
+        // Wishlist Button state
+        updateProductDetailWishlistState(prod.id);
+
+        // Stepper count
+        const qtyEl = document.getElementById('productDetailSelectedQty');
+        if (qtyEl) qtyEl.textContent = currentDetailQty;
+
+        // Nutrition Table
+        if (prod.nutrition) {
+            const nutTable = document.getElementById('nutritionTableBody');
+            if (nutTable) {
+                let nutRows = '';
+                for (const [key, val] of Object.entries(prod.nutrition)) {
+                    const label = key.charAt(0).toUpperCase() + key.slice(1);
+                    nutRows += `<tr><td>${escapeHTML(label)}</td><td class="fw-bold text-dark">${escapeHTML(val)}</td></tr>`;
+                }
+                if (nutRows) nutTable.innerHTML = nutRows;
+            }
+        }
+
+        // Related Products
+        renderRelatedProducts(prod);
+    }
+
+    function updateProductDetailWishlistState(prodId) {
+        const isWish = state.wishlist.includes(Number(prodId));
+        const icon = document.getElementById('productWishlistIcon');
+        const btn = document.getElementById('productWishlistToggleBtn');
+        if (icon) {
+            icon.className = isWish ? 'bi bi-heart-fill text-danger' : 'bi bi-heart';
+        }
+        if (btn) {
+            btn.classList.toggle('btn-danger', isWish);
+            btn.classList.toggle('text-white', isWish);
+            btn.classList.toggle('btn-outline-danger', !isWish);
+        }
+    }
+
+    function renderRelatedProducts(currentProd) {
+        const container = document.getElementById('relatedProductsGrid');
+        if (!container) return;
+
+        const related = state.products
+            .filter(p => Number(p.id) !== Number(currentProd.id) && (p.category === currentProd.category || !currentProd.category))
+            .slice(0, 4);
+
+        const fallbackList = related.length >= 2 ? related : state.products.filter(p => Number(p.id) !== Number(currentProd.id)).slice(0, 4);
+
+        container.innerHTML = fallbackList.map(p => {
+            const mrp = p.mrp || Math.round(p.price * 1.15);
+            const inWishlist = state.wishlist.includes(p.id);
+            return `
+                <div class="col-6 col-md-3">
+                    <div class="product-card-customer h-100 d-flex flex-column">
+                        <div class="product-thumb-wrapper">
+                            <button class="wishlist-toggle-btn ${inWishlist ? 'active' : ''}" onclick="window.JG.toggleWishlist(${Number(p.id)})">
+                                <i class="bi bi-heart${inWishlist ? '-fill' : ''}"></i>
+                            </button>
+                            <a href="product.html?id=${p.id}">
+                                <img src="${escapeHTML(p.image)}" alt="${escapeHTML(p.name)}" class="product-thumb-img">
+                            </a>
+                        </div>
+                        <div class="delivery-eta-tag"><i class="bi bi-stopwatch"></i> ${escapeHTML(p.eta || '15 MINS')}</div>
+                        <a href="product.html?id=${p.id}" class="text-decoration-none">
+                            <h4 class="product-title-text mt-1 text-dark">${escapeHTML(p.name)}</h4>
+                        </a>
+                        <div class="small text-muted mb-2">${escapeHTML(p.unit || '1 unit')}</div>
+                        <div class="mt-auto d-flex justify-content-between align-items-center">
+                            <div>
+                                <span class="product-price-val">₹${p.price}</span>
+                                <span class="product-mrp-val ms-1">₹${mrp}</span>
+                            </div>
+                            <button class="btn btn-sm btn-outline-success rounded-pill px-3 fw-bold" onclick="window.JG.addToCart(${Number(p.id)})">
+                                + ADD
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            `;
+        }).join('');
+    }
+
+    // Global wrappers for Product Details page
+    window.adjustProductQty = function (delta) {
+        currentDetailQty = Math.max(1, currentDetailQty + delta);
+        const qtyEl = document.getElementById('productDetailSelectedQty');
+        if (qtyEl) qtyEl.textContent = currentDetailQty;
+    };
+
+    window.handleDetailAddToCart = function () {
+        if (!currentDetailProduct) return;
+        window.JG.addToCart(currentDetailProduct.id, currentDetailQty);
+        const btn = document.getElementById('btnAddProductBag');
+        if (btn) {
+            const originalHtml = btn.innerHTML;
+            btn.innerHTML = '<i class="bi bi-check-lg fs-5"></i><span>Added to Bag!</span>';
+            btn.classList.replace('btn-outline-success', 'btn-success');
+            setTimeout(() => {
+                btn.innerHTML = originalHtml;
+                btn.classList.replace('btn-success', 'btn-outline-success');
+            }, 1500);
+        }
+    };
+
+    window.handleDetailBuyNow = function () {
+        if (!currentDetailProduct) return;
+        window.JG.buyNow(currentDetailProduct.id, currentDetailQty);
+    };
+
+    window.toggleCurrentProductWishlist = function () {
+        if (!currentDetailProduct) return;
+        window.JG.toggleWishlist(currentDetailProduct.id);
+        updateProductDetailWishlistState(currentDetailProduct.id);
+    };
 
     // ── Shop View Renderer ──
     function renderShopView() {
@@ -822,16 +1078,24 @@
             renderShopView();
         },
 
-        addToCart: async function (productId) {
-            const existing = state.cart.find(i => i.productId === productId);
+        addToCart: async function (productId, quantityToAdd = 1) {
+            const addQty = Math.max(1, Number(quantityToAdd) || 1);
+            const numId = Number(productId);
+            const existing = state.cart.find(i => Number(i.productId || i.id) === numId);
             if (existing) {
-                existing.qty += 1;
+                existing.qty = (Number(existing.qty) || 0) + addQty;
+                existing.quantity = existing.qty;
             } else {
-                state.cart.push({ productId, qty: 1 });
+                state.cart.push({ productId: numId, id: numId, qty: addQty, quantity: addQty });
             }
             persistState();
             renderShopView();
-            if (window.location.hash === '#cart' || document.getElementById('cartItemsList')) renderCartView();
+            if (window.location.hash === '#cart' || document.getElementById('cartItemsContainer') || document.getElementById('cartItemsList')) {
+                renderCartView();
+            }
+
+            // Fire reactive event for UI components (like cart drawer)
+            window.dispatchEvent(new CustomEvent('cart:updated', { detail: { cart: state.cart } }));
 
             // Fire-and-forget sync to backend
             try {
@@ -839,7 +1103,7 @@
                 fetchFn('/api/cart/add', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ product_id: productId, quantity: 1 })
+                    body: JSON.stringify({ product_id: numId, quantity: addQty })
                 });
             } catch (e) {}
         },
@@ -1095,27 +1359,74 @@
         },
 
         openProductModal: function (productId) {
-            const prod = state.products.find(p => p.id === productId);
+            const numId = Number(productId);
+            const prod = state.products.find(p => Number(p.id) === numId);
             if (!prod) return;
 
-            document.getElementById('quickViewTitle').textContent = prod.name;
-            document.getElementById('quickViewImg').src = prod.image;
-            document.getElementById('quickViewPrice').textContent = `₹${prod.price}`;
-            document.getElementById('quickViewMrp').textContent = `₹${prod.mrp || Math.round(prod.price * 1.15)}`;
-            document.getElementById('quickViewUnit').textContent = prod.unit || '1 unit';
-            document.getElementById('quickViewDesc').textContent = prod.description || 'Authentic fresh groceries.';
-            document.getElementById('quickViewRating').textContent = `${prod.rating} ★ (${prod.ratingCount} reviews)`;
+            const titleEl = document.getElementById('quickViewTitle');
+            if (titleEl) titleEl.textContent = prod.name;
+            const imgEl = document.getElementById('quickViewImg');
+            if (imgEl) imgEl.src = prod.image;
+            const priceEl = document.getElementById('quickViewPrice');
+            if (priceEl) priceEl.textContent = `₹${prod.price}`;
+            const mrpEl = document.getElementById('quickViewMrp');
+            if (mrpEl) mrpEl.textContent = `₹${prod.mrp || Math.round(prod.price * 1.15)}`;
+            const unitEl = document.getElementById('quickViewUnit');
+            if (unitEl) unitEl.textContent = prod.unit || '1 unit';
+            const descEl = document.getElementById('quickViewDesc');
+            if (descEl) descEl.textContent = prod.description || 'Authentic fresh groceries.';
+            const ratEl = document.getElementById('quickViewRating');
+            if (ratEl) ratEl.textContent = `${prod.rating} ★ (${prod.ratingCount} reviews)`;
 
             const addBtn = document.getElementById('quickViewAddBtn');
-            addBtn.onclick = function () {
-                window.JG.addToCart(prod.id);
-                const modalEl = document.getElementById('quickViewModal');
-                const modal = bootstrap.Modal.getInstance(modalEl);
-                if (modal) modal.hide();
-            };
+            if (addBtn) {
+                addBtn.onclick = function () {
+                    window.JG.addToCart(prod.id);
+                    const modalEl = document.getElementById('quickViewModal');
+                    if (modalEl && window.bootstrap) {
+                        const modal = bootstrap.Modal.getInstance(modalEl);
+                        if (modal) modal.hide();
+                    }
+                };
+            }
 
-            const modal = new bootstrap.Modal(document.getElementById('quickViewModal'));
-            modal.show();
+            const buyBtn = document.getElementById('quickViewBuyBtn');
+            if (buyBtn) {
+                buyBtn.onclick = function () {
+                    const modalEl = document.getElementById('quickViewModal');
+                    if (modalEl && window.bootstrap) {
+                        const modal = bootstrap.Modal.getInstance(modalEl);
+                        if (modal) modal.hide();
+                    }
+                    window.JG.buyNow(prod.id);
+                };
+            }
+
+            const detailsLink = document.getElementById('quickViewDetailsLink');
+            if (detailsLink) {
+                const inCustomer = window.location.pathname.includes('/customer/');
+                detailsLink.href = inCustomer ? `product.html?id=${prod.id}` : `customer/product.html?id=${prod.id}`;
+            }
+
+            const modalEl = document.getElementById('quickViewModal');
+            if (modalEl && window.bootstrap) {
+                const modal = bootstrap.Modal.getInstance(modalEl) || new bootstrap.Modal(modalEl);
+                modal.show();
+            }
+        },
+
+        buyNow: function (productId, quantity = 1) {
+            const numId = Number(productId);
+            window.JG.addToCart(numId, quantity);
+            const inCustomer = window.location.pathname.includes('/customer/');
+            const checkoutUrl = inCustomer ? 'checkout.html' : 'customer/checkout.html';
+            const user = state.user;
+            if (!user || !user.id) {
+                const loginUrl = inCustomer ? `../auth/login.html?redirect=checkout.html` : `auth/login.html?redirect=customer/checkout.html`;
+                window.location.href = loginUrl;
+            } else {
+                window.location.href = checkoutUrl;
+            }
         },
 
         viewInvoice: function (orderId) {
@@ -1225,6 +1536,9 @@
                         window.EG.cart.updateBadgeElements();
                     }
                     renderShopView();
+                    if (document.getElementById('productDetailTitle')) {
+                        renderProductDetailView();
+                    }
                 }
             }
         } catch (e) {
