@@ -61,7 +61,27 @@
             }
         };
         const mergedOptions = { ...defaultOptions, ...options };
-        return fetch(fullUrl, mergedOptions);
+        try {
+            const res = await fetch(fullUrl, mergedOptions);
+            // If relative proxy /api/ call returns 404 on Vercel, fallback directly to Render backend
+            if (res.status === 404 && !isLocalhost && !window.API_BASE && (url.startsWith('/api/') || url.startsWith('api/'))) {
+                const cleanEndpoint = url.startsWith('/') ? url : '/' + url;
+                const fallbackUrl = 'https://glossary-mart.onrender.com' + cleanEndpoint;
+                const fallbackRes = await fetch(fallbackUrl, mergedOptions);
+                if (fallbackRes.ok || fallbackRes.status !== 404) {
+                    return fallbackRes;
+                }
+            }
+            return res;
+        } catch (err) {
+            // Network error fallback if relative proxy fails entirely
+            if (!isLocalhost && !window.API_BASE && (url.startsWith('/api/') || url.startsWith('api/'))) {
+                const cleanEndpoint = url.startsWith('/') ? url : '/' + url;
+                const fallbackUrl = 'https://glossary-mart.onrender.com' + cleanEndpoint;
+                return fetch(fallbackUrl, mergedOptions);
+            }
+            throw err;
+        }
     };
 
     console.log(`%c[e Grossary API]%c Backend target: ${window.API_BASE || '(relative / Vercel proxy)'}`,
