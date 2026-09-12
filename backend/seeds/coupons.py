@@ -17,7 +17,7 @@ def seed_coupons():
             'min_order_amount': Decimal('299.00'),
             'valid_until': datetime.now(timezone.utc) + timedelta(days=90),
             'usage_limit': 500,
-            'times_used': 48,
+            'times_used': 0,
             'is_active': True
         },
         {
@@ -27,7 +27,7 @@ def seed_coupons():
             'min_order_amount': Decimal('499.00'),
             'valid_until': datetime.now(timezone.utc) + timedelta(days=120),
             'usage_limit': 1000,
-            'times_used': 135,
+            'times_used': 0,
             'is_active': True
         },
         {
@@ -37,7 +37,7 @@ def seed_coupons():
             'min_order_amount': Decimal('199.00'),
             'valid_until': datetime.now(timezone.utc) + timedelta(days=60),
             'usage_limit': 300,
-            'times_used': 74,
+            'times_used': 0,
             'is_active': True
         },
         {
@@ -47,7 +47,7 @@ def seed_coupons():
             'min_order_amount': Decimal('399.00'),
             'valid_until': datetime.now(timezone.utc) + timedelta(days=180),
             'usage_limit': 800,
-            'times_used': 92,
+            'times_used': 0,
             'is_active': True
         }
     ]

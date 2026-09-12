@@ -37,20 +37,10 @@
         { id: 8, name: 'Masala & Spices', desc: 'Pure hand-pounded spices, rock salt, turmeric and whole seeds', icon: '🌶️' }
     ];
 
-    const DEFAULT_ORDERS = [
-        { id: 'JG-849201', customer: 'Priya Patel', phone: '+91 98251 22334', date: 'Today, 07:45 PM', status: 'Out for Delivery', total: 244, payment: 'UPI (GPay)', items: [{ name: 'Amul Taaza Milk 1L', qty: 2, price: 56 }, { name: 'Fresh Organic Tomatoes 1kg', qty: 1, price: 35 }, { name: 'Tata Tea Premium 250g', qty: 1, price: 132 }] },
-        { id: 'JG-849195', customer: 'Rahul Sharma', phone: '+91 98765 43210', date: 'Yesterday, 06:12 PM', status: 'Delivered', total: 514, payment: 'Cash on Delivery', items: [{ name: 'Aashirvaad Atta 5kg', qty: 1, price: 279 }, { name: 'Fortune Sunflower Oil 1L', qty: 1, price: 199 }, { name: 'Tata Salt 1kg', qty: 1, price: 36 }] },
-        { id: 'JG-849182', customer: 'Amit Choudhary', phone: '+91 97240 55667', date: '3 days ago', status: 'Delivered', total: 402, payment: 'UPI (PhonePe)', items: [{ name: 'Maggi Instant Noodles 280g', qty: 3, price: 42 }, { name: 'Cadbury Silk 120g', qty: 2, price: 98 }, { name: 'Good Day Cookies 100g', qty: 2, price: 40 }] },
-        { id: 'JG-849150', customer: 'Ramesh Bhai Patel', phone: '+91 99090 77889', date: '5 days ago', status: 'Delivered', total: 442, payment: 'UDHAR (Khata)', items: [{ name: 'Tata Toor Dal 1kg', qty: 2, price: 89 }, { name: 'Surf Excel Powder 1kg', qty: 1, price: 165 }, { name: 'Harpic Cleaner 500ml', qty: 1, price: 99 }] },
-        { id: 'JG-849090', customer: 'Priya Patel', phone: '+91 98251 22334', date: '8 days ago', status: 'Delivered', total: 788, payment: 'UPI (GPay)', items: [{ name: 'Amul Salted Butter 500g', qty: 1, price: 145 }, { name: 'Alphonso Mangoes (1 Dozen)', qty: 1, price: 599 }, { name: 'Fresh Green Spinach 250g', qty: 2, price: 22 }] }
-    ];
-
-    const DEFAULT_CUSTOMERS = [
-        { id: 1, name: 'Priya Patel', email: 'customer@mart.com', phone: '+91 98251 22334', city: 'Mehsana', orders: 14, spend: 6840 },
-        { id: 2, name: 'Rahul Sharma', email: 'rahul.sharma@gmail.com', phone: '+91 98765 43210', city: 'Unjha', orders: 9, spend: 4320 },
-        { id: 3, name: 'Amit Choudhary', email: 'amit.choudhary@yahoo.com', phone: '+91 97240 55667', city: 'Pali', orders: 6, spend: 3150 },
-        { id: 4, name: 'Ramesh Bhai Patel', email: 'rameshbhai.patel@gmail.com', phone: '+91 99090 77889', city: 'Unjha', orders: 18, spend: 9400 }
-    ];
+    const DEFAULT_ORDERS = [];
+    const DEFAULT_CUSTOMERS = [];
+    const DEFAULT_PURCHASES = [];
+    const DEFAULT_ACTIVITY = [];
 
     const DEFAULT_SUPPLIERS = [
         { id: 1, name: 'Gujarat Co-operative (Amul)', contact: 'Ramesh Bhai Patel', phone: '+91 2692 258506', email: 'orders@amul.coop', category: 'Dairy & Milk' },
@@ -63,30 +53,15 @@
         { id: 8, name: 'Nestle India Distribution Centre', contact: 'Pooja Nair', phone: '+91 22 2497 0000', email: 'consumer.care@in.nestle.com', category: 'Noodles & Beverages' }
     ];
 
-    const DEFAULT_PURCHASES = [
-        { id: 'PO-9201', invoice: 'INV-AMUL-4820', supplier: 'Gujarat Co-operative (Amul)', date: '09 Sep 2026', itemsCount: 150, total: 11050 },
-        { id: 'PO-9188', invoice: 'INV-ITC-1092', supplier: 'ITC Limited Food Distribution', date: '07 Sep 2026', itemsCount: 80, total: 19200 },
-        { id: 'PO-9162', invoice: 'INV-TATA-3341', supplier: 'Tata Consumer Products Hub', date: '05 Sep 2026', itemsCount: 285, total: 16200 },
-        { id: 'PO-9140', invoice: 'INV-HUL-8890', supplier: 'Hindustan Unilever Depot Mehsana', date: '02 Sep 2026', itemsCount: 70, total: 9450 }
-    ];
-
     const DEFAULT_COUPONS = [
-        { id: 1, code: 'WELCOME50', discount: '₹50 OFF', minSpend: 299, expiry: '31 Dec 2026', used: 48, active: true },
-        { id: 2, code: 'JAYGOGA100', discount: '₹100 OFF', minSpend: 499, expiry: '31 Dec 2026', used: 135, active: true },
-        { id: 3, code: 'FRESH15', discount: '15% OFF', minSpend: 199, expiry: '31 Dec 2026', used: 74, active: true },
-        { id: 4, code: 'GROCERY10', discount: '10% OFF', minSpend: 399, expiry: '31 Dec 2026', used: 92, active: true }
-    ];
-
-    const DEFAULT_ACTIVITY = [
-        { id: 1, time: 'Today, 07:45 PM', actor: 'Admin (Dispatch)', action: 'Order Dispatched', details: 'Assigned order #JG-849201 for 15-min delivery to Priya Patel' },
-        { id: 2, time: 'Today, 06:30 PM', actor: 'Admin (Counter POS)', action: 'POS Counter Sale', details: 'Billed 3 items worth ₹480 (UPI Payment)' },
-        { id: 3, time: 'Yesterday, 04:15 PM', actor: 'Admin (Inventory)', action: 'Stock Inward Recorded', details: 'Received 100 units Amul Taaza Milk from Amul Anand Hub' },
-        { id: 4, time: 'Yesterday, 02:00 PM', actor: 'Admin (System)', action: 'Price Updated', details: 'Adjusted seasonal Alphonso Mangoes selling price to ₹599/Dozen' },
-        { id: 5, time: '07 Sep, 11:20 AM', actor: 'Admin (Promotions)', action: 'Coupon Published', details: 'Active promo voucher code JAYGOGA100 enabled' }
+        { id: 1, code: 'WELCOME50', discount: '₹50 OFF', minSpend: 299, expiry: '31 Dec 2026', used: 0, active: true },
+        { id: 2, code: 'EGROSSARY100', discount: '₹100 OFF', minSpend: 499, expiry: '31 Dec 2026', used: 0, active: true },
+        { id: 3, code: 'FRESH15', discount: '15% OFF', minSpend: 199, expiry: '31 Dec 2026', used: 0, active: true },
+        { id: 4, code: 'GROCERY10', discount: '10% OFF', minSpend: 399, expiry: '31 Dec 2026', used: 0, active: true }
     ];
 
     // ── Local State Engine & Version Migration ──
-    const DATA_VERSION = '2026-v2-real';
+    const DATA_VERSION = '2026-v3-prod-clean';
     if (localStorage.getItem('jg_admin_data_ver') !== DATA_VERSION) {
         localStorage.setItem('jg_admin_data_ver', DATA_VERSION);
         localStorage.setItem('jg_admin_products', JSON.stringify(DEFAULT_PRODUCTS));
@@ -204,20 +179,24 @@
         // Recent Orders Table
         const recentOrdersTbody = document.getElementById('dashRecentOrdersTbody');
         if (recentOrdersTbody) {
-            recentOrdersTbody.innerHTML = state.orders.slice(0, 5).map(o => `
-                <tr>
-                    <td class="fw-bold text-dark">#${o.id}</td>
-                    <td>${o.customer || 'Customer'}</td>
-                    <td>${o.date}</td>
-                    <td class="fw-bold">₹${o.total}</td>
-                    <td><span class="badge ${getStatusBadgeClass(o.status)}">${o.status}</span></td>
-                    <td>
-                        <button class="btn btn-sm btn-outline-success rounded-pill px-3" onclick="window.Adm.viewOrderDetail('${o.id}')">
-                            View
-                        </button>
-                    </td>
-                </tr>
-            `).join('');
+            if (state.orders.length === 0) {
+                recentOrdersTbody.innerHTML = `<tr><td colspan="6" class="text-center text-muted py-4 small">No customer orders placed yet.</td></tr>`;
+            } else {
+                recentOrdersTbody.innerHTML = state.orders.slice(0, 5).map(o => `
+                    <tr>
+                        <td class="fw-bold text-dark">#${o.id}</td>
+                        <td>${o.customer || 'Customer'}</td>
+                        <td>${o.date}</td>
+                        <td class="fw-bold">₹${o.total}</td>
+                        <td><span class="badge ${getStatusBadgeClass(o.status)}">${o.status}</span></td>
+                        <td>
+                            <button class="btn btn-sm btn-outline-success rounded-pill px-3" onclick="window.Adm.viewOrderDetail('${o.id}')">
+                                View
+                            </button>
+                        </td>
+                    </tr>
+                `).join('');
+            }
         }
 
         // Charts Rendering with Chart.js
@@ -429,6 +408,11 @@
         const tbody = document.getElementById('ordersTableTbody');
         if (!tbody) return;
 
+        if (state.orders.length === 0) {
+            tbody.innerHTML = `<tr><td colspan="8" class="text-center text-muted py-4 small">No customer orders placed yet.</td></tr>`;
+            return;
+        }
+
         tbody.innerHTML = state.orders.map(o => `
             <tr>
                 <td class="fw-bold text-dark">#${o.id}</td>
@@ -462,6 +446,11 @@
         const tbody = document.getElementById('customersTableTbody');
         if (!tbody) return;
 
+        if (state.customers.length === 0) {
+            tbody.innerHTML = `<tr><td colspan="6" class="text-center text-muted py-4 small">No registered customers yet.</td></tr>`;
+            return;
+        }
+
         tbody.innerHTML = state.customers.map((c, i) => `
             <tr>
                 <td>
@@ -486,9 +475,15 @@
         const tbody = document.getElementById('salesTableTbody');
         if (!tbody) return;
 
-        tbody.innerHTML = state.orders.filter(o => o.status !== 'Cancelled').map(o => `
+        const validSales = state.orders.filter(o => o.status !== 'Cancelled');
+        if (validSales.length === 0) {
+            tbody.innerHTML = `<tr><td colspan="7" class="text-center text-muted py-4 small">No counter sales recorded yet.</td></tr>`;
+            return;
+        }
+
+        tbody.innerHTML = validSales.map(o => `
             <tr>
-                <td class="fw-bold text-dark">#BILL-${o.id.replace('JG-', '')}</td>
+                <td class="fw-bold text-dark">#BILL-${o.id.replace('JG-', '').replace('EG-', '')}</td>
                 <td>${o.date}</td>
                 <td>${o.customer || 'Walk-in Customer'}</td>
                 <td><span class="badge bg-light text-dark border">${o.payment}</span></td>
@@ -507,6 +502,11 @@
     function renderPurchases() {
         const tbody = document.getElementById('purchasesTableTbody');
         if (!tbody) return;
+
+        if (state.purchases.length === 0) {
+            tbody.innerHTML = `<tr><td colspan="7" class="text-center text-muted py-4 small">No purchase orders recorded yet.</td></tr>`;
+            return;
+        }
 
         tbody.innerHTML = state.purchases.map(p => `
             <tr>
@@ -575,6 +575,11 @@
     function renderActivity() {
         const list = document.getElementById('activityLogList');
         if (!list) return;
+
+        if (state.activity.length === 0) {
+            list.innerHTML = `<div class="text-center text-muted py-4 small">No recent activity logs.</div>`;
+            return;
+        }
 
         list.innerHTML = state.activity.map(a => `
             <div class="d-flex align-items-start gap-3 py-3 border-bottom">

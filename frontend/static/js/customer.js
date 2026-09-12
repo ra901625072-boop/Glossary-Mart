@@ -282,55 +282,29 @@
         }
     ];
 
+    // ── Version Migration & Storage Sanitizer ──
+    const DATA_VERSION = '2026-v3-prod-clean';
+    if (localStorage.getItem('eg_customer_ver') !== DATA_VERSION) {
+        localStorage.setItem('eg_customer_ver', DATA_VERSION);
+        localStorage.removeItem('jg_cart');
+        localStorage.removeItem('jg_wishlist');
+        localStorage.removeItem('jg_coupon');
+        localStorage.removeItem('jg_auth_user');
+        localStorage.removeItem('eg_orders');
+        localStorage.removeItem('jg_orders');
+    }
+
     // ── Local State Initialization ──
     let state = {
         products: CATALOG,
         selectedCategory: 'all',
         searchQuery: '',
         sortBy: 'popularity',
-        cart: JSON.parse(localStorage.getItem('jg_cart')) || [
-            { productId: 1, qty: 2 },
-            { productId: 3, qty: 3 }
-        ],
-        wishlist: JSON.parse(localStorage.getItem('jg_wishlist')) || [2, 5],
+        cart: JSON.parse(localStorage.getItem('jg_cart')) || [],
+        wishlist: JSON.parse(localStorage.getItem('jg_wishlist')) || [],
         activeCoupon: JSON.parse(localStorage.getItem('jg_coupon')) || null,
-        user: JSON.parse(localStorage.getItem('jg_auth_user')) || {
-            name: 'Priya Patel (Verified Patron)',
-            email: 'customer@mart.com',
-            phone: '+91 98251 22334',
-            address: 'B-12, Radhe Shyam Residency, Pali Road, Mehsana, Gujarat 384002',
-            wallet: 150
-        },
-        orders: JSON.parse(localStorage.getItem('eg_orders')) || [
-            {
-                id: 'EG-849201',
-                date: '10 Sep 2026, 07:45 PM',
-                status: 'Out for Delivery',
-                step: 3, // 1: Placed, 2: Packed, 3: Out for Delivery, 4: Delivered
-                rider: 'e Grossary Express (+91 9313840278)',
-                paymentMethod: 'UPI (GPay)',
-                total: 244,
-                items: [
-                    { name: 'Amul Taaza Fresh Toned Milk 1L', qty: 2, price: 56 },
-                    { name: 'Fresh Farm Crisp Organic Tomatoes 1kg', qty: 1, price: 35 },
-                    { name: 'Tata Tea Premium Desh Ki Chai 250g', qty: 1, price: 132 }
-                ]
-            },
-            {
-                id: 'EG-732109',
-                date: '08 Sep 2026, 11:20 AM',
-                status: 'Delivered',
-                step: 4,
-                rider: 'e Grossary Express (+91 9313840278)',
-                paymentMethod: 'Cash on Delivery',
-                total: 514,
-                items: [
-                    { name: 'Aashirvaad Superior MP Atta 5kg', qty: 1, price: 279 },
-                    { name: 'Fortune Sunlite Refined Sunflower Oil 1L', qty: 1, price: 199 },
-                    { name: 'Tata Salt Vacuum Evaporated 1kg', qty: 1, price: 36 }
-                ]
-            }
-        ],
+        user: JSON.parse(localStorage.getItem('jg_auth_user')) || null,
+        orders: JSON.parse(localStorage.getItem('eg_orders')) || [],
         checkoutData: {
             addressType: 'home',
             slot: 'express',
@@ -659,7 +633,7 @@
 
         const addrDisplay = document.getElementById('checkoutSelectedAddressText');
         if (addrDisplay) {
-            addrDisplay.textContent = state.user.address;
+            addrDisplay.textContent = (state.user && state.user.address) ? state.user.address : 'Default Delivery Address (Sign in or enter address)';
         }
     }
 
@@ -803,14 +777,15 @@
         const addressInput = document.getElementById('profileAddress');
         const walletDisplay = document.getElementById('profileWalletBalance');
 
-        if (nameInput) nameInput.value = state.user.name || '';
-        if (emailInput) emailInput.value = state.user.email || '';
-        if (phoneInput) phoneInput.value = state.user.phone || '';
-        if (addressInput) addressInput.value = state.user.address || '';
-        if (walletDisplay) walletDisplay.textContent = `₹${state.user.wallet || 0}`;
+        const user = state.user || {};
+        if (nameInput) nameInput.value = user.name || '';
+        if (emailInput) emailInput.value = user.email || '';
+        if (phoneInput) phoneInput.value = user.phone || '';
+        if (addressInput) addressInput.value = user.address || '';
+        if (walletDisplay) walletDisplay.textContent = `₹${user.wallet || 0}`;
 
-        document.querySelectorAll('.profile-user-name-display').forEach(el => el.textContent = state.user.name);
-        document.querySelectorAll('.profile-user-email-display').forEach(el => el.textContent = state.user.email);
+        document.querySelectorAll('.profile-user-name-display').forEach(el => el.textContent = user.name || 'Customer Profile');
+        document.querySelectorAll('.profile-user-email-display').forEach(el => el.textContent = user.email || 'Sign in or update your account details');
     }
 
     // ── Public Global JG API ──
@@ -908,7 +883,7 @@
             } else {
                 if (feedback) {
                     feedback.className = 'text-danger small mt-2 fw-bold';
-                    feedback.textContent = 'Invalid code. Try FRESH15 or JAYGOGA100.';
+                    feedback.textContent = 'Invalid code. Try FRESH15 or EGROSSARY100.';
                 }
             }
         },
@@ -947,7 +922,7 @@
             }
 
             const totals = calculateCartTotals();
-            const orderId = `JG-${Math.floor(100000 + Math.random() * 900000)}`;
+            const orderId = `EG-${Math.floor(100000 + Math.random() * 900000)}`;
 
             const orderItems = state.cart.map(c => {
                 const prod = state.products.find(p => p.id === c.productId);
@@ -999,6 +974,7 @@
             const phone = document.getElementById('profilePhone').value;
             const address = document.getElementById('profileAddress').value;
 
+            if (!state.user) state.user = {};
             state.user.name = name;
             state.user.email = email;
             state.user.phone = phone;

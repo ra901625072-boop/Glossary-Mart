@@ -5,30 +5,44 @@ customer profiles, historical orders, and counter POS sales into the database.
 """
 
 
+import os
+
+
 def seed_all(app):
-    """Orchestrate all seeding in proper dependency order."""
+    """
+    Orchestrate database seeding.
+    In production and by default, only essential master catalog data (Categories,
+    Products, Suppliers, Coupons, and Admin Account) are seeded if empty.
+    Dummy operational transactions (fake orders, simulated sales, fake customer
+    profiles, purchases, and fake reviews) are NEVER loaded unless explicitly
+    requested via SEED_DUMMY_DATA=true.
+    """
     from .categories import seed_categories
     from .products import seed_products
     from .suppliers import seed_suppliers
-    from .purchases import seed_purchases
     from .coupons import seed_coupons
-    from .users import create_admin, create_customer
-    from .orders_and_sales import seed_orders_and_sales
+    from .users import create_admin
 
     # 1. Base Master Catalog
     cat_map = seed_categories()
     seed_products(cat_map)
 
-    # 2. Suppliers & Inward Stocking
+    # 2. Master Suppliers
     supplier_map = seed_suppliers()
-    seed_purchases(supplier_map)
 
-    # 3. Promotions
+    # 3. Master Promotions & Vouchers
     seed_coupons()
 
-    # 4. User Accounts & Reviews
+    # 4. Essential Administrator Account
     create_admin(app)
-    create_customer(app)
 
-    # 5. Operational Orders & POS Sales Transactions
-    seed_orders_and_sales()
+    # 5. Dummy/Simulated Data (Disabled by default for Production)
+    if os.getenv('SEED_DUMMY_DATA', 'false').lower() == 'true':
+        from .purchases import seed_purchases
+        from .users import create_customer
+        from .orders_and_sales import seed_orders_and_sales
+
+        seed_purchases(supplier_map)
+        create_customer(app)
+        seed_orders_and_sales()
+

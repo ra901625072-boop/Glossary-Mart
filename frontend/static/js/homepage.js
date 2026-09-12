@@ -205,12 +205,7 @@
             if (savedCart) {
                 cart = JSON.parse(savedCart);
             } else {
-                // Initialize with 2 real items matching seeded DB items
-                cart = [
-                    { id: 1, name: "Aashirvaad Superior MP Atta 5kg", price: 279, mrp: 320, unit: "5 kg", quantity: 1, image: DEALS_PRODUCTS[0].image },
-                    { id: 3, name: "Amul Taaza Fresh Toned Milk 1L", price: 56, mrp: 70, unit: "1 L", quantity: 1, image: DEALS_PRODUCTS[2].image }
-                ];
-                saveCart();
+                cart = [];
             }
 
             const savedWishlist = localStorage.getItem('egm_wishlist');
