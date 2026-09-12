@@ -982,6 +982,11 @@
                 subnavAuth.setAttribute('href', 'auth/login.html');
                 subnavAuth.onclick = null;
             }
+
+            const guestCard = document.getElementById('authGuestContent');
+            const memberCard = document.getElementById('authMemberContent');
+            if (guestCard) guestCard.style.display = '';
+            if (memberCard) memberCard.style.display = 'none';
         }
 
         function applyAuthenticatedState(user) {
@@ -1011,6 +1016,17 @@
                     handleLogout();
                 };
             }
+
+            // Sync Storefront Auth Section to Active Member Hub
+            const guestCard = document.getElementById('authGuestContent');
+            const memberCard = document.getElementById('authMemberContent');
+            const memberNameEl = document.getElementById('authSectionMemberName');
+            const memberEmailEl = document.getElementById('authSectionMemberEmail');
+
+            if (guestCard) guestCard.style.display = 'none';
+            if (memberCard) memberCard.style.display = '';
+            if (memberNameEl) memberNameEl.textContent = displayName;
+            if (memberEmailEl) memberEmailEl.textContent = user.email || user.username || '';
         }
 
         // 1. Initial render from localStorage cache
