@@ -35,6 +35,7 @@ def pos():
 
 
 @admin_bp.route('/api/pos/checkout', methods=['POST'])
+@admin_bp.route('/pos/checkout', methods=['POST'])
 @admin_required
 def pos_checkout():
     """
@@ -45,7 +46,7 @@ def pos_checkout():
                   {"success": false, "error": "<message>"}
     """
     data = request.get_json(silent=True) or {}
-    cart_items = data.get('cart', [])
+    cart_items = data.get('cart') or data.get('items') or []
 
     if not cart_items:
         return jsonify({'success': False, 'error': 'Cart is empty.'})
@@ -55,8 +56,8 @@ def pos_checkout():
     try:
         for item in cart_items:
             try:
-                product_id = int(item.get('id'))
-                qty = int(item.get('qty', 0))
+                product_id = int(item.get('id') or item.get('product_id'))
+                qty = int(item.get('qty') or item.get('quantity', 0))
             except (ValueError, TypeError):
                 db.session.rollback()
                 return jsonify({'success': False, 'error': 'Invalid product ID or quantity.'})

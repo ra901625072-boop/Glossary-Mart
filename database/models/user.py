@@ -74,5 +74,8 @@ class ActivityLog(db.Model):
 
     user = db.relationship('User', backref=db.backref('activity_logs', lazy=True))
 
+    def __init__(self, **kwargs):
+        super().__init__(**kwargs)
+
     def __repr__(self):
         return f'<ActivityLog {self.action} on {self.entity_type}#{self.entity_id}>'

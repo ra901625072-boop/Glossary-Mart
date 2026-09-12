@@ -84,6 +84,7 @@ def sales_history():
     per_page = 50
     pagination = db.session.query(Sale).order_by(Sale.sale_date.desc()).paginate(page=page, per_page=per_page, error_out=False)
     return jsonify({
+        'success': True,
         'sales': [
             {
                 'id': s.id,

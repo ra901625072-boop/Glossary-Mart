@@ -28,6 +28,7 @@ def activity_log():
     ]
 
     return jsonify({
+        'success': True,
         'logs': [
             {
                 'id': log.id,

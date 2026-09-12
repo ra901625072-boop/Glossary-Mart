@@ -841,22 +841,59 @@
     }
 
     // ── 18. Unified Authentication Engine (Login + Register + Admin) ──
-    function checkAuthState() {
-        const authDataStr = localStorage.getItem('jg_auth_user');
+    async function checkAuthState() {
         const accountBtn = document.getElementById('headerAccountBtn');
         const accountText = document.getElementById('accountBtnText');
         if (!accountText) return;
 
+        // 1. Optimistic render from localStorage cache
+        const authDataStr = localStorage.getItem('jg_auth_user');
         if (authDataStr) {
             try {
                 const user = JSON.parse(authDataStr);
-                accountText.innerText = user.name ? user.name.split(' ')[0] : (user.role === 'admin' ? 'Admin' : 'Account');
+                const displayName = user.full_name || user.name || (user.role === 'admin' ? 'Admin' : 'Account');
+                accountText.innerText = displayName.split(' ')[0];
                 if (accountBtn) {
-                    accountBtn.title = `Signed in as ${user.email} (${user.role})`;
+                    accountBtn.title = `Signed in as ${user.email || user.username} (${user.role || 'customer'})`;
                 }
             } catch (e) {
-                // Ignore parse errors
+                // Ignore parse error
             }
+        }
+
+        // 2. Dynamic live session verification with backend
+        try {
+            const fetchFn = window.apiFetch || fetch;
+            const res = await fetchFn('/api/auth/me');
+            if (res.ok) {
+                const data = await res.json();
+                if (data && data.user) {
+                    const u = data.user;
+                    localStorage.setItem('jg_auth_user', JSON.stringify({
+                        id: u.id,
+                        name: u.full_name || u.name || u.username,
+                        username: u.username,
+                        email: u.email,
+                        phone: u.phone,
+                        role: u.role || 'customer'
+                    }));
+                    const displayName = u.full_name || u.name || u.username;
+                    accountText.innerText = displayName.split(' ')[0];
+                    if (accountBtn) {
+                        accountBtn.title = `Signed in as ${u.email || u.username} (${u.role || 'customer'})`;
+                    }
+                    return;
+                }
+            } else if (res.status === 401) {
+                // Not authenticated on server; clear stale localStorage if present
+                if (authDataStr) {
+                    localStorage.removeItem('jg_auth_user');
+                    accountText.innerText = 'Account';
+                    if (accountBtn) accountBtn.title = 'Customer Account';
+                }
+            }
+        } catch (e) {
+            // Backend offline - retain cached offline state
         }
     }
 
@@ -944,15 +981,15 @@
 
         if (feedback) feedback.innerHTML = '<div class="alert alert-info py-2 small mb-3"><span class="spinner-border spinner-border-sm me-2"></span>Authenticating...</div>';
 
-        // Attempt live API login if server available
+        // Attempt live API login
         try {
             const res = await (window.apiFetch || fetch)('/api/auth/login', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ email_or_username: email, username: email, email: email, password: password })
             });
-            if (res.ok) {
-                const data = await res.json();
+            const data = await res.json().catch(() => ({}));
+            if (res.ok && data.success) {
                 const sessionUser = {
                     id: data.user?.id || 1,
                     name: data.user?.name || data.user?.full_name || email.split('@')[0],
@@ -963,31 +1000,15 @@
                 showToast(`Welcome back, ${sessionUser.name}!`, 'success');
                 setTimeout(() => { location.href = sessionUser.role === 'admin' ? 'admin.html#dashboard' : 'customer.html#shop'; }, 600);
                 return;
+            } else {
+                if (feedback) feedback.innerHTML = `<div class="alert alert-danger py-2 small mb-3">${escapeHTML(data.message || 'Invalid username or password.')}</div>`;
+                return;
             }
         } catch (err) {
-            // Offline / Standalone mode
+            console.warn('Live login network error:', err);
+            if (feedback) feedback.innerHTML = `<div class="alert alert-warning py-2 small mb-3">Backend server unavailable. Please ensure backend is running on port 5000.</div>`;
+            return;
         }
-
-        // Standalone simulation & validation
-        const sessionUser = {
-            id: Date.now(),
-            name: email.split('@')[0],
-            email: email,
-            role: 'customer'
-        };
-        localStorage.setItem('jg_auth_user', JSON.stringify(sessionUser));
-        showToast(`Signed in successfully as ${sessionUser.name}!`, 'success');
-        
-        // Close modal if open
-        const modalEl = document.getElementById('authModal');
-        if (modalEl && window.bootstrap) {
-            const modal = bootstrap.Modal.getInstance(modalEl);
-            if (modal) modal.hide();
-        }
-
-        setTimeout(() => {
-            location.href = 'customer.html#shop';
-        }, 600);
     }
 
     async function handleCustomerRegister(e) {
@@ -1011,37 +1032,29 @@
 
         if (feedback) feedback.innerHTML = '<div class="alert alert-info py-2 small mb-3"><span class="spinner-border spinner-border-sm me-2"></span>Creating your account...</div>';
 
-        // Attempt live API register if server available
+        // Attempt live API register
         try {
             const res = await (window.apiFetch || fetch)('/api/auth/register', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ username: email.split('@')[0], full_name: name, name: name, email: email, phone: phone, password: password })
             });
-            if (res.ok) {
-                const sessionUser = { id: Date.now(), name: name, email: email, phone: phone, role: 'customer' };
+            const data = await res.json().catch(() => ({}));
+            if (res.ok && data.success) {
+                const sessionUser = { id: data.user?.id || Date.now(), name: name, email: email, phone: phone, role: 'customer' };
                 localStorage.setItem('jg_auth_user', JSON.stringify(sessionUser));
                 showToast(`Welcome to e Grossary, ${name}!`, 'success');
                 setTimeout(() => { location.href = 'customer.html#shop'; }, 600);
                 return;
+            } else {
+                if (feedback) feedback.innerHTML = `<div class="alert alert-danger py-2 small mb-3">${escapeHTML(data.message || 'Registration failed.')}</div>`;
+                return;
             }
         } catch (err) {
-            // Offline / Standalone mode
+            console.warn('Live register error:', err);
+            if (feedback) feedback.innerHTML = `<div class="alert alert-warning py-2 small mb-3">Backend server unavailable. Please try again shortly.</div>`;
+            return;
         }
-
-        const sessionUser = { id: Date.now(), name: name, email: email, phone: phone, role: 'customer' };
-        localStorage.setItem('jg_auth_user', JSON.stringify(sessionUser));
-        showToast(`Account created! Welcome, ${name}!`, 'success');
-
-        const modalEl = document.getElementById('authModal');
-        if (modalEl && window.bootstrap) {
-            const modal = bootstrap.Modal.getInstance(modalEl);
-            if (modal) modal.hide();
-        }
-
-        setTimeout(() => {
-            location.href = 'customer.html#shop';
-        }, 600);
     }
 
     async function handleAdminLogin(e) {
@@ -1057,46 +1070,41 @@
 
         if (feedback) feedback.innerHTML = '<div class="alert alert-info py-2 small mb-3"><span class="spinner-border spinner-border-sm me-2"></span>Validating ERP credentials...</div>';
 
-        // Attempt live API login if server available
+        // Attempt live API login
         try {
             const res = await (window.apiFetch || fetch)('/api/auth/login', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ email_or_username: email, username: email, email: email, password: password })
             });
-            if (res.ok) {
-                const data = await res.json();
+            const data = await res.json().catch(() => ({}));
+            if (res.ok && data.success) {
+                if (data.requires_2fa) {
+                    if (feedback) feedback.innerHTML = `<div class="alert alert-warning py-2 small mb-3">2FA Authenticator code required. Please enter 6-digit code.</div>`;
+                    return;
+                }
                 const adminUser = {
                     id: data.user?.id || 1,
                     name: data.user?.full_name || data.user?.username || 'Store Administrator',
                     email: email,
-                    role: 'admin'
+                    role: data.user?.role || 'admin'
                 };
                 localStorage.setItem('jg_auth_user', JSON.stringify(adminUser));
-                localStorage.setItem('jg_admin_token', 'jg_demo_jwt_token_admin');
                 showToast('Admin authorized. Redirecting to ERP Console...', 'success');
                 setTimeout(() => {
                     location.href = 'admin.html#dashboard';
                 }, 600);
                 return;
+            } else {
+                if (feedback) feedback.innerHTML = `<div class="alert alert-danger py-2 small mb-3">${escapeHTML(data.message || 'Invalid administrator credentials.')}</div>`;
+                return;
             }
         } catch (err) {
-            // Offline / Standalone mode
+            console.warn('Live admin login error:', err);
+            if (feedback) feedback.innerHTML = `<div class="alert alert-warning py-2 small mb-3">Backend server unavailable on port 5000.</div>`;
+            return;
         }
 
-        const adminUser = {
-            id: 1,
-            name: 'Store Administrator',
-            email: email,
-            role: 'admin'
-        };
-        localStorage.setItem('jg_auth_user', JSON.stringify(adminUser));
-        localStorage.setItem('jg_admin_token', 'jg_demo_jwt_token_admin');
-
-        showToast('Admin authorized. Redirecting to ERP Console...', 'success');
-        setTimeout(() => {
-            location.href = 'admin.html#dashboard';
-        }, 600);
     }
 
     function handleForgotPassword(e) {
@@ -1115,13 +1123,22 @@
         showToast('Reset email sent!', 'info');
     }
 
-    function handleLogout() {
-        localStorage.removeItem('jg_auth_user');
-        localStorage.removeItem('jg_admin_token');
+    async function handleLogout() {
+        try {
+            await (window.apiFetch || fetch)('/api/auth/logout', { method: 'POST' }).catch(() => {});
+        } catch (e) {}
+        try {
+            localStorage.removeItem('jg_auth_user');
+            localStorage.removeItem('jg_admin_token');
+            localStorage.removeItem('egm_cart');
+            localStorage.removeItem('jg_cart');
+            localStorage.removeItem('jg_coupon');
+            sessionStorage.clear();
+        } catch (e) {}
         showToast('You have been signed out.', 'info');
         setTimeout(() => {
-            location.reload();
-        }, 500);
+            location.href = 'index.html#login';
+        }, 400);
     }
 
     // ── 19. Initialization ──

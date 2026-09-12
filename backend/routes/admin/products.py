@@ -18,6 +18,7 @@ def products():
     per_page = 20
     pagination = db.session.query(Product).filter_by(is_active=True).order_by(Product.created_at.desc()).paginate(page=page, per_page=per_page, error_out=False)
     return jsonify({
+        'success': True,
         'products': [
             {
                 'id': p.id,
@@ -61,8 +62,21 @@ def add_product():
     if not name:
         return jsonify({'success': False, 'message': 'Product name is required.'}), 400
 
+    cat_val = data.get('category_id') or data.get('category')
+    category_id = None
+    if cat_val is not None:
+        try:
+            category_id = int(cat_val)
+        except (TypeError, ValueError):
+            cat_match = db.session.query(Category).filter(Category.name.ilike(str(cat_val).strip())).first()
+            if cat_match:
+                category_id = cat_match.id
+
+    if not category_id:
+        first_cat = db.session.query(Category).first()
+        category_id = first_cat.id if first_cat else 1
+
     try:
-        category_id = int(data.get('category_id'))
         cost_price = float(data.get('cost_price', 0.0))
         selling_price = float(data.get('selling_price', 0.0))
         stock_quantity = int(data.get('stock_quantity', 0))
@@ -101,6 +115,7 @@ def add_product():
 
 
 @admin_bp.route('/products/edit/<int:product_id>', methods=['GET', 'POST'])
+@admin_bp.route('/products/<int:product_id>', methods=['GET', 'PUT', 'POST'])
 @admin_required
 def edit_product(product_id):
     """Edit product — GET returns product + categories, POST updates product."""
@@ -132,8 +147,14 @@ def edit_product(product_id):
         return jsonify({'success': False, 'message': 'Product name is required.'}), 400
 
     try:
-        if 'category_id' in data:
-            product.category_id = int(data.get('category_id'))
+        if 'category_id' in data or 'category' in data:
+            cat_val = data.get('category_id') or data.get('category')
+            try:
+                product.category_id = int(cat_val)
+            except (TypeError, ValueError):
+                cat_match = db.session.query(Category).filter(Category.name.ilike(str(cat_val).strip())).first()
+                if cat_match:
+                    product.category_id = cat_match.id
         if 'cost_price' in data:
             product.cost_price = float(data.get('cost_price'))
         if 'selling_price' in data:
@@ -170,6 +191,7 @@ def edit_product(product_id):
 
 
 @admin_bp.route('/products/delete/<int:product_id>', methods=['POST'])
+@admin_bp.route('/products/<int:product_id>', methods=['DELETE'])
 @admin_required
 def delete_product(product_id):
     """Soft-delete (deactivate) a product."""

@@ -17,6 +17,9 @@ class Supplier(db.Model):
     # Relationships
     purchases = db.relationship('Purchase', backref='supplier', lazy=True, cascade='all, delete-orphan')
     
+    def __init__(self, **kwargs):
+        super().__init__(**kwargs)
+
     def __repr__(self):
         return f'<Supplier {self.name}>'
 
@@ -33,5 +36,8 @@ class Purchase(db.Model):
     total_cost = db.Column(Numeric(10, 2), nullable=False)
     purchase_date = db.Column(db.DateTime, default=lambda: datetime.now(timezone.utc))
     
+    def __init__(self, **kwargs):
+        super().__init__(**kwargs)
+
     def __repr__(self):
         return f'<Purchase {self.id} - Product {self.product_id}>'

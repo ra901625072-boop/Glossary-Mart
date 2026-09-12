@@ -15,6 +15,9 @@ class Coupon(db.Model):
     is_active = db.Column(db.Boolean, default=True)
     created_at = db.Column(db.DateTime, default=lambda: datetime.now(timezone.utc))
 
+    def __init__(self, **kwargs):
+        super().__init__(**kwargs)
+
 
 class Notification(db.Model):
     """Admin notification model for operational alerts"""
@@ -30,6 +33,9 @@ class Notification(db.Model):
     is_read = db.Column(db.Boolean, default=False, index=True)
     link = db.Column(db.String(200))  # Optional deep-link into admin panel
     created_at = db.Column(db.DateTime, default=lambda: datetime.now(timezone.utc), index=True)
+
+    def __init__(self, **kwargs):
+        super().__init__(**kwargs)
 
     def __repr__(self):
         return f'<Notification {self.id}: {self.title}>'

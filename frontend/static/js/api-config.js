@@ -53,14 +53,26 @@
      */
     window.apiFetch = async function (url, options = {}) {
         const fullUrl = window.apiUrl(url);
+        const headers = {
+            'Accept': 'application/json',
+            ...(options.headers || {})
+        };
+
+        let body = options.body;
+        if (body && typeof body === 'object' && !(body instanceof FormData) && !(body instanceof Blob)) {
+            body = JSON.stringify(body);
+            if (!headers['Content-Type']) {
+                headers['Content-Type'] = 'application/json';
+            }
+        }
+
         const defaultOptions = {
             credentials: 'include', // Transmit session cookies across ports
-            headers: {
-                'Accept': 'application/json',
-                ...(options.headers || {})
-            }
+            headers: headers,
+            body: body
         };
-        const mergedOptions = { ...defaultOptions, ...options };
+        const mergedOptions = { ...options, ...defaultOptions };
+
         try {
             const res = await fetch(fullUrl, mergedOptions);
             // If relative proxy /api/ call returns 404 on Vercel, fallback directly to Render backend
@@ -84,6 +96,40 @@
         }
     };
 
+    /**
+     * Convenience helper to perform JSON requests and return parsed data.
+     */
+    window.apiJSON = async function (url, body = null, method = 'GET') {
+        const opts = { method };
+        if (body) {
+            opts.method = method === 'GET' ? 'POST' : method;
+            opts.body = body;
+        }
+        const res = await window.apiFetch(url, opts);
+        const data = await res.json().catch(() => ({}));
+        return { ok: res.ok, status: res.status, data };
+    };
+
+    /**
+     * Unified cross-app logout: terminates backend session cookie, clears all local/session storage,
+     * and cleanly redirects to storefront login.
+     */
+    window.handleLogout = async function () {
+        try {
+            await window.apiFetch('/api/auth/logout', { method: 'POST' }).catch(() => {});
+        } catch (e) {}
+        try {
+            localStorage.removeItem('jg_auth_user');
+            localStorage.removeItem('jg_admin_token');
+            localStorage.removeItem('egm_cart');
+            localStorage.removeItem('jg_cart');
+            localStorage.removeItem('jg_coupon');
+            sessionStorage.clear();
+        } catch (e) {}
+        window.location.href = 'index.html#login';
+    };
+
     console.log(`%c[e Grossary API]%c Backend target: ${window.API_BASE || '(relative / Vercel proxy)'}`,
         'color: #10b981; font-weight: bold;', 'color: inherit;');
 })(window);
+

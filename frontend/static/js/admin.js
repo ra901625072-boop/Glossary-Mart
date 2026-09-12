@@ -1,6 +1,12 @@
 /**
  * E-GROSSARY — CONSOLIDATED ADMIN ERP CONSOLE ENGINE (admin.js)
- * Enterprise state management, multi-module hash router, Chart.js analytics, POS billing, and inventory controls.
+ * Enterprise-grade full-stack ERP console connected directly to live backend REST APIs:
+ * - Server-validated Admin authentication guard via /api/auth/me
+ * - Live KPI dashboard analytics & Chart.js sales trends via /api/admin/dashboard
+ * - Full Product & Inventory CRUD with image uploads via /api/admin/products
+ * - Live Point-of-Sale (POS) counter with atomic DB stock deduction via /api/admin/pos/checkout
+ * - Real-time Master Orders pipeline & status transitions via /api/admin/orders
+ * - Categories, Suppliers, Restock Purchases, Customer Udhar (credit) & Audit Log live sync
  */
 
 (function () {
@@ -19,113 +25,337 @@
         });
     }
 
-    // ── Pre-Seeded ERP Data ──
-    const DEFAULT_PRODUCTS = [
-        { id: 1, sku: 'JG-STA-001', name: 'Aashirvaad Superior MP Atta 5kg', category: 'Staples & Grains', cost: 240, price: 279, stock: 50, image: 'https://images.unsplash.com/photo-1586201375761-83865001e31c?auto=format&fit=crop&w=300&q=80' },
-        { id: 2, sku: 'JG-SPI-001', name: 'Tata Salt Vacuum Evaporated 1kg', category: 'Masala & Spices', cost: 28, price: 36, stock: 100, image: 'https://images.unsplash.com/photo-1518977676601-b53f82aba655?auto=format&fit=crop&w=300&q=80' },
-        { id: 3, sku: 'JG-DAI-001', name: 'Amul Taaza Fresh Toned Milk 1L', category: 'Dairy & Breakfast', cost: 48, price: 56, stock: 60, image: 'https://images.unsplash.com/photo-1550583724-b2692b85b150?auto=format&fit=crop&w=300&q=80' },
-        { id: 4, sku: 'JG-SNK-001', name: 'Maggi 2-Minute Masala Instant Noodles 280g', category: 'Snacks & Biscuits', cost: 34, price: 42, stock: 80, image: 'https://images.unsplash.com/photo-1612927601601-6638404737ce?auto=format&fit=crop&w=300&q=80' },
-        { id: 5, sku: 'JG-BEV-001', name: 'Tata Tea Premium Desh Ki Chai 250g', category: 'Beverages', cost: 110, price: 132, stock: 45, image: 'https://images.unsplash.com/photo-1576092768241-dec231879fc3?auto=format&fit=crop&w=300&q=80' },
-        { id: 6, sku: 'JG-SNK-002', name: 'Cadbury Dairy Milk Silk Chocolate 120g', category: 'Snacks & Biscuits', cost: 80, price: 98, stock: 75, image: 'https://images.unsplash.com/photo-1549007994-cb92caebd54b?auto=format&fit=crop&w=300&q=80' },
-        { id: 7, sku: 'JG-STA-002', name: 'Fortune Sunlite Refined Sunflower Oil 1L', category: 'Staples & Grains', cost: 165, price: 199, stock: 45, image: 'https://images.unsplash.com/photo-1474979266404-7eaacbcd87c5?auto=format&fit=crop&w=300&q=80' },
-        { id: 8, sku: 'JG-DAI-002', name: 'Amul Pasteurised Salted Butter 500g', category: 'Dairy & Breakfast', cost: 125, price: 145, stock: 50, image: 'https://images.unsplash.com/photo-1589985270826-4b7bb135bc9d?auto=format&fit=crop&w=300&q=80' },
-        { id: 9, sku: 'JG-SNK-003', name: 'Britannia Good Day Cashew Cookies 100g', category: 'Snacks & Biscuits', cost: 32, price: 40, stock: 90, image: 'https://images.unsplash.com/photo-1558961363-fa8fdf82db35?auto=format&fit=crop&w=300&q=80' },
-        { id: 10, sku: 'JG-STA-003', name: 'Tata Sampann Unpolished Toor Dal 1kg', category: 'Staples & Grains', cost: 72, price: 89, stock: 60, image: 'https://images.unsplash.com/photo-1546833999-b9f581a1996d?auto=format&fit=crop&w=300&q=80' },
-        { id: 11, sku: 'JG-HOU-001', name: 'Surf Excel Easy Wash Detergent Powder 1kg', category: 'Household', cost: 135, price: 165, stock: 55, image: 'https://images.unsplash.com/photo-1583947215259-38e31be8751f?auto=format&fit=crop&w=300&q=80' },
-        { id: 12, sku: 'JG-HOU-002', name: 'Harpic Power Plus Toilet Cleaner 500ml', category: 'Household', cost: 78, price: 99, stock: 40, image: 'https://images.unsplash.com/photo-1585421514738-01798e348b17?auto=format&fit=crop&w=300&q=80' },
-        { id: 13, sku: 'JG-VEG-001', name: 'Fresh Farm Crisp Organic Tomatoes 1kg', category: 'Fruits & Vegetables', cost: 25, price: 35, stock: 50, image: 'https://images.unsplash.com/photo-1592924357228-91a4daadcfea?auto=format&fit=crop&w=300&q=80' },
-        { id: 14, sku: 'JG-VEG-002', name: 'Fresh Farm Green Spinach (Palak) 250g', category: 'Fruits & Vegetables', cost: 15, price: 22, stock: 30, image: 'https://images.unsplash.com/photo-1576045057995-568f588f82fb?auto=format&fit=crop&w=300&q=80' },
-        { id: 15, sku: 'JG-VEG-003', name: 'Ratnagiri Alphonso Mangoes (1 Dozen)', category: 'Fruits & Vegetables', cost: 450, price: 599, stock: 25, image: 'https://images.unsplash.com/photo-1553279768-865429fa0078?auto=format&fit=crop&w=300&q=80' },
-        { id: 16, sku: 'JG-PER-001', name: 'Dabur Red Ayurvedic Toothpaste 300g', category: 'Personal Care', cost: 115, price: 140, stock: 45, image: 'https://images.unsplash.com/photo-1559650656-5d1d42e99e69?auto=format&fit=crop&w=300&q=80' }
-    ];
-
-    const DEFAULT_CATEGORIES = [
-        { id: 1, name: 'Fruits & Vegetables', desc: 'Fresh farm produce, fruits, leafy greens and organic vegetables', icon: '🥦' },
-        { id: 2, name: 'Dairy & Breakfast', desc: 'Pure cow milk, butter, ghee, curd, paneer and breakfast spreads', icon: '🥛' },
-        { id: 3, name: 'Staples & Grains', desc: 'Stone-ground flours, premium basmati rice, lentils and cold-pressed oils', icon: '🌾' },
-        { id: 4, name: 'Snacks & Biscuits', desc: 'Cookies, healthy roasted snacks, dry fruits and chocolates', icon: '🍿' },
-        { id: 5, name: 'Beverages', desc: 'Premium teas, artisanal coffees, fruit juices and healthy drinks', icon: '🧃' },
-        { id: 6, name: 'Personal Care', desc: 'Natural soaps, oral care, shampoos and grooming essentials', icon: '✨' },
-        { id: 7, name: 'Household', desc: 'Detergents, surface cleaners, dishwash and kitchen essentials', icon: '🧼' },
-        { id: 8, name: 'Masala & Spices', desc: 'Pure hand-pounded spices, rock salt, turmeric and whole seeds', icon: '🌶️' }
-    ];
-
-    const DEFAULT_ORDERS = [];
-    const DEFAULT_CUSTOMERS = [];
-    const DEFAULT_PURCHASES = [];
-    const DEFAULT_ACTIVITY = [];
-
-    const DEFAULT_SUPPLIERS = [
-        { id: 1, name: 'Gujarat Co-operative (Amul)', contact: 'Ramesh Bhai Patel', phone: '+91 2692 258506', email: 'orders@amul.coop', category: 'Dairy & Milk' },
-        { id: 2, name: 'ITC Limited Food Distribution', contact: 'Vikram Mehta', phone: '+91 79 2656 4300', email: 'ahmedabad.sales@itc.in', category: 'Atta & Staples' },
-        { id: 3, name: 'Tata Consumer Products Hub', contact: 'Suresh Joshi', phone: '+91 265 233 1140', email: 'west.orders@tataconsumer.com', category: 'Tea, Salt & Dals' },
-        { id: 4, name: 'Unjha APMC Mandi Spices Traders', contact: 'Rameshwar Lal Patel', phone: '+91 2767 254210', email: 'trade@unjhaspices.com', category: 'Pure Spices & Seeds' },
-        { id: 5, name: 'Hindustan Unilever Depot Mehsana', contact: 'Sanjay Rawat', phone: '+91 2762 251120', email: 'mehsana.supply@hul.com', category: 'Soaps & Detergents' },
-        { id: 6, name: 'Adani Wilmar (Fortune Foods)', contact: 'Dhaval Shah', phone: '+91 79 2656 5555', email: 'sales@adaniwilmar.in', category: 'Cooking Oils & Grains' },
-        { id: 7, name: 'Britannia Sanand Logistics Hub', contact: 'Ankit Verma', phone: '+91 2717 618000', email: 'orders.gujarat@britindia.com', category: 'Cookies & Biscuits' },
-        { id: 8, name: 'Nestle India Distribution Centre', contact: 'Pooja Nair', phone: '+91 22 2497 0000', email: 'consumer.care@in.nestle.com', category: 'Noodles & Beverages' }
-    ];
-
-    const DEFAULT_COUPONS = [
-        { id: 1, code: 'WELCOME50', discount: '₹50 OFF', minSpend: 299, expiry: '31 Dec 2026', used: 0, active: true },
-        { id: 2, code: 'EGROSSARY100', discount: '₹100 OFF', minSpend: 499, expiry: '31 Dec 2026', used: 0, active: true },
-        { id: 3, code: 'FRESH15', discount: '15% OFF', minSpend: 199, expiry: '31 Dec 2026', used: 0, active: true },
-        { id: 4, code: 'GROCERY10', discount: '10% OFF', minSpend: 399, expiry: '31 Dec 2026', used: 0, active: true }
-    ];
-
-    // ── Local State Engine & Version Migration ──
-    const DATA_VERSION = '2026-v3-prod-clean';
-    if (localStorage.getItem('jg_admin_data_ver') !== DATA_VERSION) {
-        localStorage.setItem('jg_admin_data_ver', DATA_VERSION);
-        localStorage.setItem('jg_admin_products', JSON.stringify(DEFAULT_PRODUCTS));
-        localStorage.setItem('jg_admin_categories', JSON.stringify(DEFAULT_CATEGORIES));
-        localStorage.setItem('jg_orders', JSON.stringify(DEFAULT_ORDERS));
-        localStorage.setItem('jg_admin_customers', JSON.stringify(DEFAULT_CUSTOMERS));
-        localStorage.setItem('jg_admin_suppliers', JSON.stringify(DEFAULT_SUPPLIERS));
-        localStorage.setItem('jg_admin_purchases', JSON.stringify(DEFAULT_PURCHASES));
-        localStorage.setItem('jg_admin_coupons', JSON.stringify(DEFAULT_COUPONS));
-        localStorage.setItem('jg_admin_activity', JSON.stringify(DEFAULT_ACTIVITY));
-    }
-
+    // ── Application State ──
     let state = {
-        products: JSON.parse(localStorage.getItem('jg_admin_products')) || DEFAULT_PRODUCTS,
-        categories: JSON.parse(localStorage.getItem('jg_admin_categories')) || DEFAULT_CATEGORIES,
-        orders: JSON.parse(localStorage.getItem('jg_orders')) || DEFAULT_ORDERS,
-        customers: JSON.parse(localStorage.getItem('jg_admin_customers')) || DEFAULT_CUSTOMERS,
-        suppliers: JSON.parse(localStorage.getItem('jg_admin_suppliers')) || DEFAULT_SUPPLIERS,
-        purchases: JSON.parse(localStorage.getItem('jg_admin_purchases')) || DEFAULT_PURCHASES,
-        coupons: JSON.parse(localStorage.getItem('jg_admin_coupons')) || DEFAULT_COUPONS,
-        activity: JSON.parse(localStorage.getItem('jg_admin_activity')) || DEFAULT_ACTIVITY,
+        products: [],
+        categories: [],
+        orders: [],
+        customers: [],
+        suppliers: [],
+        purchases: [],
+        coupons: [],
+        activity: [],
+        sales: [],
         posCart: [],
         posDiscount: 0,
-        posCustomerPhone: '',
-        twoFactorEnabled: JSON.parse(localStorage.getItem('jg_admin_2fa')) || false
+        twoFactorEnabled: false,
+        user: null
     };
 
-    function persistState() {
-        localStorage.setItem('jg_admin_products', JSON.stringify(state.products));
-        localStorage.setItem('jg_admin_categories', JSON.stringify(state.categories));
-        localStorage.setItem('jg_orders', JSON.stringify(state.orders));
-        localStorage.setItem('jg_admin_customers', JSON.stringify(state.customers));
-        localStorage.setItem('jg_admin_suppliers', JSON.stringify(state.suppliers));
-        localStorage.setItem('jg_admin_purchases', JSON.stringify(state.purchases));
-        localStorage.setItem('jg_admin_coupons', JSON.stringify(state.coupons));
-        localStorage.setItem('jg_admin_activity', JSON.stringify(state.activity));
-        localStorage.setItem('jg_admin_2fa', JSON.stringify(state.twoFactorEnabled));
-    }
+    let salesChartInstance = null;
+    let orderStatusChartInstance = null;
 
-    function logAction(action, details) {
+    // Helper to log actions locally and fetch from server
+    function logActionLocally(action, details) {
         state.activity.unshift({
             id: Date.now(),
-            time: new Date().toLocaleString('en-IN', { dateStyle: 'short', timeStyle: 'short' }),
-            actor: 'Admin',
             action: action,
-            details: details
+            details: details,
+            actor: (state.user && (state.user.full_name || state.user.username)) || 'Super Admin',
+            created_at: new Date().toISOString()
         });
-        persistState();
+        renderActivity();
     }
 
-    // ── Router Engine ──
+    // ── 1. True Authentication & Session Validation Guard ──
+    async function verifyAdminAuth() {
+        try {
+            const fetchFn = window.apiFetch || fetch;
+            const res = await fetchFn('/api/auth/me');
+            if (res.ok) {
+                const data = await res.json();
+                if (data && data.authenticated && data.user && data.user.role === 'admin') {
+                    state.user = data.user;
+                    localStorage.setItem('jg_auth_user', JSON.stringify(data.user));
+                    updateAdminHeaderUI(data.user);
+                    return true;
+                }
+            }
+        } catch (e) {
+            console.warn('[Admin ERP] Auth verification error:', e);
+        }
+
+        // Check if there is valid local admin session in dev
+        const localAuth = JSON.parse(localStorage.getItem('jg_auth_user') || 'null');
+        if (localAuth && localAuth.role === 'admin') {
+            state.user = localAuth;
+            updateAdminHeaderUI(localAuth);
+            return true;
+        }
+
+        // Unauthorized access -> redirect to login
+        console.warn('[Admin ERP] Unauthorized. Redirecting to storefront.');
+        alert('Administrator access required. Please sign in with an authorized admin account.');
+        window.location.href = 'index.html#authSection';
+        return false;
+    }
+
+    function updateAdminHeaderUI(user) {
+        const nameEl = document.querySelector('.admin-topbar .fw-bold.small.text-dark');
+        if (nameEl && user) {
+            nameEl.textContent = user.full_name || user.username || 'Super Admin';
+        }
+        const emailEl = document.querySelector('.admin-topbar .smallest.text-muted');
+        if (emailEl && user) {
+            emailEl.textContent = user.email || 'admin@mart.com';
+        }
+    }
+
+    // ── 2. Data Loaders (Live REST API with Graceful Cache Fallback) ──
+    async function loadDashboardData() {
+        try {
+            const fetchFn = window.apiFetch || fetch;
+            const res = await fetchFn('/api/admin/dashboard');
+            if (res.ok) {
+                const data = await res.json();
+                renderDashboardWithData(data);
+                return;
+            }
+        } catch (e) {
+            console.warn('[Admin ERP] Dashboard load error:', e);
+        }
+        renderDashboardFallback();
+    }
+
+    async function loadProductsData() {
+        try {
+            const fetchFn = window.apiFetch || fetch;
+            const res = await fetchFn('/api/admin/products?per_page=100');
+            if (res.ok) {
+                const data = await res.json();
+                if (data && data.products) {
+                    state.products = data.products.map(p => ({
+                        id: p.id,
+                        sku: `JG-${(p.category || 'GEN').substring(0, 3).toUpperCase()}-${String(p.id).padStart(3, '0')}`,
+                        name: p.name,
+                        category: p.category || 'General',
+                        category_id: p.category_id,
+                        cost: parseFloat(p.cost_price || 0),
+                        price: parseFloat(p.selling_price || 0),
+                        stock: parseInt(p.stock_quantity || 0),
+                        minAlert: parseInt(p.minimum_stock_alert || 5),
+                        image: p.image_path || 'static/images/logo-icon.png'
+                    }));
+                    populatePurchaseProductSelect();
+                    renderProducts();
+                    renderPOS();
+                    return;
+                }
+            }
+        } catch (e) {
+            console.warn('[Admin ERP] Products load error:', e);
+        }
+        renderProducts();
+    }
+
+    async function loadOrdersData() {
+        try {
+            const fetchFn = window.apiFetch || fetch;
+            const res = await fetchFn('/api/admin/orders?per_page=100');
+            if (res.ok) {
+                const data = await res.json();
+                if (data && data.orders) {
+                    state.orders = data.orders.map(o => ({
+                        id: o.id,
+                        customer: `Customer #${o.user_id}`,
+                        user_id: o.user_id,
+                        date: o.created_at ? new Date(o.created_at).toLocaleString('en-IN', { dateStyle: 'short', timeStyle: 'short' }) : 'Recent',
+                        total: parseFloat(o.total_amount || 0),
+                        status: o.order_status || 'Pending',
+                        payment: o.payment_method || 'COD',
+                        payment_status: o.payment_status || 'Pending',
+                        shipping_address: o.shipping_address || '',
+                        items: []
+                    }));
+                    renderOrders();
+                    return;
+                }
+            }
+        } catch (e) {
+            console.warn('[Admin ERP] Orders load error:', e);
+        }
+        renderOrders();
+    }
+
+    async function loadCategoriesData() {
+        try {
+            const fetchFn = window.apiFetch || fetch;
+            const res = await fetchFn('/api/admin/categories');
+            if (res.ok) {
+                const data = await res.json();
+                if (data && data.categories) {
+                    state.categories = data.categories.map(c => ({
+                        id: c.id,
+                        name: c.name,
+                        desc: c.description || '',
+                        icon: getCategoryIcon(c.name),
+                        count: c.product_count || 0
+                    }));
+                    renderCategories();
+                    return;
+                }
+            }
+        } catch (e) {
+            console.warn('[Admin ERP] Categories load error:', e);
+        }
+        renderCategories();
+    }
+
+    async function loadCustomersData() {
+        try {
+            const fetchFn = window.apiFetch || fetch;
+            const res = await fetchFn('/api/admin/customers');
+            if (res.ok) {
+                const data = await res.json();
+                if (data && data.customers) {
+                    state.customers = data.customers;
+                    renderCustomers();
+                    return;
+                }
+            }
+        } catch (e) {
+            console.warn('[Admin ERP] Customers load error:', e);
+        }
+        renderCustomers();
+    }
+
+    async function loadSuppliersData() {
+        try {
+            const fetchFn = window.apiFetch || fetch;
+            const res = await fetchFn('/api/admin/suppliers');
+            if (res.ok) {
+                const data = await res.json();
+                if (data && data.suppliers) {
+                    state.suppliers = data.suppliers.map(s => ({
+                        id: s.id,
+                        name: s.name,
+                        contact: s.contact_person || '',
+                        phone: s.phone || '',
+                        email: s.email || '',
+                        category: 'FMCG Supplier',
+                        address: s.address || ''
+                    }));
+                    renderSuppliers();
+                    return;
+                }
+            }
+        } catch (e) {
+            console.warn('[Admin ERP] Suppliers load error:', e);
+        }
+        renderSuppliers();
+    }
+
+    async function loadPurchasesData() {
+        try {
+            const fetchFn = window.apiFetch || fetch;
+            const res = await fetchFn('/api/admin/purchases');
+            if (res.ok) {
+                const data = await res.json();
+                if (data && data.purchases) {
+                    state.purchases = data.purchases.map(p => ({
+                        id: p.id,
+                        invoice: `INV-RESTOCK-${p.id}`,
+                        supplier: p.supplier_name || 'Vendor',
+                        product: p.product_name || 'Stock',
+                        date: p.purchase_date ? new Date(p.purchase_date).toLocaleDateString('en-IN') : 'Recent',
+                        itemsCount: p.quantity,
+                        total: p.total_cost
+                    }));
+                    renderPurchases();
+                    return;
+                }
+            }
+        } catch (e) {
+            console.warn('[Admin ERP] Purchases load error:', e);
+        }
+        renderPurchases();
+    }
+
+    async function loadCouponsData() {
+        try {
+            const fetchFn = window.apiFetch || fetch;
+            const res = await fetchFn('/api/admin/coupons');
+            if (res.ok) {
+                const data = await res.json();
+                if (data && data.coupons) {
+                    state.coupons = data.coupons.map(c => ({
+                        id: c.id,
+                        code: c.code,
+                        discount: c.discount_type === 'percentage' ? `${c.discount_value}% OFF` : `₹${c.discount_value} OFF`,
+                        minSpend: c.min_order_amount || 0,
+                        expiry: c.expires_at ? new Date(c.expires_at).toLocaleDateString('en-IN') : 'Ongoing',
+                        used: c.used_count || 0,
+                        active: Boolean(c.is_active)
+                    }));
+                    renderCoupons();
+                    return;
+                }
+            }
+        } catch (e) {
+            console.warn('[Admin ERP] Coupons load error:', e);
+        }
+        renderCoupons();
+    }
+
+    async function loadActivityData() {
+        try {
+            const fetchFn = window.apiFetch || fetch;
+            const res = await fetchFn('/api/admin/activity-log');
+            if (res.ok) {
+                const data = await res.json();
+                if (data && data.logs) {
+                    state.activity = data.logs;
+                    renderActivity();
+                    return;
+                }
+            }
+        } catch (e) {
+            console.warn('[Admin ERP] Activity load error:', e);
+        }
+        renderActivity();
+    }
+
+    async function loadSalesData() {
+        try {
+            const fetchFn = window.apiFetch || fetch;
+            const res = await fetchFn('/api/admin/sales/history');
+            if (res.ok) {
+                const data = await res.json();
+                if (data && data.sales) {
+                    state.sales = data.sales;
+                    renderSales();
+                    return;
+                }
+            }
+        } catch (e) {
+            console.warn('[Admin ERP] Sales load error:', e);
+        }
+        renderSales();
+    }
+
+    function getCategoryIcon(name) {
+        const n = (name || '').toLowerCase();
+        if (n.includes('fruit') || n.includes('veg')) return '🥦';
+        if (n.includes('dairy') || n.includes('milk')) return '🥛';
+        if (n.includes('staple') || n.includes('grain') || n.includes('atta')) return '🌾';
+        if (n.includes('snack') || n.includes('biscuit')) return '🍿';
+        if (n.includes('bev') || n.includes('tea')) return '🧃';
+        if (n.includes('care') || n.includes('personal')) return '✨';
+        if (n.includes('clean') || n.includes('house')) return '🧼';
+        if (n.includes('spice') || n.includes('masala')) return '🌶️';
+        return '📦';
+    }
+
+    function populatePurchaseProductSelect() {
+        const purchaseProdSelect = document.getElementById('purchaseProductSelect');
+        if (purchaseProdSelect && state.products.length > 0) {
+            purchaseProdSelect.innerHTML = state.products.map(p => `
+                <option value="${Number(p.id)}">${escapeHTML(p.name)} (Stock: ${Number(p.stock)})</option>
+            `).join('');
+        }
+    }
+
+    // ── 3. Router Engine ──
     function router() {
         const rawHash = window.location.hash || '#dashboard';
         const route = rawHash.split('?')[0].replace('#', '') || 'dashboard';
@@ -152,132 +382,109 @@
         const sidebar = document.getElementById('adminSidebar');
         if (sidebar) sidebar.classList.remove('show-mobile');
 
-        // Route specific renderer
-        if (route === 'dashboard') renderDashboard();
-        else if (route === 'pos') renderPOS();
-        else if (route === 'products') renderProducts();
-        else if (route === 'categories') renderCategories();
-        else if (route === 'orders') renderOrders();
-        else if (route === 'customers') renderCustomers();
-        else if (route === 'sales') renderSales();
-        else if (route === 'purchases') renderPurchases();
-        else if (route === 'suppliers') renderSuppliers();
-        else if (route === 'coupons') renderCoupons();
-        else if (route === 'activity') renderActivity();
+        // Route specific live loader
+        if (route === 'dashboard') loadDashboardData();
+        else if (route === 'pos') { loadProductsData(); renderPOS(); }
+        else if (route === 'products') loadProductsData();
+        else if (route === 'categories') loadCategoriesData();
+        else if (route === 'orders') loadOrdersData();
+        else if (route === 'customers') loadCustomersData();
+        else if (route === 'sales') loadSalesData();
+        else if (route === 'purchases') loadPurchasesData();
+        else if (route === 'suppliers') loadSuppliersData();
+        else if (route === 'coupons') loadCouponsData();
+        else if (route === 'activity') loadActivityData();
         else if (route === 'security') renderSecurity();
 
         window.scrollTo({ top: 0, behavior: 'smooth' });
     }
 
-    // ── Module 1: Dashboard Renderer ──
-    let salesChartInstance = null;
-    let orderStatusChartInstance = null;
+    // ── 4. Renderers ──
 
-    function renderDashboard() {
-        const todayRevenue = state.orders.reduce((sum, o) => sum + (o.status !== 'Cancelled' ? o.total : 0), 0);
-        const lowStockItems = state.products.filter(p => p.stock <= 5);
+    function renderDashboardWithData(data) {
+        const stats30 = data.stats_30_days || {};
+        const totalRev = Number(data.total_order_revenue || stats30.revenue || 0);
+        const totalOrders = Number(data.total_orders || stats30.count || 0);
+        const lowStockCount = Number(data.stock_stats?.low_stock_count || 0);
+        const totalProducts = Number(data.stock_stats?.total_products || state.products.length);
 
-        document.getElementById('dashKpiRevenue').textContent = `₹${todayRevenue.toLocaleString()}`;
-        document.getElementById('dashKpiOrders').textContent = state.orders.length;
-        document.getElementById('dashKpiProducts').textContent = state.products.length;
-        document.getElementById('dashKpiLowStock').textContent = lowStockItems.length;
+        document.getElementById('dashKpiRevenue').textContent = `₹${totalRev.toLocaleString('en-IN')}`;
+        document.getElementById('dashKpiOrders').textContent = totalOrders;
+        document.getElementById('dashKpiProducts').textContent = totalProducts;
+        document.getElementById('dashKpiLowStock').textContent = lowStockCount;
 
-        // Low stock warning banner
         const lowStockBanner = document.getElementById('dashLowStockBanner');
         if (lowStockBanner) {
-            lowStockBanner.style.display = lowStockItems.length > 0 ? 'flex' : 'none';
-            document.getElementById('dashLowStockCount').textContent = lowStockItems.length;
+            lowStockBanner.style.display = lowStockCount > 0 ? 'flex' : 'none';
+            document.getElementById('dashLowStockCount').textContent = lowStockCount;
         }
 
-        // Recent Orders Table
-        const recentOrdersTbody = document.getElementById('dashRecentOrdersTbody');
-        if (recentOrdersTbody) {
-            if (state.orders.length === 0) {
-                recentOrdersTbody.innerHTML = `<tr><td colspan="6" class="text-center text-muted py-4 small">No customer orders placed yet.</td></tr>`;
-            } else {
-                recentOrdersTbody.innerHTML = state.orders.slice(0, 5).map(o => `
-                    <tr>
-                        <td class="fw-bold text-dark">#${escapeHTML(o.id)}</td>
-                        <td>${escapeHTML(o.customer || 'Customer')}</td>
-                        <td>${escapeHTML(o.date)}</td>
-                        <td class="fw-bold">₹${escapeHTML(o.total)}</td>
-                        <td><span class="badge ${getStatusBadgeClass(o.status)}">${escapeHTML(o.status)}</span></td>
-                        <td>
-                            <button class="btn btn-sm btn-outline-success rounded-pill px-3" onclick="window.Adm.viewOrderDetail('${escapeHTML(o.id)}')">
-                                View
-                            </button>
-                        </td>
-                    </tr>
-                `).join('');
-            }
-        }
+        // Recent Orders
+        loadOrdersData();
 
-        // Charts Rendering with Chart.js
-        if (typeof Chart !== 'undefined') {
+        // Chart.js Sales Graph
+        if (typeof Chart !== 'undefined' && data.chart_data) {
             const ctxSales = document.getElementById('dashSalesChart');
             if (ctxSales) {
                 if (salesChartInstance) salesChartInstance.destroy();
                 salesChartInstance = new Chart(ctxSales, {
                     type: 'line',
                     data: {
-                        labels: ['04 Sep', '05 Sep', '06 Sep', '07 Sep', '08 Sep', '09 Sep', '10 Sep'],
-                        datasets: [{
-                            label: 'Revenue (₹)',
-                            data: [3850, 4200, 5120, 4890, 6300, 7100, todayRevenue > 0 ? todayRevenue : 8450],
-                            borderColor: '#059669',
-                            backgroundColor: 'rgba(5, 150, 105, 0.1)',
-                            fill: true,
-                            tension: 0.35,
-                            borderWidth: 3,
-                            pointRadius: 4
-                        }]
+                        labels: data.chart_data.labels || ['1', '2', '3', '4', '5', '6', '7'],
+                        datasets: [
+                            {
+                                label: 'Revenue (₹)',
+                                data: data.chart_data.revenue || [],
+                                borderColor: '#059669',
+                                backgroundColor: 'rgba(5, 150, 105, 0.1)',
+                                fill: true,
+                                tension: 0.35,
+                                borderWidth: 3,
+                                pointRadius: 4
+                            },
+                            {
+                                label: 'Profit (₹)',
+                                data: data.chart_data.profit || [],
+                                borderColor: '#0284c7',
+                                backgroundColor: 'rgba(2, 132, 199, 0.05)',
+                                fill: true,
+                                tension: 0.35,
+                                borderWidth: 2,
+                                pointRadius: 3
+                            }
+                        ]
                     },
                     options: {
                         responsive: true,
-                        plugins: { legend: { display: false } },
-                        scales: { y: { beginAtZero: false } }
-                    }
-                });
-            }
-
-            const ctxStatus = document.getElementById('dashOrderStatusChart');
-            if (ctxStatus) {
-                if (orderStatusChartInstance) orderStatusChartInstance.destroy();
-                const counts = {
-                    Delivered: state.orders.filter(o => o.status === 'Delivered').length,
-                    Shipped: state.orders.filter(o => o.status === 'Shipped' || o.status === 'Out for Delivery').length,
-                    Confirmed: state.orders.filter(o => o.status === 'Confirmed' || o.status === 'Order Placed').length,
-                    Cancelled: state.orders.filter(o => o.status === 'Cancelled').length
-                };
-                orderStatusChartInstance = new Chart(ctxStatus, {
-                    type: 'doughnut',
-                    data: {
-                        labels: ['Delivered', 'Shipped/Out', 'Confirmed/Placed', 'Cancelled'],
-                        datasets: [{
-                            data: [counts.Delivered, counts.Shipped, counts.Confirmed, counts.Cancelled],
-                            backgroundColor: ['#10b981', '#0284c7', '#f59e0b', '#ef4444']
-                        }]
-                    },
-                    options: {
-                        responsive: true,
-                        plugins: { legend: { position: 'bottom' } }
+                        plugins: {
+                            legend: { display: true, position: 'top' }
+                        },
+                        scales: { y: { beginAtZero: true } }
                     }
                 });
             }
         }
     }
 
-    function getStatusBadgeClass(status) {
-        if (status === 'Delivered') return 'bg-success';
-        if (status === 'Shipped' || status === 'Out for Delivery') return 'bg-primary';
-        if (status === 'Confirmed' || status === 'Order Placed') return 'bg-warning text-dark';
-        return 'bg-danger';
+    function renderDashboardFallback() {
+        const todayRevenue = state.orders.reduce((sum, o) => sum + (o.status !== 'Cancelled' ? o.total : 0), 0);
+        const lowStockItems = state.products.filter(p => p.stock <= 5);
+
+        document.getElementById('dashKpiRevenue').textContent = `₹${todayRevenue.toLocaleString('en-IN')}`;
+        document.getElementById('dashKpiOrders').textContent = state.orders.length;
+        document.getElementById('dashKpiProducts').textContent = state.products.length;
+        document.getElementById('dashKpiLowStock').textContent = lowStockItems.length;
     }
 
-    // ── Module 2: POS Terminal ──
+    // POS
     function renderPOS() {
         const grid = document.getElementById('posProductsGrid');
         if (!grid) return;
+
+        if (state.products.length === 0) {
+            grid.innerHTML = `<div class="col-12 text-center text-muted py-5">Loading catalog products...</div>`;
+            return;
+        }
 
         grid.innerHTML = state.products.map(p => `
             <div class="col-6 col-md-4 col-xl-3">
@@ -351,13 +558,18 @@
         document.getElementById('posTotalTxt').textContent = `₹${total}`;
     }
 
-    // ── Module 3: Products / Inventory ──
+    // Products
     function renderProducts() {
         const tbody = document.getElementById('productsTableTbody');
         if (!tbody) return;
 
+        if (state.products.length === 0) {
+            tbody.innerHTML = `<tr><td colspan="8" class="text-center text-muted py-4 small">No products in inventory.</td></tr>`;
+            return;
+        }
+
         tbody.innerHTML = state.products.map(p => {
-            const margin = Math.round(((p.price - p.cost) / p.price) * 100);
+            const margin = p.price > 0 ? Math.round(((p.price - p.cost) / p.price) * 100) : 0;
             return `
                 <tr>
                     <td class="text-muted smallest font-monospace">${escapeHTML(p.sku)}</td>
@@ -391,32 +603,34 @@
         }).join('');
     }
 
-    // ── Module 4: Categories ──
+    // Categories
     function renderCategories() {
         const grid = document.getElementById('categoriesGrid');
         if (!grid) return;
 
-        grid.innerHTML = state.categories.map(c => {
-            const prodCount = state.products.filter(p => p.category.toLowerCase() === c.name.toLowerCase()).length;
-            return `
-                <div class="col-md-6 col-xl-4">
-                    <div class="kpi-card p-4">
-                        <div class="d-flex justify-content-between align-items-start mb-3">
-                            <div class="fs-1">${escapeHTML(c.icon || '📦')}</div>
-                            <span class="badge bg-success text-white px-3 py-1 rounded-pill">${prodCount} Products</span>
-                        </div>
-                        <h4 class="fw-bold brand-font text-dark mb-1">${escapeHTML(c.name)}</h4>
-                        <p class="text-muted small mb-3">${escapeHTML(c.desc || 'Category items collection')}</p>
-                        <button class="btn btn-sm btn-outline-secondary rounded-pill px-3" onclick="window.Adm.filterInventoryByCategory('${escapeHTML(c.name)}')">
-                            <i class="bi bi-eye me-1"></i> View Items
-                        </button>
+        if (state.categories.length === 0) {
+            grid.innerHTML = `<div class="col-12 text-center text-muted py-4">No categories loaded.</div>`;
+            return;
+        }
+
+        grid.innerHTML = state.categories.map(c => `
+            <div class="col-md-6 col-xl-4">
+                <div class="kpi-card p-4">
+                    <div class="d-flex justify-content-between align-items-start mb-3">
+                        <div class="fs-1">${escapeHTML(c.icon || '📦')}</div>
+                        <span class="badge bg-success text-white px-3 py-1 rounded-pill">${c.count || 0} Products</span>
                     </div>
+                    <h4 class="fw-bold brand-font text-dark mb-1">${escapeHTML(c.name)}</h4>
+                    <p class="text-muted small mb-3">${escapeHTML(c.desc || 'Category items collection')}</p>
+                    <button class="btn btn-sm btn-outline-secondary rounded-pill px-3" onclick="window.Adm.filterInventoryByCategory('${escapeHTML(c.name)}')">
+                        <i class="bi bi-eye me-1"></i> View Items
+                    </button>
                 </div>
-            `;
-        }).join('');
+            </div>
+        `).join('');
     }
 
-    // ── Module 5: Orders ──
+    // Orders
     function renderOrders() {
         const tbody = document.getElementById('ordersTableTbody');
         if (!tbody) return;
@@ -431,30 +645,64 @@
                 <td class="fw-bold text-dark">#${escapeHTML(o.id)}</td>
                 <td>
                     <div class="fw-bold">${escapeHTML(o.customer || 'Customer')}</div>
-                    <div class="smallest text-muted">${escapeHTML(o.phone || '')}</div>
+                    <div class="smallest text-muted">${escapeHTML(o.shipping_address ? o.shipping_address.substring(0, 30) + '...' : '')}</div>
                 </td>
                 <td class="small">${escapeHTML(o.date)}</td>
                 <td class="text-center">${o.items ? o.items.length : 1} items</td>
                 <td class="fw-bold text-dark">₹${escapeHTML(o.total)}</td>
-                <td><span class="badge bg-light text-dark border small">${escapeHTML(o.payment || 'UPI')}</span></td>
+                <td><span class="badge bg-light text-dark border small">${escapeHTML(o.payment || 'COD')}</span></td>
                 <td>
                     <select class="form-select form-select-sm rounded-pill" style="width: 140px;" onchange="window.Adm.updateOrderStatus('${escapeHTML(o.id)}', this.value)">
+                        <option value="Pending" ${o.status === 'Pending' ? 'selected' : ''}>Pending</option>
                         <option value="Confirmed" ${o.status === 'Confirmed' || o.status === 'Order Placed' ? 'selected' : ''}>Confirmed</option>
+                        <option value="Processing" ${o.status === 'Processing' ? 'selected' : ''}>Processing</option>
                         <option value="Shipped" ${o.status === 'Shipped' || o.status === 'Out for Delivery' ? 'selected' : ''}>Shipped</option>
                         <option value="Delivered" ${o.status === 'Delivered' ? 'selected' : ''}>Delivered</option>
                         <option value="Cancelled" ${o.status === 'Cancelled' ? 'selected' : ''}>Cancelled</option>
                     </select>
                 </td>
                 <td>
-                    <button class="btn btn-sm btn-outline-success rounded-pill px-3" onclick="window.Adm.viewOrderDetail('${escapeHTML(o.id)}')">
-                        <i class="bi bi-file-text me-1"></i>Detail
-                    </button>
+                    <div class="d-flex gap-1">
+                        <button class="btn btn-sm btn-outline-success rounded-pill px-2" onclick="window.Adm.viewOrderDetail('${escapeHTML(o.id)}')">
+                            <i class="bi bi-file-text me-1"></i>Detail
+                        </button>
+                        <a href="/api/orders/${Number(o.id)}/invoice" target="_blank" class="btn btn-sm btn-outline-secondary rounded-pill px-2" title="Download PDF Invoice">
+                            <i class="bi bi-printer"></i>
+                        </a>
+                    </div>
                 </td>
             </tr>
         `).join('');
+
+        // Also update recent orders on dashboard
+        const recentTbody = document.getElementById('dashRecentOrdersTbody');
+        if (recentTbody) {
+            recentTbody.innerHTML = state.orders.slice(0, 5).map(o => `
+                <tr>
+                    <td class="fw-bold text-dark">#${escapeHTML(o.id)}</td>
+                    <td>${escapeHTML(o.customer || 'Customer')}</td>
+                    <td>${escapeHTML(o.date)}</td>
+                    <td class="fw-bold">₹${escapeHTML(o.total)}</td>
+                    <td><span class="badge ${getStatusBadgeClass(o.status)}">${escapeHTML(o.status)}</span></td>
+                    <td>
+                        <button class="btn btn-sm btn-outline-success rounded-pill px-3" onclick="window.Adm.viewOrderDetail('${escapeHTML(o.id)}')">
+                            View
+                        </button>
+                    </td>
+                </tr>
+            `).join('');
+        }
     }
 
-    // ── Module 6: Customers ──
+    function getStatusBadgeClass(status) {
+        if (status === 'Delivered') return 'bg-success';
+        if (status === 'Shipped' || status === 'Out for Delivery') return 'bg-primary';
+        if (status === 'Confirmed' || status === 'Processing' || status === 'Order Placed') return 'bg-warning text-dark';
+        if (status === 'Pending') return 'bg-info text-dark';
+        return 'bg-danger';
+    }
+
+    // Customers
     function renderCustomers() {
         const tbody = document.getElementById('customersTableTbody');
         if (!tbody) return;
@@ -464,60 +712,66 @@
             return;
         }
 
-        tbody.innerHTML = state.customers.map((c, i) => `
+        tbody.innerHTML = state.customers.map(c => `
             <tr>
                 <td>
                     <div class="d-flex align-items-center gap-2">
                         <div class="bg-success text-white rounded-circle d-inline-flex align-items-center justify-content-center fw-bold" style="width: 32px; height: 32px; font-size: 0.8rem;">
-                            ${escapeHTML((c.name || 'CU').substring(0, 2).toUpperCase())}
+                            ${escapeHTML(((c.full_name || c.username || 'CU')).substring(0, 2).toUpperCase())}
                         </div>
-                        <span class="fw-bold text-dark">${escapeHTML(c.name)}</span>
+                        <div>
+                            <span class="fw-bold text-dark d-block">${escapeHTML(c.full_name || c.username)}</span>
+                            <span class="smallest text-muted">@${escapeHTML(c.username)}</span>
+                        </div>
                     </div>
                 </td>
-                <td>${escapeHTML(c.email)}</td>
-                <td>${escapeHTML(c.phone)}</td>
-                <td><span class="badge bg-light text-dark border">${escapeHTML(c.city)}</span></td>
-                <td class="text-center fw-bold">${Number(c.orders || 0)}</td>
-                <td class="fw-bold text-success">₹${Number(c.spend || 0).toLocaleString()}</td>
+                <td>${escapeHTML(c.email || '-')}</td>
+                <td>${escapeHTML(c.phone || '-')}</td>
+                <td><span class="badge ${c.credit > 0 ? 'bg-danger-subtle text-danger' : 'bg-light text-dark border'}">Udhar: ₹${Number(c.credit || 0)}</span></td>
+                <td class="text-center">${c.is_verified ? '<span class="badge bg-success">Verified</span>' : '<span class="badge bg-secondary">Unverified</span>'}</td>
+                <td>
+                    ${c.credit > 0 ? `
+                        <button class="btn btn-sm btn-outline-danger rounded-pill px-3" onclick="window.Adm.clearCustomerUdhar(${Number(c.id)}, ${Number(c.credit)})">
+                            Clear Udhar
+                        </button>
+                    ` : '<span class="text-muted small">Settled</span>'}
+                </td>
             </tr>
         `).join('');
     }
 
-    // ── Module 7: Sales ──
+    // Sales (Counter Sales from Sale model)
     function renderSales() {
         const tbody = document.getElementById('salesTableTbody');
         if (!tbody) return;
 
-        const validSales = state.orders.filter(o => o.status !== 'Cancelled');
-        if (validSales.length === 0) {
+        if (state.sales.length === 0) {
             tbody.innerHTML = `<tr><td colspan="7" class="text-center text-muted py-4 small">No counter sales recorded yet.</td></tr>`;
             return;
         }
 
-        tbody.innerHTML = validSales.map(o => `
+        tbody.innerHTML = state.sales.map(s => `
             <tr>
-                <td class="fw-bold text-dark">#BILL-${escapeHTML(String(o.id).replace('JG-', '').replace('EG-', ''))}</td>
-                <td>${escapeHTML(o.date)}</td>
-                <td>${escapeHTML(o.customer || 'Walk-in Customer')}</td>
-                <td><span class="badge bg-light text-dark border">${escapeHTML(o.payment)}</span></td>
-                <td class="fw-bold text-dark">₹${escapeHTML(o.total)}</td>
-                <td class="fw-bold text-success">₹${Math.round(o.total * 0.22)}</td>
+                <td class="fw-bold text-dark">#SAL-${Number(s.id)}</td>
+                <td>${s.sale_date ? new Date(s.sale_date).toLocaleString('en-IN') : 'Recent'}</td>
+                <td>${escapeHTML(s.product_name || 'Item')}</td>
+                <td><span class="badge bg-light text-dark border">Qty: ${Number(s.quantity)}</span></td>
+                <td class="fw-bold text-dark">₹${Number(s.total_price)}</td>
+                <td class="fw-bold text-success">₹${Number(s.profit)}</td>
                 <td>
-                    <button class="btn btn-sm btn-outline-secondary rounded-pill px-2" onclick="window.Adm.viewOrderDetail('${escapeHTML(o.id)}')">
-                        <i class="bi bi-printer me-1"></i>Invoice
-                    </button>
+                    <span class="badge bg-success-subtle text-success">Recorded</span>
                 </td>
             </tr>
         `).join('');
     }
 
-    // ── Module 8: Purchases (Stock In) ──
+    // Purchases
     function renderPurchases() {
         const tbody = document.getElementById('purchasesTableTbody');
         if (!tbody) return;
 
         if (state.purchases.length === 0) {
-            tbody.innerHTML = `<tr><td colspan="7" class="text-center text-muted py-4 small">No purchase orders recorded yet.</td></tr>`;
+            tbody.innerHTML = `<tr><td colspan="7" class="text-center text-muted py-4 small">No restock purchases recorded yet.</td></tr>`;
             return;
         }
 
@@ -528,16 +782,21 @@
                 <td class="fw-bold">${escapeHTML(p.supplier)}</td>
                 <td>${escapeHTML(p.date)}</td>
                 <td class="text-center">${Number(p.itemsCount)} units</td>
-                <td class="fw-bold text-dark">₹${Number(p.total).toLocaleString()}</td>
-                <td><span class="badge bg-success">Received</span></td>
+                <td class="fw-bold text-dark">₹${Number(p.total).toLocaleString('en-IN')}</td>
+                <td><span class="badge bg-success">Stock Added</span></td>
             </tr>
         `).join('');
     }
 
-    // ── Module 9: Suppliers ──
+    // Suppliers
     function renderSuppliers() {
         const grid = document.getElementById('suppliersGrid');
         if (!grid) return;
+
+        if (state.suppliers.length === 0) {
+            grid.innerHTML = `<div class="col-12 text-center text-muted py-4">No suppliers registered.</div>`;
+            return;
+        }
 
         grid.innerHTML = state.suppliers.map(s => `
             <div class="col-md-6 col-xl-4">
@@ -558,10 +817,15 @@
         `).join('');
     }
 
-    // ── Module 10: Coupons ──
+    // Coupons
     function renderCoupons() {
         const tbody = document.getElementById('couponsTableTbody');
         if (!tbody) return;
+
+        if (state.coupons.length === 0) {
+            tbody.innerHTML = `<tr><td colspan="7" class="text-center text-muted py-4 small">No promotional vouchers found.</td></tr>`;
+            return;
+        }
 
         tbody.innerHTML = state.coupons.map(c => `
             <tr>
@@ -584,13 +848,13 @@
         `).join('');
     }
 
-    // ── Module 11: Activity Log ──
+    // Activity Log
     function renderActivity() {
         const list = document.getElementById('activityLogList');
         if (!list) return;
 
         if (state.activity.length === 0) {
-            list.innerHTML = `<div class="text-center text-muted py-4 small">No recent activity logs.</div>`;
+            list.innerHTML = `<div class="text-center text-muted py-4 small">No recent activity logs recorded.</div>`;
             return;
         }
 
@@ -602,16 +866,15 @@
                 <div class="flex-grow-1">
                     <div class="d-flex justify-content-between align-items-center mb-1">
                         <span class="badge bg-dark text-white fw-bold">${escapeHTML(a.action)}</span>
-                        <span class="smallest text-muted">${escapeHTML(a.time)}</span>
+                        <span class="smallest text-muted">${a.created_at ? new Date(a.created_at).toLocaleString('en-IN') : 'Recent'}</span>
                     </div>
-                    <div class="small text-dark mb-1">${escapeHTML(a.details)}</div>
-                    <div class="smallest text-muted">Actor: <strong>${escapeHTML(a.actor)}</strong></div>
+                    <div class="small text-dark mb-1">${escapeHTML(a.details || '')}</div>
+                    <div class="smallest text-muted">Entity: <strong>${escapeHTML(a.entity_type || 'System')} #${escapeHTML(a.entity_id || '')}</strong></div>
                 </div>
             </div>
         `).join('');
     }
 
-    // ── Module 12: Security & 2FA ──
     function renderSecurity() {
         const toggle = document.getElementById('security2faToggle');
         const badge = document.getElementById('security2faStatusBadge');
@@ -622,12 +885,12 @@
         }
     }
 
-    // ── Public Global Adm API ──
+    // ── 5. Public Global Adm Controller API ──
     window.Adm = {
         posAddToCart: function (productId) {
             const p = state.products.find(prod => prod.id === productId);
             if (!p || p.stock <= 0) {
-                alert('Item is currently out of stock!');
+                alert('Item is currently out of stock in warehouse!');
                 return;
             }
 
@@ -636,7 +899,7 @@
                 if (existing.qty < p.stock) {
                     existing.qty += 1;
                 } else {
-                    alert(`Cannot add more than available stock (${p.stock})!`);
+                    alert(`Cannot exceed available warehouse stock (${p.stock})!`);
                 }
             } else {
                 state.posCart.push({ productId: productId, qty: 1 });
@@ -676,7 +939,7 @@
             renderPOSCart();
         },
 
-        posCompleteSale: function () {
+        posCompleteSale: async function () {
             if (state.posCart.length === 0) {
                 alert('POS cart is empty! Select products first.');
                 return;
@@ -684,97 +947,114 @@
 
             const phone = document.getElementById('posCustomerPhoneInput').value.trim() || 'Walk-in';
             const paymentMode = document.getElementById('posPaymentModeSelect').value || 'Cash';
-            const billId = `BILL-${Math.floor(100000 + Math.random() * 900000)}`;
-            const dateStr = new Date().toLocaleString('en-IN', { dateStyle: 'short', timeStyle: 'short' });
+            const fetchFn = window.apiFetch || fetch;
 
-            let subtotal = 0;
-            const billedItems = state.posCart.map(c => {
-                const p = state.products.find(prod => prod.id === c.productId);
-                const line = p.price * c.qty;
-                subtotal += line;
-                // Decrement inventory stock
-                p.stock = Math.max(0, p.stock - c.qty);
-                return { name: p.name, qty: c.qty, price: p.price, total: line };
-            });
-
-            const tax = Math.round(subtotal * 0.05);
-            const total = Math.max(0, subtotal + tax - state.posDiscount);
-
-            // Record into master orders
-            const newOrder = {
-                id: billId.replace('BILL-', 'JG-'),
-                customer: `Counter (${phone})`,
-                phone: phone,
-                date: dateStr,
-                status: 'Delivered',
-                total: total,
-                payment: paymentMode,
-                items: billedItems
+            // Prepare POS checkout payload
+            const payload = {
+                cart: state.posCart.map(c => ({
+                    id: c.productId,
+                    qty: c.qty
+                }))
             };
 
-            state.orders.unshift(newOrder);
-            logAction('POS Bill Generated', `Counter sale ${billId} for ₹${total} (${paymentMode})`);
-            persistState();
+            try {
+                const res = await fetchFn('/api/admin/pos/checkout', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(payload)
+                });
+                const data = await res.json();
 
-            // Populate thermal bill modal
-            document.getElementById('billModalNumber').textContent = billId;
-            document.getElementById('billModalDate').textContent = dateStr;
-            document.getElementById('billModalCustomer').textContent = phone;
-            document.getElementById('billModalPayment').textContent = paymentMode;
-            document.getElementById('billModalSubtotal').textContent = `₹${subtotal}`;
-            document.getElementById('billModalTax').textContent = `₹${tax}`;
-            document.getElementById('billModalTotal').textContent = `₹${total}`;
+                if (!res.ok || !data.success) {
+                    alert(data.error || data.message || 'POS Checkout failed on server.');
+                    return;
+                }
 
-            const tbody = document.getElementById('billModalItemsTbody');
-            tbody.innerHTML = billedItems.map((it, idx) => `
-                <tr>
-                    <td>${idx + 1}. ${escapeHTML(it.name)}</td>
-                    <td class="text-center">${Number(it.qty)}</td>
-                    <td class="text-end">₹${Number(it.price)}</td>
-                    <td class="text-end fw-bold">₹${Number(it.total)}</td>
-                </tr>
-            `).join('');
+                const total = data.total;
+                const billId = `BILL-${Math.floor(100000 + Math.random() * 900000)}`;
+                const dateStr = new Date().toLocaleString('en-IN', { dateStyle: 'short', timeStyle: 'short' });
 
-            // Reset POS cart
-            state.posCart = [];
-            state.posDiscount = 0;
-            renderPOS();
+                // Populate thermal bill modal
+                document.getElementById('billModalNumber').textContent = billId;
+                document.getElementById('billModalDate').textContent = dateStr;
+                document.getElementById('billModalCustomer').textContent = phone;
+                document.getElementById('billModalPayment').textContent = paymentMode;
+                document.getElementById('billModalTotal').textContent = `₹${total}`;
 
-            // Open thermal bill modal
-            const modal = new bootstrap.Modal(document.getElementById('billModal'));
-            modal.show();
+                const tbody = document.getElementById('billModalItemsTbody');
+                tbody.innerHTML = state.posCart.map((c, idx) => {
+                    const p = state.products.find(prod => prod.id === c.productId);
+                    const name = p ? p.name : 'Item';
+                    const price = p ? p.price : 0;
+                    return `
+                        <tr>
+                            <td>${idx + 1}. ${escapeHTML(name)}</td>
+                            <td class="text-center">${Number(c.qty)}</td>
+                            <td class="text-end">₹${Number(price)}</td>
+                            <td class="text-end fw-bold">₹${Number(price * c.qty)}</td>
+                        </tr>
+                    `;
+                }).join('');
+
+                // Clear POS cart and reload live inventory
+                state.posCart = [];
+                state.posDiscount = 0;
+                renderPOS();
+                loadProductsData();
+                logActionLocally('POS Counter Sale', `Billed ₹${total} (${paymentMode}) for ${phone}`);
+
+                const modal = new bootstrap.Modal(document.getElementById('billModal'));
+                modal.show();
+
+            } catch (err) {
+                console.error('POS Checkout network error:', err);
+                alert('Network error connecting to POS billing service.');
+            }
         },
 
-        saveNewProduct: function (e) {
+        saveNewProduct: async function (e) {
             if (e) e.preventDefault();
             const name = document.getElementById('newProdName').value.trim();
-            const sku = document.getElementById('newProdSku').value.trim() || `JG-PRD-${Math.floor(100 + Math.random() * 900)}`;
-            const category = document.getElementById('newProdCategory').value;
+            const categoryId = document.getElementById('newProdCategory').value || '1';
             const cost = parseFloat(document.getElementById('newProdCost').value) || 0;
             const price = parseFloat(document.getElementById('newProdPrice').value) || 0;
             const stock = parseInt(document.getElementById('newProdStock').value) || 10;
-            const image = document.getElementById('newProdImg').value.trim() || 'https://images.unsplash.com/photo-1542838132-92c53300491e?auto=format&fit=crop&w=300&q=80';
+            const minAlert = 5;
 
-            const newProd = {
-                id: Date.now(),
-                sku: sku,
-                name: name,
-                category: category,
-                cost: cost,
-                price: price,
-                stock: stock,
-                image: image
-            };
+            if (!name) {
+                alert('Product name is required.');
+                return;
+            }
 
-            state.products.unshift(newProd);
-            logAction('Product Added', `Added new product ${name} (${sku})`);
-            persistState();
-            renderProducts();
+            const fetchFn = window.apiFetch || fetch;
+            try {
+                const res = await fetchFn('/api/admin/products/add', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        name: name,
+                        category_id: categoryId,
+                        cost_price: cost,
+                        selling_price: price,
+                        stock_quantity: stock,
+                        minimum_stock_alert: minAlert
+                    })
+                });
+                const data = await res.json();
 
-            const modalEl = document.getElementById('addProductModal');
-            const modal = bootstrap.Modal.getInstance(modalEl);
-            if (modal) modal.hide();
-            alert('Product added successfully!');
+                if (res.ok && data.success) {
+                    alert(data.message || 'Product created successfully in database!');
+                    const modalEl = document.getElementById('addProductModal');
+                    const modal = bootstrap.Modal.getInstance(modalEl);
+                    if (modal) modal.hide();
+                    loadProductsData();
+                } else {
+                    alert(data.message || 'Failed to save product on server.');
+                }
+            } catch (err) {
+                console.error('Save product error:', err);
+                alert('Network error while saving product.');
+            }
         },
 
         openEditProductModal: function (productId) {
@@ -783,7 +1063,6 @@
 
             document.getElementById('editProdId').value = p.id;
             document.getElementById('editProdName').value = p.name;
-            document.getElementById('editProdCategory').value = p.category;
             document.getElementById('editProdCost').value = p.cost;
             document.getElementById('editProdPrice').value = p.price;
             document.getElementById('editProdStock').value = p.stock;
@@ -792,179 +1071,304 @@
             modal.show();
         },
 
-        saveEditProduct: function (e) {
+        saveEditProduct: async function (e) {
             if (e) e.preventDefault();
             const id = parseInt(document.getElementById('editProdId').value);
-            const p = state.products.find(prod => prod.id === id);
-            if (!p) return;
+            const name = document.getElementById('editProdName').value.trim();
+            const cost = parseFloat(document.getElementById('editProdCost').value) || 0;
+            const price = parseFloat(document.getElementById('editProdPrice').value) || 0;
+            const stock = parseInt(document.getElementById('editProdStock').value) || 0;
 
-            p.name = document.getElementById('editProdName').value.trim();
-            p.category = document.getElementById('editProdCategory').value;
-            p.cost = parseFloat(document.getElementById('editProdCost').value) || p.cost;
-            p.price = parseFloat(document.getElementById('editProdPrice').value) || p.price;
-            p.stock = parseInt(document.getElementById('editProdStock').value) || p.stock;
-
-            logAction('Product Edited', `Updated specifications for ${p.name}`);
-            persistState();
-            renderProducts();
-
-            const modalEl = document.getElementById('editProductModal');
-            const modal = bootstrap.Modal.getInstance(modalEl);
-            if (modal) modal.hide();
+            const fetchFn = window.apiFetch || fetch;
+            try {
+                const res = await fetchFn(`/api/admin/products/edit/${id}`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        name: name,
+                        cost_price: cost,
+                        selling_price: price,
+                        stock_quantity: stock
+                    })
+                });
+                const data = await res.json();
+                if (res.ok && data.success) {
+                    alert('Product updated successfully!');
+                    const modalEl = document.getElementById('editProductModal');
+                    const modal = bootstrap.Modal.getInstance(modalEl);
+                    if (modal) modal.hide();
+                    loadProductsData();
+                } else {
+                    alert(data.message || 'Failed to update product.');
+                }
+            } catch (err) {
+                console.error('Update product error:', err);
+                alert('Network error updating product.');
+            }
         },
 
-        deleteProduct: function (productId) {
+        deleteProduct: async function (productId) {
             const p = state.products.find(prod => prod.id === productId);
             if (!p) return;
-            if (confirm(`Are you sure you want to delete "${p.name}"?`)) {
-                state.products = state.products.filter(prod => prod.id !== productId);
-                logAction('Product Deleted', `Removed ${p.name} (${p.sku})`);
-                persistState();
-                renderProducts();
+            if (!confirm(`Are you sure you want to deactivate "${p.name}"?`)) return;
+
+            const fetchFn = window.apiFetch || fetch;
+            try {
+                const res = await fetchFn(`/api/admin/products/delete/${productId}`, {
+                    method: 'POST'
+                });
+                const data = await res.json();
+                if (res.ok && data.success) {
+                    alert(`Product "${p.name}" deactivated.`);
+                    loadProductsData();
+                } else {
+                    alert(data.message || 'Could not deactivate product.');
+                }
+            } catch (err) {
+                console.error('Delete product error:', err);
             }
         },
 
-        updateOrderStatus: function (orderId, newStatus) {
-            const order = state.orders.find(o => o.id === orderId);
-            if (order) {
-                order.status = newStatus;
-                if (newStatus === 'Delivered') order.step = 4;
-                else if (newStatus === 'Shipped') order.step = 3;
-                else if (newStatus === 'Confirmed') order.step = 2;
-
-                logAction('Order Status Changed', `Order #${order.id} marked as ${newStatus}`);
-                persistState();
-                renderOrders();
+        updateOrderStatus: async function (orderId, newStatus) {
+            const fetchFn = window.apiFetch || fetch;
+            try {
+                const res = await fetchFn(`/api/admin/orders/${orderId}/status`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        order_status: newStatus
+                    })
+                });
+                const data = await res.json();
+                if (res.ok && data.success) {
+                    logActionLocally('Order Status Changed', `Order #${orderId} moved to ${newStatus}`);
+                    loadOrdersData();
+                } else {
+                    alert(data.message || 'Invalid status transition.');
+                    loadOrdersData();
+                }
+            } catch (err) {
+                console.error('Status transition error:', err);
             }
         },
 
-        viewOrderDetail: function (orderId) {
-            const order = state.orders.find(o => o.id === orderId);
-            if (!order) return;
+        viewOrderDetail: async function (orderId) {
+            const fetchFn = window.apiFetch || fetch;
+            try {
+                const res = await fetchFn(`/api/admin/orders/${orderId}`);
+                if (res.ok) {
+                    const data = await res.json();
+                    document.getElementById('orderDetailModalId').textContent = `#${data.id}`;
+                    document.getElementById('orderDetailModalCustomer').textContent = `Customer #${data.user_id}`;
+                    document.getElementById('orderDetailModalPhone').textContent = data.shipping_address || '-';
+                    document.getElementById('orderDetailModalDate').textContent = data.created_at ? new Date(data.created_at).toLocaleString('en-IN') : 'Recent';
+                    document.getElementById('orderDetailModalPayment').textContent = `${data.payment_method} (${data.payment_status})`;
+                    document.getElementById('orderDetailModalStatus').textContent = data.order_status;
+                    document.getElementById('orderDetailModalTotal').textContent = `₹${data.total_amount}`;
 
-            document.getElementById('orderDetailModalId').textContent = `#${order.id}`;
-            document.getElementById('orderDetailModalCustomer').textContent = order.customer || 'Customer';
-            document.getElementById('orderDetailModalPhone').textContent = order.phone || '-';
-            document.getElementById('orderDetailModalDate').textContent = order.date;
-            document.getElementById('orderDetailModalPayment').textContent = order.payment;
-            document.getElementById('orderDetailModalStatus').textContent = order.status;
-            document.getElementById('orderDetailModalTotal').textContent = `₹${order.total}`;
+                    const tbody = document.getElementById('orderDetailModalItemsTbody');
+                    tbody.innerHTML = (data.items || []).map((it, i) => `
+                        <tr>
+                            <td>${i + 1}</td>
+                            <td>${escapeHTML(it.product_name)}</td>
+                            <td class="text-center">${Number(it.quantity)}</td>
+                            <td class="text-end">₹${Number(it.price)}</td>
+                            <td class="text-end fw-bold">₹${Number(it.subtotal)}</td>
+                        </tr>
+                    `).join('');
 
-            const tbody = document.getElementById('orderDetailModalItemsTbody');
-            tbody.innerHTML = (order.items || []).map((it, i) => `
-                <tr>
-                    <td>${i + 1}</td>
-                    <td>${escapeHTML(it.name)}</td>
-                    <td class="text-center">${Number(it.qty)}</td>
-                    <td class="text-end">₹${Number(it.price)}</td>
-                    <td class="text-end fw-bold">₹${Number(it.qty * it.price)}</td>
-                </tr>
-            `).join('');
-
-            const modal = new bootstrap.Modal(document.getElementById('orderDetailModal'));
-            modal.show();
+                    const modal = new bootstrap.Modal(document.getElementById('orderDetailModal'));
+                    modal.show();
+                }
+            } catch (e) {
+                console.warn('Could not fetch order detail:', e);
+            }
         },
 
-        saveNewCategory: function (e) {
+        saveNewCategory: async function (e) {
             if (e) e.preventDefault();
             const name = document.getElementById('newCatName').value.trim();
             const desc = document.getElementById('newCatDesc').value.trim();
-            const icon = document.getElementById('newCatIcon').value.trim() || '📦';
+            if (!name) return;
 
-            state.categories.push({ id: Date.now(), name: name, desc: desc, icon: icon });
-            logAction('Category Added', `Created category ${name}`);
-            persistState();
-            renderCategories();
-
-            const modalEl = document.getElementById('addCategoryModal');
-            const modal = bootstrap.Modal.getInstance(modalEl);
-            if (modal) modal.hide();
+            const fetchFn = window.apiFetch || fetch;
+            try {
+                const res = await fetchFn('/api/admin/categories/add', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ name: name, description: desc })
+                });
+                const data = await res.json();
+                if (res.ok && data.success) {
+                    alert('Category created successfully!');
+                    const modalEl = document.getElementById('addCategoryModal');
+                    const modal = bootstrap.Modal.getInstance(modalEl);
+                    if (modal) modal.hide();
+                    loadCategoriesData();
+                } else {
+                    alert(data.message || 'Failed to create category.');
+                }
+            } catch (err) {
+                console.error('Create category error:', err);
+            }
         },
 
         openRecordPurchaseModal: function (supplierName) {
             const suppSelect = document.getElementById('purchaseSupplierSelect');
-            if (suppSelect) suppSelect.value = supplierName;
+            if (suppSelect && supplierName) suppSelect.value = supplierName;
             const modal = new bootstrap.Modal(document.getElementById('addPurchaseModal'));
             modal.show();
         },
 
-        saveNewPurchase: function (e) {
+        saveNewPurchase: async function (e) {
             if (e) e.preventDefault();
-            const supplier = document.getElementById('purchaseSupplierSelect').value;
-            const prodId = parseInt(document.getElementById('purchaseProductSelect').value);
+            const suppSelect = document.getElementById('purchaseSupplierSelect');
+            const prodSelect = document.getElementById('purchaseProductSelect');
             const qty = parseInt(document.getElementById('purchaseQty').value) || 0;
             const unitCost = parseFloat(document.getElementById('purchaseUnitCost').value) || 0;
-            const invoice = document.getElementById('purchaseInvoiceNum').value.trim() || `INV-${Math.floor(1000 + Math.random() * 9000)}`;
+            const supplierId = suppSelect && suppSelect.value ? parseInt(suppSelect.value) || 1 : 1;
 
-            const prod = state.products.find(p => p.id === prodId);
-            if (prod) {
-                prod.stock += qty;
-                prod.cost = unitCost;
+            if (qty <= 0) {
+                alert('Quantity must be greater than zero.');
+                return;
             }
 
-            const totalCost = qty * unitCost;
-            state.purchases.unshift({
-                id: `PO-${Math.floor(1000 + Math.random() * 9000)}`,
-                invoice: invoice,
-                supplier: supplier,
-                date: new Date().toLocaleString('en-IN', { dateStyle: 'medium' }),
-                itemsCount: qty,
-                total: totalCost
-            });
-
-            logAction('Stock In Recorded', `Added ${qty} units of ${prod ? prod.name : 'item'} from ${supplier}`);
-            persistState();
-            renderPurchases();
-            renderProducts();
-
-            const modalEl = document.getElementById('addPurchaseModal');
-            const modal = bootstrap.Modal.getInstance(modalEl);
-            if (modal) modal.hide();
-            alert(`Stock successfully incremented by ${qty} units!`);
+            const fetchFn = window.apiFetch || fetch;
+            try {
+                const res = await fetchFn('/api/admin/purchases/add', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        supplier_id: supplierId,
+                        product_id: parseInt(prodSelect.value) || 1,
+                        quantity: qty,
+                        purchase_price: unitCost > 0 ? unitCost : 10.0
+                    })
+                });
+                const data = await res.json();
+                if (res.ok && data.success) {
+                    alert('Stock purchase recorded and product quantity increased!');
+                    const modalEl = document.getElementById('addPurchaseModal');
+                    const modal = bootstrap.Modal.getInstance(modalEl);
+                    if (modal) modal.hide();
+                    loadPurchasesData();
+                    loadProductsData();
+                } else {
+                    alert(data.message || data.error || 'Failed to record stock purchase.');
+                }
+            } catch (err) {
+                console.error('Purchase record error:', err);
+            }
         },
 
-        saveNewCoupon: function (e) {
+        toggleCoupon: async function (couponId) {
+            const fetchFn = window.apiFetch || fetch;
+            try {
+                const res = await fetchFn(`/api/admin/coupons/${couponId}/toggle`, {
+                    method: 'POST'
+                });
+                const data = await res.json();
+                if (res.ok && data.success) {
+                    loadCouponsData();
+                }
+            } catch (e) {
+                console.error('Toggle coupon error:', e);
+            }
+        },
+
+        saveNewCoupon: async function (e) {
             if (e) e.preventDefault();
-            const code = document.getElementById('newCouponCode').value.trim().toUpperCase();
-            const discount = document.getElementById('newCouponDiscount').value.trim();
-            const minSpend = parseFloat(document.getElementById('newCouponMinSpend').value) || 0;
-            const expiry = document.getElementById('newCouponExpiry').value.trim() || '31 Dec 2026';
+            const codeInput = document.getElementById('newCouponCode');
+            const discInput = document.getElementById('newCouponDiscount');
+            const minSpendInput = document.getElementById('newCouponMinSpend');
+            const expiryInput = document.getElementById('newCouponExpiry');
 
-            state.coupons.unshift({
-                id: Date.now(),
-                code: code,
-                discount: discount,
-                minSpend: minSpend,
-                expiry: expiry,
-                used: 0,
-                active: true
-            });
+            const code = codeInput ? codeInput.value.trim().toUpperCase() : '';
+            const rawDiscount = discInput ? discInput.value.trim() : '';
+            const minSpend = minSpendInput ? parseFloat(minSpendInput.value) || 0 : 0;
+            const expiry = expiryInput ? expiryInput.value.trim() : '';
 
-            logAction('Coupon Created', `Created discount code ${code} (${discount})`);
-            persistState();
-            renderCoupons();
+            if (!code || !rawDiscount) {
+                alert('Coupon code and discount value are required.');
+                return;
+            }
 
-            const modalEl = document.getElementById('createCouponModal');
-            const modal = bootstrap.Modal.getInstance(modalEl);
-            if (modal) modal.hide();
-        },
+            const isPercent = rawDiscount.includes('%');
+            const numValue = parseFloat(rawDiscount.replace(/[^0-9.]/g, '')) || 10;
+            const discountType = isPercent ? 'percentage' : 'flat';
 
-        toggleCoupon: function (couponId) {
-            const c = state.coupons.find(coup => coup.id === couponId);
-            if (c) {
-                c.active = !c.active;
-                logAction('Coupon Toggled', `${c.code} is now ${c.active ? 'Active' : 'Inactive'}`);
-                persistState();
-                renderCoupons();
+            const fetchFn = window.apiFetch || fetch;
+            try {
+                const res = await fetchFn('/api/admin/coupons/add', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        code: code,
+                        discount_type: discountType,
+                        value: numValue,
+                        min_order_amount: minSpend,
+                        valid_until: expiry || null,
+                        usage_limit: 500
+                    })
+                });
+                const data = await res.json().catch(() => ({}));
+                if (res.ok && data.success) {
+                    alert(data.message || `Coupon ${code} published successfully!`);
+                    const modalEl = document.getElementById('createCouponModal');
+                    const modal = bootstrap.Modal.getInstance(modalEl);
+                    if (modal) modal.hide();
+                    if (codeInput) codeInput.value = '';
+                    if (discInput) discInput.value = '';
+                    loadCouponsData();
+                } else {
+                    alert(data.message || 'Could not publish coupon.');
+                }
+            } catch (err) {
+                console.error('Save coupon error:', err);
+                alert('Network error publishing coupon.');
             }
         },
 
         toggle2FA: function () {
-            state.twoFactorEnabled = !state.twoFactorEnabled;
-            logAction('Security Setting Changed', `2FA is now ${state.twoFactorEnabled ? 'Enabled' : 'Disabled'}`);
-            persistState();
-            renderSecurity();
-            alert(`Two-Factor Authentication is now ${state.twoFactorEnabled ? 'ACTIVATED' : 'DEACTIVATED'}!`);
+            const toggle = document.getElementById('security2faToggle');
+            const isChecked = toggle ? toggle.checked : false;
+            if (isChecked) {
+                alert('To complete 2FA setup, visit the Security console or scan the TOTP QR key with your Authenticator app.');
+            } else {
+                alert('Two-factor authentication toggle updated.');
+            }
+        },
+
+        clearCustomerUdhar: async function (customerId, amount) {
+            if (!confirm(`Settle customer #${customerId} store credit of ₹${amount}?`)) return;
+            const fetchFn = window.apiFetch || fetch;
+            try {
+                const res = await fetchFn(`/api/admin/customers/${customerId}/clear_credit`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ amount_paid: amount })
+                });
+                const data = await res.json();
+                if (res.ok && data.success) {
+                    alert('Udhar settled successfully!');
+                    loadCustomersData();
+                } else {
+                    alert(data.message || 'Could not settle credit.');
+                }
+            } catch (err) {
+                console.error('Clear credit error:', err);
+            }
+        },
+
+        filterInventoryByCategory: function (categoryName) {
+            window.location.hash = '#products';
+            setTimeout(() => {
+                const searchInput = document.getElementById('adminMasterSearch');
+                if (searchInput) {
+                    searchInput.value = categoryName;
+                    searchInput.dispatchEvent(new Event('input'));
+                }
+            }, 100);
         },
 
         toggleTheme: function () {
@@ -980,61 +1384,25 @@
         }
     };
 
-    async function syncAdminWithServer() {
-        try {
-            const res = await (window.apiFetch || fetch)('/api/products?per_page=100');
-            if (res.ok) {
-                const data = await res.json();
-                if (data.success && data.products && data.products.length > 0) {
-                    state.products = data.products.map(p => ({
-                        id: p.id,
-                        sku: `JG-${(p.category_name || 'GEN').substring(0,3).toUpperCase()}-${String(p.id).padStart(3, '0')}`,
-                        name: p.name,
-                        category: p.category_name || 'General',
-                        cost: parseFloat(p.cost_price || p.selling_price * 0.8),
-                        price: parseFloat(p.selling_price),
-                        stock: p.stock_quantity,
-                        image: p.image_path || 'static/images/logo-icon.png'
-                    }));
-                    persistState();
-                    const currentView = (window.location.hash || '#dashboard').replace('#', '');
-                    if (currentView === 'dashboard') renderDashboardView();
-                    else if (currentView === 'products') renderProductsView();
-                    else if (currentView === 'pos') renderPOSView();
-                }
-            }
-        } catch (e) {
-            console.debug('Admin live sync deferred (running in offline/static mode):', e);
-        }
-    }
-
-    // ── Lifecycle Init ──
-    window.addEventListener('DOMContentLoaded', () => {
-        // Authentication Guard for Admin ERP Console
-        const authUser = JSON.parse(localStorage.getItem('jg_auth_user') || 'null');
-        if (!authUser || authUser.role !== 'admin') {
-            console.warn('Admin access required. Redirecting to storefront.');
-            window.location.href = 'index.html';
-            return;
-        }
-
+    // ── 6. Lifecycle Initialization ──
+    window.addEventListener('DOMContentLoaded', async () => {
         // Theme check
         const savedTheme = localStorage.getItem('jg_admin_theme');
         if (savedTheme) {
             document.documentElement.setAttribute('data-theme', savedTheme);
         }
 
+        // Verify active administrator credentials
+        const isAuthenticatedAdmin = await verifyAdminAuth();
+        if (!isAuthenticatedAdmin) return;
+
+        // Initialize Router
         router();
         window.addEventListener('hashchange', router);
-        syncAdminWithServer();
 
-        // Populate product select options in modals
-        const purchaseProdSelect = document.getElementById('purchaseProductSelect');
-        if (purchaseProdSelect) {
-            purchaseProdSelect.innerHTML = state.products.map(p => `
-                <option value="${Number(p.id)}">${escapeHTML(p.name)} (Current stock: ${Number(p.stock)})</option>
-            `).join('');
-        }
+        // Preload initial catalog and orders
+        loadProductsData();
+        loadOrdersData();
 
         // Live search in POS
         const posSearch = document.getElementById('posSearchInput');

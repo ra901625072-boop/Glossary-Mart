@@ -14,6 +14,9 @@ class Category(db.Model):
     # Relationship with products
     products = db.relationship('Product', backref='category_rel', lazy=True)
     
+    def __init__(self, **kwargs):
+        super().__init__(**kwargs)
+
     def __repr__(self):
         return f'<Category {self.name}>'
 
@@ -42,6 +45,9 @@ class Product(db.Model):
     sales = db.relationship('Sale', backref='product', lazy=True, cascade='all, delete-orphan')
     purchases = db.relationship('Purchase', backref='product', lazy=True, cascade='all, delete-orphan')
     
+    def __init__(self, **kwargs):
+        super().__init__(**kwargs)
+
     def __repr__(self):
         return f'<Product {self.name}>'
     
@@ -117,5 +123,8 @@ class Sale(db.Model):
     profit = db.Column(Numeric(10, 2), nullable=False)
     sale_date = db.Column(db.DateTime, default=lambda: datetime.now(timezone.utc), index=True)
     
+    def __init__(self, **kwargs):
+        super().__init__(**kwargs)
+
     def __repr__(self):
         return f'<Sale {self.id} - {self.product.name if self.product else "Unknown"}>'

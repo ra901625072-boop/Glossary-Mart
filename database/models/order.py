@@ -60,6 +60,9 @@ class Order(db.Model):
     # Relationship with order items
     order_items = db.relationship('OrderItem', backref='order', lazy=True, cascade='all, delete-orphan')
     
+    def __init__(self, **kwargs):
+        super().__init__(**kwargs)
+
     def __repr__(self):
         return f'<Order {self.id} - User {self.user_id}>'
     
@@ -97,6 +100,9 @@ class OrderItem(db.Model):
     # Relationship with product
     product = db.relationship('Product', backref='order_items')
     
+    def __init__(self, **kwargs):
+        super().__init__(**kwargs)
+
     def __repr__(self):
         return f'<OrderItem {self.id} - Order {self.order_id}>'
     

@@ -89,6 +89,7 @@ def admin_order_detail(order_id):
 
 
 @admin_bp.route('/orders/<int:order_id>/update-status', methods=['POST'])
+@admin_bp.route('/orders/<int:order_id>/status', methods=['POST', 'PUT'])
 @admin_required
 def update_order_status(order_id):
     """Update order and/or payment status with state-machine validation."""

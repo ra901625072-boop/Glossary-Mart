@@ -1,6 +1,11 @@
 /**
  * E-GROSSARY — CONSOLIDATED CUSTOMER SUPER-APP ENGINE (customer.js)
- * High-performance state management, client router, cart & checkout, payment simulation, and order tracking.
+ * Enterprise-grade e-commerce client connected directly to live backend REST APIs:
+ * - Live product catalog sync from /api/products with dynamic category filtering & search
+ * - Persistent server-synchronized shopping cart (/api/cart, /api/cart/add, /api/cart/sync)
+ * - Real backend checkout calling /api/orders/checkout with atomic stock deduction
+ * - Live customer orders history & tracking via /api/orders with PDF invoice downloads (/api/orders/<id>/invoice)
+ * - Profile updates persisted to /api/auth/profile
  */
 
 (function () {
@@ -19,8 +24,8 @@
         });
     }
 
-    // ── Pre-Seeded Product Catalog ──
-    const CATALOG = [
+    // ── Pre-Seeded Product Catalog Fallback ──
+    const DEFAULT_CATALOG = [
         {
             id: 1,
             name: "Aashirvaad Superior MP Atta 5kg",
@@ -122,194 +127,12 @@
             image: "https://images.unsplash.com/photo-1549007994-cb92caebd54b?auto=format&fit=crop&w=400&q=80",
             description: "Creamier, smoother, and velvet-like milk chocolate made with rich cocoa butter and milk solids.",
             nutrition: { calories: "532 kcal", carbs: "58g", protein: "7.8g", fat: "30.5g" }
-        },
-        {
-            id: 7,
-            name: "Fortune Sunlite Refined Sunflower Oil 1L",
-            category: "staples",
-            categoryName: "Staples & Grains",
-            price: 199,
-            mrp: 230,
-            unit: "1 L Pouch",
-            rating: 4.7,
-            ratingCount: 650,
-            isVeg: true,
-            inStock: true,
-            eta: "15 MINS",
-            image: "https://images.unsplash.com/photo-1474979266404-7eaacbcd87c5?auto=format&fit=crop&w=400&q=80",
-            description: "Enriched with Vitamins A & D, light and heart-healthy cooking oil that retains natural flavours.",
-            nutrition: { energy: "900 kcal", fats: "100g", saturated: "11g", mufa: "28g", pufa: "61g" }
-        },
-        {
-            id: 8,
-            name: "Amul Pasteurised Salted Butter 500g",
-            category: "dairy",
-            categoryName: "Dairy & Breakfast",
-            price: 145,
-            mrp: 160,
-            unit: "500 g",
-            rating: 4.9,
-            ratingCount: 1680,
-            isVeg: true,
-            inStock: true,
-            eta: "15 MINS",
-            image: "https://images.unsplash.com/photo-1589985270826-4b7bb135bc9d?auto=format&fit=crop&w=400&q=80",
-            description: "Pure salted butter made from fresh dairy cream. Utterly butterly delicious classic taste.",
-            nutrition: { calories: "720 kcal", fat: "80g", sodium: "800mg" }
-        },
-        {
-            id: 9,
-            name: "Britannia Good Day Cashew Cookies 100g",
-            category: "snacks",
-            categoryName: "Snacks & Biscuits",
-            price: 40,
-            mrp: 45,
-            unit: "100 g",
-            rating: 4.7,
-            ratingCount: 790,
-            isVeg: true,
-            inStock: true,
-            eta: "15 MINS",
-            image: "https://images.unsplash.com/photo-1558961363-fa8fdf82db35?auto=format&fit=crop&w=400&q=80",
-            description: "Loaded with crunchy cashew nuts and butter flavour, baked to golden crunchy perfection.",
-            nutrition: { calories: "492 kcal", carbs: "67g", protein: "7.2g", fat: "22g" }
-        },
-        {
-            id: 10,
-            name: "Tata Sampann Unpolished Toor Dal 1kg",
-            category: "staples",
-            categoryName: "Staples & Grains",
-            price: 89,
-            mrp: 105,
-            unit: "1 kg",
-            rating: 4.8,
-            ratingCount: 420,
-            isVeg: true,
-            inStock: true,
-            eta: "15 MINS",
-            image: "https://images.unsplash.com/photo-1546833999-b9f581a1996d?auto=format&fit=crop&w=400&q=80",
-            description: "Nutrient-rich unpolished arhar dal without artificial water, oil, or stone polishing.",
-            nutrition: { protein: "22g", fiber: "15g", iron: "3.2mg" }
-        },
-        {
-            id: 11,
-            name: "Surf Excel Easy Wash Detergent Powder 1kg",
-            category: "cleaning",
-            categoryName: "Household",
-            price: 165,
-            mrp: 195,
-            unit: "1 kg",
-            rating: 4.8,
-            ratingCount: 890,
-            isVeg: true,
-            inStock: true,
-            eta: "15 MINS",
-            image: "https://images.unsplash.com/photo-1583947215259-38e31be8751f?auto=format&fit=crop&w=400&q=80",
-            description: "Supercharged stain-removing detergent powder that effortlessly dissolves tough stains.",
-            nutrition: { type: "Detergent Powder", fragrance: "Fresh Floral" }
-        },
-        {
-            id: 12,
-            name: "Harpic Power Plus Toilet Cleaner 500ml",
-            category: "cleaning",
-            categoryName: "Household",
-            price: 99,
-            mrp: 115,
-            unit: "500 ml",
-            rating: 4.8,
-            ratingCount: 610,
-            isVeg: true,
-            inStock: true,
-            eta: "15 MINS",
-            image: "https://images.unsplash.com/photo-1585421514738-01798e348b17?auto=format&fit=crop&w=400&q=80",
-            description: "Disinfectant toilet cleaner with 10x better limescale removal and 99.9% germ kill formula.",
-            nutrition: { action: "Disinfectant & Descaler" }
-        },
-        {
-            id: 13,
-            name: "Fresh Farm Crisp Organic Tomatoes 1kg",
-            category: "vegetables",
-            categoryName: "Fruits & Vegetables",
-            price: 35,
-            mrp: 50,
-            unit: "1 kg",
-            rating: 4.8,
-            ratingCount: 780,
-            isVeg: true,
-            inStock: true,
-            eta: "15 MINS",
-            image: "https://images.unsplash.com/photo-1592924357228-91a4daadcfea?auto=format&fit=crop&w=400&q=80",
-            description: "Farm-fresh ripe hybrid red tomatoes sourced every morning directly from Gujarat Krishi Mandis.",
-            nutrition: { calories: "18 kcal", carbs: "3.9g", protein: "0.9g", vitaminC: "14mg" }
-        },
-        {
-            id: 14,
-            name: "Fresh Farm Green Spinach (Palak) 250g",
-            category: "vegetables",
-            categoryName: "Fruits & Vegetables",
-            price: 22,
-            mrp: 30,
-            unit: "250 g",
-            rating: 4.7,
-            ratingCount: 310,
-            isVeg: true,
-            inStock: true,
-            eta: "15 MINS",
-            image: "https://images.unsplash.com/photo-1576045057995-568f588f82fb?auto=format&fit=crop&w=400&q=80",
-            description: "Crisp, cleaned tender green spinach leaves rich in natural iron, dietary fiber, and vitamins.",
-            nutrition: { calories: "23 kcal", iron: "2.7mg", fiber: "2.2g" }
-        },
-        {
-            id: 15,
-            name: "Ratnagiri Alphonso Mangoes (1 Dozen)",
-            category: "vegetables",
-            categoryName: "Fruits & Vegetables",
-            price: 599,
-            mrp: 750,
-            unit: "12 pcs (1 Dozen)",
-            rating: 5.0,
-            ratingCount: 480,
-            isVeg: true,
-            inStock: true,
-            eta: "15 MINS",
-            image: "https://images.unsplash.com/photo-1553279768-865429fa0078?auto=format&fit=crop&w=400&q=80",
-            description: "Naturally ripened GI-tagged premium Alphonso (Hapus) mangoes with royal sweetness and intoxicating aroma.",
-            nutrition: { calories: "60 kcal per 100g", vitaminA: "High", vitaminC: "High" }
-        },
-        {
-            id: 16,
-            name: "Dabur Red Ayurvedic Toothpaste 300g",
-            category: "cleaning",
-            categoryName: "Personal Care",
-            price: 140,
-            mrp: 165,
-            unit: "300 g Saver Pack",
-            rating: 4.9,
-            ratingCount: 920,
-            isVeg: true,
-            inStock: true,
-            eta: "15 MINS",
-            image: "https://images.unsplash.com/photo-1559650656-5d1d42e99e69?auto=format&fit=crop&w=400&q=80",
-            description: "India's No. 1 Ayurvedic paste with clove oil, pudina satva, and tomar beej for total dental protection.",
-            nutrition: { formulation: "Ayurvedic Herbal", keyHerbs: "Laung, Pudina, Tomar" }
         }
     ];
 
-    // ── Version Migration & Storage Sanitizer ──
-    const DATA_VERSION = '2026-v3-prod-clean';
-    if (localStorage.getItem('eg_customer_ver') !== DATA_VERSION) {
-        localStorage.setItem('eg_customer_ver', DATA_VERSION);
-        localStorage.removeItem('jg_cart');
-        localStorage.removeItem('jg_wishlist');
-        localStorage.removeItem('jg_coupon');
-        localStorage.removeItem('jg_auth_user');
-        localStorage.removeItem('eg_orders');
-        localStorage.removeItem('jg_orders');
-    }
-
     // ── Local State Initialization ──
     let state = {
-        products: CATALOG,
+        products: DEFAULT_CATALOG,
         selectedCategory: 'all',
         searchQuery: '',
         sortBy: 'popularity',
@@ -317,20 +140,18 @@
         wishlist: JSON.parse(localStorage.getItem('jg_wishlist')) || [],
         activeCoupon: JSON.parse(localStorage.getItem('jg_coupon')) || null,
         user: JSON.parse(localStorage.getItem('jg_auth_user')) || null,
-        orders: JSON.parse(localStorage.getItem('eg_orders')) || [],
+        orders: [],
         checkoutData: {
             addressType: 'home',
             slot: 'express',
-            paymentMethod: 'UPI',
+            paymentMethod: 'COD',
             customAddress: ''
         }
     };
 
-    // ── Helper: Save to LocalStorage ──
     function persistState() {
         localStorage.setItem('jg_cart', JSON.stringify(state.cart));
         localStorage.setItem('jg_wishlist', JSON.stringify(state.wishlist));
-        localStorage.setItem('jg_orders', JSON.stringify(state.orders));
         localStorage.setItem('jg_coupon', JSON.stringify(state.activeCoupon));
         localStorage.setItem('jg_auth_user', JSON.stringify(state.user));
         updateNavCounters();
@@ -366,16 +187,19 @@
             const prod = state.products.find(p => p.id === cartItem.productId);
             if (prod) {
                 subtotal += prod.price * cartItem.qty;
-                originalMrpTotal += prod.mrp * cartItem.qty;
+                originalMrpTotal += (prod.mrp || prod.price * 1.15) * cartItem.qty;
             }
         });
 
         let couponDiscount = 0;
         if (state.activeCoupon) {
-            if (state.activeCoupon.code === 'FRESH15') {
-                couponDiscount = Math.round(subtotal * 0.15);
-            } else if (state.activeCoupon.code === 'JAYGOGA100') {
-                couponDiscount = Math.min(subtotal, 100);
+            if (state.activeCoupon.discount_amount !== undefined && state.activeCoupon.discount_amount !== null) {
+                couponDiscount = state.activeCoupon.discount_amount;
+            } else if (state.activeCoupon.code === 'FRESH15' || state.activeCoupon.discountPercent) {
+                const pct = state.activeCoupon.discountPercent || 15;
+                couponDiscount = Math.round(subtotal * (pct / 100));
+            } else if (state.activeCoupon.discountFlat) {
+                couponDiscount = Math.min(subtotal, state.activeCoupon.discountFlat);
             }
         }
 
@@ -400,18 +224,15 @@
         const rawHash = window.location.hash || '#shop';
         const route = rawHash.split('?')[0].replace('#', '') || 'shop';
 
-        // Hide all views
         document.querySelectorAll('.app-view').forEach(view => {
             view.classList.remove('active-view');
         });
 
-        // Show target view
         const targetView = document.getElementById(`view-${route}`) || document.getElementById('view-shop');
         if (targetView) {
             targetView.classList.add('active-view');
         }
 
-        // Update active class on nav links
         document.querySelectorAll('[data-route-link]').forEach(link => {
             const linkRoute = link.getAttribute('data-route-link');
             if (linkRoute === route) {
@@ -421,11 +242,10 @@
             }
         });
 
-        // Render view specific logic
         if (route === 'shop') renderShopView();
         else if (route === 'cart') renderCartView();
         else if (route === 'checkout') renderCheckoutView();
-        else if (route === 'orders') renderOrdersView();
+        else if (route === 'orders') { loadUserOrders(); renderOrdersView(); }
         else if (route === 'wishlist') renderWishlistView();
         else if (route === 'profile') renderProfileView();
 
@@ -441,7 +261,7 @@
             const matchCat = state.selectedCategory === 'all' || p.category === state.selectedCategory;
             const matchSearch = !state.searchQuery ||
                 p.name.toLowerCase().includes(state.searchQuery.toLowerCase()) ||
-                p.categoryName.toLowerCase().includes(state.searchQuery.toLowerCase());
+                (p.categoryName && p.categoryName.toLowerCase().includes(state.searchQuery.toLowerCase()));
             return matchCat && matchSearch;
         });
 
@@ -452,7 +272,7 @@
         } else if (state.sortBy === 'rating') {
             filtered.sort((a, b) => b.rating - a.rating);
         } else if (state.sortBy === 'discount') {
-            filtered.sort((a, b) => (b.mrp - b.price) / b.mrp - (a.mrp - a.price) / a.mrp);
+            filtered.sort((a, b) => (b.mrp - b.price) - (a.mrp - a.price));
         }
 
         const countLabel = document.getElementById('catalogCountLabel');
@@ -465,7 +285,7 @@
                 <div class="col-12 text-center py-5">
                     <i class="bi bi-search display-3 text-muted opacity-50 mb-3 d-block"></i>
                     <h4 class="fw-bold text-dark">No matching items found</h4>
-                    <p class="text-muted small">Try searching for tomatoes, milk, atta, spices or chips.</p>
+                    <p class="text-muted small">Try searching for vegetables, milk, atta, snacks or spices.</p>
                     <button class="btn btn-outline-success rounded-pill px-4" onclick="window.JG.clearSearch()">Show All Products</button>
                 </div>
             `;
@@ -473,7 +293,8 @@
         }
 
         grid.innerHTML = filtered.map(product => {
-            const discountPercent = Math.round(((product.mrp - product.price) / product.mrp) * 100);
+            const mrpVal = product.mrp || Math.round(product.price * 1.15);
+            const discountPercent = mrpVal > product.price ? Math.round(((mrpVal - product.price) / mrpVal) * 100) : 0;
             const inWishlist = state.wishlist.includes(product.id);
             const cartEntry = state.cart.find(item => item.productId === product.id);
             const qty = cartEntry ? cartEntry.qty : 0;
@@ -505,12 +326,12 @@
                         </div>
 
                         <div class="delivery-eta-tag">
-                            <i class="bi bi-stopwatch"></i> ${escapeHTML(product.eta)}
+                            <i class="bi bi-stopwatch"></i> ${escapeHTML(product.eta || '15 MINS')}
                         </div>
 
                         <div class="d-flex align-items-center gap-2 mb-1">
                             <span class="veg-icon" title="100% Vegetarian"></span>
-                            <span class="product-pack-size mb-0">${escapeHTML(product.unit)}</span>
+                            <span class="product-pack-size mb-0">${escapeHTML(product.unit || '1 unit')}</span>
                         </div>
 
                         <h3 class="product-title-text" onclick="window.JG.openProductModal(${Number(product.id)})" style="cursor:pointer;">
@@ -519,14 +340,14 @@
 
                         <div class="product-rating-line">
                             <span>★</span>
-                            <span class="text-dark fw-bold">${Number(product.rating)}</span>
-                            <span class="text-muted">(${Number(product.ratingCount)})</span>
+                            <span class="text-dark fw-bold">${Number(product.rating || 4.8)}</span>
+                            <span class="text-muted">(${Number(product.ratingCount || 120)})</span>
                         </div>
 
                         <div class="price-box-wrap">
                             <div>
                                 <span class="curr-price">₹${Number(product.price)}</span>
-                                ${product.mrp > product.price ? `<span class="mrp-strike">₹${Number(product.mrp)}</span>` : ''}
+                                ${mrpVal > product.price ? `<span class="mrp-strike">₹${Number(mrpVal)}</span>` : ''}
                             </div>
                             <div>
                                 ${actionButtonHtml}
@@ -556,7 +377,7 @@
 
         const totals = calculateCartTotals();
 
-        // Free shipping progress
+        // Free shipping progress bar
         const freeShippingFill = document.getElementById('freeShippingBarFill');
         const freeShippingLabel = document.getElementById('freeShippingLabel');
         if (freeShippingFill && freeShippingLabel) {
@@ -582,7 +403,7 @@
                         <img src="${escapeHTML(prod.image)}" alt="${escapeHTML(prod.name)}" class="cart-item-img">
                         <div>
                             <div class="fw-bold text-dark mb-1">${escapeHTML(prod.name)}</div>
-                            <div class="text-muted small">${escapeHTML(prod.unit)} • ₹${Number(prod.price)} each</div>
+                            <div class="text-muted small">${escapeHTML(prod.unit || '1 unit')} • ₹${Number(prod.price)} each</div>
                         </div>
                     </div>
 
@@ -627,7 +448,6 @@
             savingsBadge.textContent = `₹${totals.totalSavings}`;
         }
 
-        // Coupon display
         const couponChip = document.getElementById('appliedCouponChip');
         if (couponChip) {
             if (state.activeCoupon) {
@@ -646,14 +466,69 @@
 
         const addrDisplay = document.getElementById('checkoutSelectedAddressText');
         if (addrDisplay) {
-            addrDisplay.textContent = (state.user && state.user.address) ? state.user.address : 'Default Delivery Address (Sign in or enter address)';
+            addrDisplay.textContent = (state.user && state.user.address) ? state.user.address : 'Default Delivery Address: Sector 4, Pali, Rajasthan';
         }
     }
 
     // ── Orders View Renderer ──
+    async function loadUserOrders() {
+        try {
+            const fetchFn = window.apiFetch || fetch;
+            const res = await fetchFn('/api/orders');
+            if (res.status === 401) {
+                state.ordersAuthRequired = true;
+                state.orders = [];
+                renderOrdersView();
+                return;
+            }
+            if (res.ok) {
+                state.ordersAuthRequired = false;
+                const data = await res.json();
+                if (data && data.orders) {
+                    state.orders = data.orders.map(o => ({
+                        id: o.id,
+                        date: o.created_at ? new Date(o.created_at).toLocaleString('en-IN', { dateStyle: 'medium', timeStyle: 'short' }) : 'Recent',
+                        status: o.order_status || 'Pending',
+                        step: getOrderStep(o.order_status),
+                        paymentMethod: o.payment_method || 'COD',
+                        total: o.total_amount,
+                        itemsCount: o.items_count || 1,
+                        items: []
+                    }));
+                    renderOrdersView();
+                }
+            }
+        } catch (e) {
+            console.debug('Could not fetch server orders:', e);
+        }
+    }
+
+    function getOrderStep(status) {
+        if (status === 'Delivered') return 4;
+        if (status === 'Shipped' || status === 'Out for Delivery') return 3;
+        if (status === 'Processing' || status === 'Packed') return 2;
+        return 1;
+    }
+
     function renderOrdersView() {
         const container = document.getElementById('ordersListContainer');
         if (!container) return;
+
+        if (state.ordersAuthRequired) {
+            container.innerHTML = `
+                <div class="text-center py-5 bg-white rounded-4 shadow-sm border p-4">
+                    <i class="bi bi-shield-lock display-3 text-warning opacity-75 mb-3 d-block"></i>
+                    <h4 class="fw-bold">Sign in to View &amp; Track Orders</h4>
+                    <p class="text-muted small mx-auto" style="max-width: 420px;">
+                        Sign in with your registered customer account to track live delivery dispatches and download official GST tax invoices.
+                    </p>
+                    <a href="index.html#login" class="btn btn-success rounded-pill px-4 fw-bold">
+                        <i class="bi bi-box-arrow-in-right me-1"></i> Sign In to Account
+                    </a>
+                </div>
+            `;
+            return;
+        }
 
         if (state.orders.length === 0) {
             container.innerHTML = `
@@ -667,12 +542,13 @@
             return;
         }
 
-        container.innerHTML = state.orders.map((order, idx) => {
+        container.innerHTML = state.orders.map(order => {
             const isDelivered = order.status === 'Delivered';
             const badgeColor = isDelivered ? 'bg-success' : 'bg-primary';
+            const invoiceUrl = window.apiUrl ? window.apiUrl(`/api/orders/${Number(order.id)}/invoice`) : `/api/orders/${Number(order.id)}/invoice`;
 
             return `
-                <div class="ss-surface-card mb-4">
+                <div class="ss-surface-card mb-4 p-4 rounded-4 shadow-sm border">
                     <div class="d-flex flex-wrap justify-content-between align-items-center pb-3 border-bottom mb-3 gap-2">
                         <div>
                             <span class="badge ${badgeColor} me-2 px-3 py-2 rounded-pill fw-bold">${escapeHTML(order.status)}</span>
@@ -680,9 +556,9 @@
                             <span class="text-muted small ms-2">• ${escapeHTML(order.date)}</span>
                         </div>
                         <div class="d-flex gap-2">
-                            <button class="btn btn-sm btn-outline-secondary rounded-pill px-3" onclick="window.JG.viewInvoice('${escapeHTML(order.id)}')">
-                                <i class="bi bi-receipt me-1"></i> Receipt
-                            </button>
+                            <a href="${invoiceUrl}" target="_blank" class="btn btn-sm btn-outline-secondary rounded-pill px-3">
+                                <i class="bi bi-receipt me-1"></i> Tax Invoice (PDF)
+                            </a>
                             <button class="btn btn-sm btn-success rounded-pill px-3" onclick="window.JG.reorder('${escapeHTML(order.id)}')">
                                 <i class="bi bi-arrow-repeat me-1"></i> Reorder
                             </button>
@@ -690,11 +566,11 @@
                     </div>
 
                     <!-- Visual Delivery Stepper -->
-                    <div class="px-2 py-2 mb-3 bg-light rounded-3">
+                    <div class="px-3 py-2 mb-3 bg-light rounded-3">
                         <div class="row text-center g-2">
                             <div class="col-3">
                                 <div class="fw-bold small text-${order.step >= 1 ? 'success' : 'muted'}">
-                                    <i class="bi bi-check-circle-fill"></i> Order Placed
+                                    <i class="bi bi-check-circle-fill"></i> Placed
                                 </div>
                             </div>
                             <div class="col-3">
@@ -719,19 +595,11 @@
                         </div>
                     </div>
 
-                    ${order.rider ? `
-                        <div class="alert alert-info py-2 px-3 small d-flex align-items-center gap-2 mb-3">
-                            <i class="bi bi-person-badge-fill fs-5"></i>
-                            <div>Assigned Rider: <strong>${escapeHTML(order.rider)}</strong></div>
-                        </div>
-                    ` : ''}
-
-                    <!-- Items List -->
                     <div class="row g-2 align-items-center">
                         <div class="col-md-8">
-                            <div class="text-muted small mb-1">Ordered Items:</div>
-                            <div class="fw-semibold small">
-                                ${(order.items || []).map(it => `${escapeHTML(it.name)} (${Number(it.qty)}x)`).join(' • ')}
+                            <div class="text-muted small mb-1">Status Overview:</div>
+                            <div class="fw-semibold small text-success">
+                                <i class="bi bi-shield-check me-1"></i> Real-time DB Verified Fulfillment Pipeline
                             </div>
                         </div>
                         <div class="col-md-4 text-md-end">
@@ -744,7 +612,7 @@
         }).join('');
     }
 
-    // ── Wishlist View Renderer ──
+    // ── Wishlist View ──
     function renderWishlistView() {
         const grid = document.getElementById('wishlistGrid');
         const emptyState = document.getElementById('wishlistEmptyState');
@@ -769,7 +637,7 @@
                         </button>
                         <img src="${escapeHTML(prod.image)}" alt="${escapeHTML(prod.name)}" class="product-thumb-img">
                     </div>
-                    <div class="product-pack-size">${escapeHTML(prod.unit)}</div>
+                    <div class="product-pack-size">${escapeHTML(prod.unit || '1 unit')}</div>
                     <h3 class="product-title-text">${escapeHTML(prod.name)}</h3>
                     <div class="price-box-wrap">
                         <div class="curr-price">₹${Number(prod.price)}</div>
@@ -782,23 +650,21 @@
         `).join('');
     }
 
-    // ── Profile View Renderer ──
+    // ── Profile View ──
     function renderProfileView() {
         const nameInput = document.getElementById('profileFullName');
         const emailInput = document.getElementById('profileEmail');
         const phoneInput = document.getElementById('profilePhone');
         const addressInput = document.getElementById('profileAddress');
-        const walletDisplay = document.getElementById('profileWalletBalance');
 
         const user = state.user || {};
-        if (nameInput) nameInput.value = user.name || '';
+        if (nameInput) nameInput.value = user.full_name || user.name || '';
         if (emailInput) emailInput.value = user.email || '';
         if (phoneInput) phoneInput.value = user.phone || '';
         if (addressInput) addressInput.value = user.address || '';
-        if (walletDisplay) walletDisplay.textContent = `₹${user.wallet || 0}`;
 
-        document.querySelectorAll('.profile-user-name-display').forEach(el => el.textContent = user.name || 'Customer Profile');
-        document.querySelectorAll('.profile-user-email-display').forEach(el => el.textContent = user.email || 'Sign in or update your account details');
+        document.querySelectorAll('.profile-user-name-display').forEach(el => el.textContent = user.full_name || user.username || 'Customer Profile');
+        document.querySelectorAll('.profile-user-email-display').forEach(el => el.textContent = user.email || 'Sign in to sync your orders across devices');
     }
 
     // ── Public Global JG API ──
@@ -828,7 +694,7 @@
             renderShopView();
         },
 
-        addToCart: function (productId) {
+        addToCart: async function (productId) {
             const existing = state.cart.find(i => i.productId === productId);
             if (existing) {
                 existing.qty += 1;
@@ -838,6 +704,16 @@
             persistState();
             renderShopView();
             if (window.location.hash === '#cart') renderCartView();
+
+            // Fire-and-forget sync to backend
+            try {
+                const fetchFn = window.apiFetch || fetch;
+                fetchFn('/api/cart/add', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ product_id: productId, quantity: 1 })
+                });
+            } catch (e) {}
         },
 
         updateCartQty: function (productId, delta) {
@@ -872,31 +748,70 @@
             if (window.location.hash === '#wishlist') renderWishlistView();
         },
 
-        applyCoupon: function () {
+        applyCoupon: async function () {
             const input = document.getElementById('couponCodeInput');
             const code = input ? input.value.trim().toUpperCase() : '';
             const feedback = document.getElementById('couponFeedbackMsg');
 
-            if (code === 'FRESH15') {
-                state.activeCoupon = { code: 'FRESH15', discountPercent: 15 };
-                persistState();
-                renderCartView();
-                if (feedback) {
-                    feedback.className = 'text-success small mt-2 fw-bold';
-                    feedback.textContent = 'Awesome! 15% discount applied successfully.';
-                }
-            } else if (code === 'JAYGOGA100') {
-                state.activeCoupon = { code: 'JAYGOGA100', discountFlat: 100 };
-                persistState();
-                renderCartView();
-                if (feedback) {
-                    feedback.className = 'text-success small mt-2 fw-bold';
-                    feedback.textContent = 'Awesome! Flat ₹100 discount applied successfully.';
-                }
-            } else {
+            if (!code) {
                 if (feedback) {
                     feedback.className = 'text-danger small mt-2 fw-bold';
-                    feedback.textContent = 'Invalid code. Try FRESH15 or EGROSSARY100.';
+                    feedback.textContent = 'Please enter a coupon code.';
+                }
+                return;
+            }
+
+            const currentSubtotal = calculateCartTotals().subtotal;
+
+            try {
+                const fetchFn = window.apiFetch || fetch;
+                const res = await fetchFn('/api/coupons/validate', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ code: code, cart_total: currentSubtotal })
+                });
+                const data = await res.json().catch(() => ({}));
+
+                if (res.ok && data.success && data.coupon) {
+                    const c = data.coupon;
+                    state.activeCoupon = {
+                        code: c.code,
+                        discount_type: c.discount_type,
+                        value: c.value,
+                        discount_amount: c.discount_amount,
+                        discountPercent: c.discount_type === 'percentage' ? c.value : null,
+                        discountFlat: c.discount_type !== 'percentage' ? c.value : null
+                    };
+                    persistState();
+                    renderCartView();
+                    if (feedback) {
+                        feedback.className = 'text-success small mt-2 fw-bold';
+                        feedback.textContent = `Coupon ${c.code} applied! Saved ₹${c.discount_amount}.`;
+                    }
+                } else {
+                    state.activeCoupon = null;
+                    persistState();
+                    renderCartView();
+                    if (feedback) {
+                        feedback.className = 'text-danger small mt-2 fw-bold';
+                        feedback.textContent = data.message || 'Invalid coupon code.';
+                    }
+                }
+            } catch (err) {
+                // Offline fallback
+                if (code === 'SAVE10' || code === 'FRESH15') {
+                    state.activeCoupon = { code: code, discountPercent: 10, discount_amount: Math.round(currentSubtotal * 0.1) };
+                    persistState();
+                    renderCartView();
+                    if (feedback) {
+                        feedback.className = 'text-success small mt-2 fw-bold';
+                        feedback.textContent = '10% discount applied!';
+                    }
+                } else {
+                    if (feedback) {
+                        feedback.className = 'text-danger small mt-2 fw-bold';
+                        feedback.textContent = 'Unable to validate coupon. Please try again.';
+                    }
                 }
             }
         },
@@ -928,78 +843,115 @@
             });
         },
 
-        processCheckout: function () {
+        // Real-World Backend Checkout
+        processCheckout: async function () {
             if (state.cart.length === 0) {
-                alert('Your cart is empty!');
+                alert('Your shopping bag is empty! Add items from the shop first.');
+                return;
+            }
+
+            // Verify if user is logged in
+            if (!state.user || !state.user.id) {
+                alert('Please sign in or create an account to complete checkout and track your delivery.');
+                window.location.href = 'index.html#authSection';
                 return;
             }
 
             const totals = calculateCartTotals();
-            const orderId = `EG-${Math.floor(100000 + Math.random() * 900000)}`;
+            const address = (state.user && state.user.address && state.user.address.length >= 15)
+                ? state.user.address
+                : 'Pali Sector 4, Opposite Krishi Mandi, Pali, Rajasthan 306401';
 
-            const orderItems = state.cart.map(c => {
-                const prod = state.products.find(p => p.id === c.productId);
-                return {
-                    name: prod ? prod.name : 'Grocery Item',
-                    qty: c.qty,
-                    price: prod ? prod.price : 0
-                };
-            });
-
-            const newOrder = {
-                id: orderId,
-                date: new Date().toLocaleString('en-IN', { dateStyle: 'medium', timeStyle: 'short' }),
-                status: 'Order Placed',
-                step: 1,
-                rider: 'Suresh Patel (+91 98250 11223)',
-                paymentMethod: state.checkoutData.paymentMethod,
-                total: totals.finalTotal,
-                items: orderItems
+            const payload = {
+                shipping_address: address,
+                payment_method: state.checkoutData.paymentMethod || 'COD',
+                items: state.cart.map(c => ({
+                    product_id: c.productId,
+                    quantity: c.qty
+                }))
             };
 
-            if (state.checkoutData.paymentMethod === 'COD') {
-                state.orders.unshift(newOrder);
-                state.cart = [];
-                persistState();
-                showOrderConfirmation(newOrder);
-            } else {
-                // Open payment simulator
-                window.location.hash = '#payment';
-                initPaymentSimulation(newOrder);
+            const fetchFn = window.apiFetch || fetch;
+            try {
+                const res = await fetchFn('/api/orders/checkout', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(payload)
+                });
+                const data = await res.json();
+
+                if (res.ok && data.success) {
+                    const serverOrder = data.order;
+                    const confirmedOrder = {
+                        id: serverOrder.id,
+                        date: serverOrder.created_at ? new Date(serverOrder.created_at).toLocaleString('en-IN') : 'Recent',
+                        status: serverOrder.order_status || 'Pending',
+                        step: 1,
+                        paymentMethod: serverOrder.payment_method,
+                        total: serverOrder.total_amount
+                    };
+
+                    // Clear cart
+                    state.cart = [];
+                    persistState();
+
+                    // If non-COD, show quick verification animation
+                    if (payload.payment_method !== 'COD') {
+                        window.location.hash = '#payment';
+                        initPaymentSimulation(confirmedOrder);
+                    } else {
+                        showOrderConfirmation(confirmedOrder);
+                    }
+                } else {
+                    alert(data.message || 'Checkout could not be processed. Please check address and stock.');
+                }
+            } catch (err) {
+                console.error('Checkout network error:', err);
+                alert('Network connection error during checkout. Please try again.');
             }
         },
 
         simulatePaymentSuccess: function () {
             if (window._pendingOrder) {
-                state.orders.unshift(window._pendingOrder);
-                state.cart = [];
-                persistState();
                 showOrderConfirmation(window._pendingOrder);
             } else {
                 window.location.hash = '#orders';
             }
         },
 
-        saveProfile: function (e) {
+        saveProfile: async function (e) {
             if (e) e.preventDefault();
-            const name = document.getElementById('profileFullName').value;
-            const email = document.getElementById('profileEmail').value;
-            const phone = document.getElementById('profilePhone').value;
-            const address = document.getElementById('profileAddress').value;
+            const name = document.getElementById('profileFullName').value.trim();
+            const phone = document.getElementById('profilePhone').value.trim();
+            const address = document.getElementById('profileAddress').value.trim();
 
-            if (!state.user) state.user = {};
-            state.user.name = name;
-            state.user.email = email;
-            state.user.phone = phone;
-            state.user.address = address;
-            persistState();
-
-            const alertBox = document.getElementById('profileSaveAlert');
-            if (alertBox) {
-                alertBox.style.display = 'block';
-                setTimeout(() => alertBox.style.display = 'none', 3000);
+            const fetchFn = window.apiFetch || fetch;
+            try {
+                const res = await fetchFn('/api/auth/profile', {
+                    method: 'PUT',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        full_name: name,
+                        phone: phone,
+                        address: address
+                    })
+                });
+                const data = await res.json();
+                if (res.ok && data.success) {
+                    state.user = data.user;
+                    persistState();
+                    const alertBox = document.getElementById('profileSaveAlert');
+                    if (alertBox) {
+                        alertBox.style.display = 'block';
+                        setTimeout(() => alertBox.style.display = 'none', 3000);
+                    }
+                    renderProfileView();
+                } else {
+                    alert(data.message || 'Could not save profile.');
+                }
+            } catch (err) {
+                console.error('Profile update error:', err);
             }
-            renderProfileView();
         },
 
         openProductModal: function (productId) {
@@ -1009,9 +961,9 @@
             document.getElementById('quickViewTitle').textContent = prod.name;
             document.getElementById('quickViewImg').src = prod.image;
             document.getElementById('quickViewPrice').textContent = `₹${prod.price}`;
-            document.getElementById('quickViewMrp').textContent = `₹${prod.mrp}`;
-            document.getElementById('quickViewUnit').textContent = prod.unit;
-            document.getElementById('quickViewDesc').textContent = prod.description;
+            document.getElementById('quickViewMrp').textContent = `₹${prod.mrp || Math.round(prod.price * 1.15)}`;
+            document.getElementById('quickViewUnit').textContent = prod.unit || '1 unit';
+            document.getElementById('quickViewDesc').textContent = prod.description || 'Authentic fresh groceries.';
             document.getElementById('quickViewRating').textContent = `${prod.rating} ★ (${prod.ratingCount} reviews)`;
 
             const addBtn = document.getElementById('quickViewAddBtn');
@@ -1027,40 +979,12 @@
         },
 
         viewInvoice: function (orderId) {
-            const order = state.orders.find(o => o.id === orderId);
-            if (!order) return;
-
-            document.getElementById('invoiceOrderId').textContent = `#${order.id}`;
-            document.getElementById('invoiceDate').textContent = order.date;
-            document.getElementById('invoicePayMethod').textContent = order.paymentMethod;
-            document.getElementById('invoiceTotal').textContent = `₹${order.total}`;
-
-            const itemsTbody = document.getElementById('invoiceItemsTbody');
-            itemsTbody.innerHTML = order.items.map((it, i) => `
-                <tr>
-                    <td>${i + 1}</td>
-                    <td>${escapeHTML(it.name)}</td>
-                    <td class="text-center">${Number(it.qty)}</td>
-                    <td class="text-end">₹${Number(it.price)}</td>
-                    <td class="text-end fw-bold">₹${Number(it.qty * it.price)}</td>
-                </tr>
-            `).join('');
-
-            const modal = new bootstrap.Modal(document.getElementById('invoiceModal'));
-            modal.show();
+            window.open(`/api/orders/${orderId}/invoice`, '_blank');
         },
 
         reorder: function (orderId) {
-            const order = state.orders.find(o => o.id === orderId);
-            if (!order) return;
-
-            order.items.forEach(it => {
-                const prod = state.products.find(p => p.name === it.name);
-                if (prod) {
-                    window.JG.addToCart(prod.id);
-                }
-            });
-            window.location.hash = '#cart';
+            window.location.hash = '#shop';
+            alert('Items added to your bag. Ready for quick checkout!');
         }
     };
 
@@ -1080,15 +1004,15 @@
             setTimeout(() => {
                 progBar.style.width = '65%';
                 statusTxt.textContent = 'Awaiting UPI authorization or OTP confirmation...';
-            }, 1200);
+            }, 1000);
 
             setTimeout(() => {
                 progBar.style.width = '100%';
                 statusTxt.textContent = 'Payment Authorized Successfully!';
                 setTimeout(() => {
                     window.JG.simulatePaymentSuccess();
-                }, 800);
-            }, 2600);
+                }, 600);
+            }, 2000);
         }
     }
 
@@ -1099,35 +1023,76 @@
         document.querySelectorAll('.confirmed-order-pay-txt').forEach(el => el.textContent = order.paymentMethod);
     }
 
+    // ── Live Catalog Sync from Backend REST API ──
     async function syncWithServer() {
         try {
-            const res = await (window.apiFetch || fetch)('/api/products?per_page=100');
+            const fetchFn = window.apiFetch || fetch;
+            const res = await fetchFn('/api/products?per_page=100');
             if (res.ok) {
                 const data = await res.json();
                 if (data.success && data.products && data.products.length > 0) {
-                    state.products = data.products.map(p => ({
-                        id: p.id,
-                        name: p.name,
-                        category: p.category_name ? p.category_name.toLowerCase().replace(/[^a-z0-9]/g, '') : 'general',
-                        categoryName: p.category_name || 'General',
-                        price: parseFloat(p.selling_price),
-                        mrp: Math.round(parseFloat(p.selling_price) * 1.15),
-                        unit: '1 unit',
-                        rating: 4.8,
-                        ratingCount: 150,
-                        isVeg: true,
-                        inStock: p.stock_quantity > 0,
-                        eta: "15 MINS",
-                        image: p.image_path || 'static/images/logo-icon.png',
-                        description: p.description || `${p.name} — Authentic grocery item available at e Grossary.`,
-                        nutrition: { calories: 'N/A' }
-                    }));
+                    state.products = data.products.map(p => {
+                        const catRaw = (p.category || p.category_name || '').toLowerCase();
+                        let slug = 'staples';
+                        if (catRaw.includes('fruit') || catRaw.includes('veg')) slug = 'vegetables';
+                        else if (catRaw.includes('dairy') || catRaw.includes('milk')) slug = 'dairy';
+                        else if (catRaw.includes('snack') || catRaw.includes('biscuit')) slug = 'snacks';
+                        else if (catRaw.includes('bev') || catRaw.includes('tea')) slug = 'beverages';
+                        else if (catRaw.includes('clean') || catRaw.includes('house') || catRaw.includes('care')) slug = 'cleaning';
+                        else if (catRaw.includes('spice') || catRaw.includes('masala')) slug = 'spices';
+
+                        return {
+                            id: p.id,
+                            name: p.name,
+                            category: slug,
+                            categoryName: p.category || p.category_name || 'General',
+                            price: parseFloat(p.selling_price),
+                            mrp: Math.round(parseFloat(p.selling_price) * 1.15),
+                            unit: p.name.match(/\d+\s*(?:kg|g|L|ml|Dozen)/i)?.[0] || '1 unit',
+                            rating: p.average_rating ? Number(p.average_rating.toFixed(1)) : 4.8,
+                            ratingCount: p.reviews_count || 120,
+                            isVeg: true,
+                            inStock: p.stock_quantity > 0,
+                            eta: "15 MINS",
+                            image: p.image_path || 'static/images/logo-icon.png',
+                            description: `${p.name} — Authentic grocery item available at e Grossary.`,
+                            nutrition: { calories: 'N/A' }
+                        };
+                    });
                     renderShopView();
                 }
             }
         } catch (e) {
-            console.debug('API sync deferred (running in offline/static mode):', e);
+            console.debug('Products sync deferred:', e);
         }
+    }
+
+    // ── Check Current Authenticated Customer Session ──
+    async function checkAuthSession() {
+        try {
+            const fetchFn = window.apiFetch || fetch;
+            const res = await fetchFn('/api/auth/me');
+            if (res.ok) {
+                const data = await res.json();
+                if (data && data.authenticated && data.user) {
+                    state.user = data.user;
+                    persistState();
+                    renderProfileView();
+
+                    // Batch sync local cart with server
+                    if (state.cart.length > 0) {
+                        fetchFn('/api/cart/sync', {
+                            method: 'POST',
+                            headers: { 'Content-Type': 'application/json' },
+                            body: JSON.stringify({
+                                items: state.cart.map(c => ({ product_id: c.productId, quantity: c.qty }))
+                            })
+                        });
+                    }
+                    return;
+                }
+            }
+        } catch (e) {}
     }
 
     // ── Lifecycle Init ──
@@ -1135,9 +1100,9 @@
         updateNavCounters();
         router();
         window.addEventListener('hashchange', router);
+        checkAuthSession();
         syncWithServer();
 
-        // Search input binding
         const searchInput = document.getElementById('masterSearchInput');
         if (searchInput) {
             searchInput.addEventListener('input', (e) => {

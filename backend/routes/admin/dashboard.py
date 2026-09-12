@@ -57,7 +57,7 @@ def dashboard():
             'profit': float(getattr(s, 'profit', 0) or 0),
         }
 
-    return jsonify({
+    stats_dict = {
         'stats_1_day': _stats_dict(stats_1_day),
         'stats_7_days': _stats_dict(stats_7_days),
         'stats_30_days': _stats_dict(stats_30_days),
@@ -69,6 +69,12 @@ def dashboard():
         'total_order_revenue': float(order_stats.total_revenue),
         'total_order_profit': float(total_order_profit),
         'pending_orders': pending_orders,
+    }
+
+    return jsonify({
+        'success': True,
+        'stats': stats_dict,
+        **stats_dict
     })
 
 

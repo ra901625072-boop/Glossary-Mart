@@ -44,6 +44,7 @@ def create_app(config_class=Config):
             r"/api/*": {"origins": app.config.get("CORS_ALLOWED_ORIGINS", "*")},
             r"/static/uploads/*": {"origins": app.config.get("CORS_ALLOWED_ORIGINS", "*")},
             r"/auth/*": {"origins": app.config.get("CORS_ALLOWED_ORIGINS", "*")},
+            r"/admin/*": {"origins": app.config.get("CORS_ALLOWED_ORIGINS", "*")},
             r"/health": {"origins": "*"},
             r"/": {"origins": "*"}
         },
@@ -130,12 +131,15 @@ def register_blueprints(app):
     from .routes.security import security_bp
     from .routes.api import api_bp
 
-    # Exempt REST API from CSRF protection for cross-origin / decoupled frontend requests
+    # Exempt REST APIs from CSRF protection for cross-origin / decoupled frontend requests
     csrf.exempt(api_bp)
+    csrf.exempt(admin_bp)
 
     app.register_blueprint(api_bp)
     app.register_blueprint(auth_bp)
     app.register_blueprint(admin_bp)
+    # Register admin blueprint also under /api/admin for Vercel/proxy REST API consistency
+    app.register_blueprint(admin_bp, url_prefix='/api/admin', name='api_admin')
     app.register_blueprint(customer_bp)
     app.register_blueprint(security_bp)
 

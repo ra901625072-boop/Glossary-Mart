@@ -27,11 +27,18 @@ def get_cart():
                 'added_at': None
             })
 
+    count = sum(i['quantity'] for i in items)
+    cart_obj = {
+        'items': items,
+        'total': float(total),
+        'item_count': count
+    }
     return jsonify({
         'success': True,
         'items': items,
         'total': float(total),
-        'item_count': sum(i['quantity'] for i in items)
+        'item_count': count,
+        'cart': cart_obj
     }), 200
 
 
@@ -91,3 +98,29 @@ def clear_cart():
         session['cart'] = {}
         session.modified = True
     return jsonify({'success': True, 'message': 'Cart cleared'}), 200
+
+
+@api_bp.route('/cart/sync', methods=['POST'])
+def sync_cart():
+    """
+    Batch sync guest/local cart items into the user's or session's cart.
+    Payload: { "items": [ { "product_id": 1, "quantity": 2 }, ... ] }
+    """
+    data = request.get_json(silent=True) or {}
+    items = data.get('items', [])
+    if isinstance(items, list):
+        for item in items:
+            if not isinstance(item, dict):
+                continue
+            pid = item.get('product_id') or item.get('productId') or item.get('id')
+            qty = item.get('quantity') or item.get('qty', 1)
+            try:
+                pid = int(pid)
+                qty = int(qty)
+                if pid > 0 and qty > 0:
+                    CartService.add_item(pid, qty)
+            except (ValueError, TypeError):
+                continue
+
+    return get_cart()
+
