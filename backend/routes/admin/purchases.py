@@ -4,6 +4,7 @@ from flask import current_app, jsonify, request
 from database.models import db
 from database.models.product import Product
 from database.models.inventory import Supplier, Purchase
+from backend.services.inventory_service import InventoryService
 from backend.routes.decorators import admin_required
 from . import admin_bp
 
@@ -78,8 +79,12 @@ def add_purchase():
         total_cost=total_cost,
     )
 
-    # Increase stock and update cost/supplier info from latest purchase
-    product.stock_quantity += quantity
+    # Use InventoryService for row-locked, concurrency-safe stock addition with audit logging
+    ok, msg = InventoryService.add_stock(product_id, quantity, triggered_by='purchase')
+    if not ok:
+        db.session.rollback()
+        return jsonify({'success': False, 'message': msg}), 400
+
     product.cost_price = purchase_price
     supplier = db.session.get(Supplier, supplier_id)
     if supplier:

@@ -65,16 +65,15 @@ def admin_order_detail(order_id):
         return jsonify({'error': 'Order not found.'}), 404
 
     items = []
-    if hasattr(order, 'items'):
-        for oi in order.items:
-            items.append({
-                'product_name': oi.product.name if oi.product else 'Unknown',
-                'product_id': oi.product_id,
-                'quantity': oi.quantity,
-                'price': float(oi.price),
-                'profit': float(oi.profit) if oi.profit else 0,
-                'subtotal': float(oi.price * oi.quantity),
-            })
+    for oi in order.order_items:
+        items.append({
+            'product_name': oi.product.name if oi.product else 'Unknown',
+            'product_id': oi.product_id,
+            'quantity': oi.quantity,
+            'price': float(oi.price),
+            'profit': float(oi.profit) if oi.profit else 0,
+            'subtotal': float(oi.price * oi.quantity),
+        })
 
     return jsonify({
         'id': order.id,

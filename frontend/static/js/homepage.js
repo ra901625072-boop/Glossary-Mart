@@ -246,31 +246,31 @@
         const qty = cartItem ? cartItem.quantity : 1;
 
         return `
-            <div class="product-card" id="card-${p.id}">
-                ${p.discount ? `<span class="discount-badge-pill">${p.discount}</span>` : ''}
-                <div class="product-img-box" onclick="openQuickView('${p.id}')" style="cursor: pointer;">
-                    <img src="${p.image}" alt="${p.name}" class="product-img" loading="lazy">
+            <div class="product-card" id="card-${escapeHTML(String(p.id))}">
+                ${p.discount ? `<span class="discount-badge-pill">${escapeHTML(p.discount)}</span>` : ''}
+                <div class="product-img-box" onclick="openQuickView('${escapeHTML(String(p.id))}')" style="cursor: pointer;">
+                    <img src="${escapeHTML(p.image)}" alt="${escapeHTML(p.name)}" class="product-img" loading="lazy">
                 </div>
                 <div class="product-info">
                     <div class="product-rating">
                         <i class="bi bi-star-fill star-icon"></i>
-                        <span class="fw-bold">${p.rating}</span>
-                        <span class="review-count">(${p.reviews})</span>
+                        <span class="fw-bold">${Number(p.rating)}</span>
+                        <span class="review-count">(${Number(p.reviews)})</span>
                     </div>
-                    <h4 class="product-name" title="${p.name}" onclick="openQuickView('${p.id}')" style="cursor: pointer;">${p.name}</h4>
+                    <h4 class="product-name" title="${escapeHTML(p.name)}" onclick="openQuickView('${escapeHTML(String(p.id))}')" style="cursor: pointer;">${escapeHTML(p.name)}</h4>
                     <div class="product-price-row">
-                        <span class="current-price">₹${p.price}</span>
-                        ${p.mrp ? `<span class="mrp-price">₹${p.mrp}</span>` : ''}
+                        <span class="current-price">₹${Number(p.price)}</span>
+                        ${p.mrp ? `<span class="mrp-price">₹${Number(p.mrp)}</span>` : ''}
                     </div>
-                    <div class="product-unit">${p.unit}</div>
+                    <div class="product-unit">${escapeHTML(p.unit)}</div>
                 </div>
                 <div class="product-card-actions">
                     <div class="stepper-box">
-                        <button class="stepper-btn" onclick="updateItemQuantity('${p.id}', -1)" aria-label="Decrease quantity">&minus;</button>
-                        <span class="stepper-value" id="stepper-val-${p.id}">${qty}</span>
-                        <button class="stepper-btn" onclick="updateItemQuantity('${p.id}', 1)" aria-label="Increase quantity">&plus;</button>
+                        <button class="stepper-btn" onclick="updateItemQuantity('${escapeHTML(String(p.id))}', -1)" aria-label="Decrease quantity">&minus;</button>
+                        <span class="stepper-value" id="stepper-val-${escapeHTML(String(p.id))}">${Number(qty)}</span>
+                        <button class="stepper-btn" onclick="updateItemQuantity('${escapeHTML(String(p.id))}', 1)" aria-label="Increase quantity">&plus;</button>
                     </div>
-                    <button class="btn-card-add" onclick="addToCart('${p.id}')">
+                    <button class="btn-card-add" onclick="addToCart('${escapeHTML(String(p.id))}')">
                         Add
                     </button>
                 </div>
@@ -383,20 +383,20 @@
             } else {
                 cartContainer.innerHTML = cart.map(item => `
                     <div class="cart-item-row">
-                        <img src="${item.image}" alt="${item.name}" class="cart-item-img">
+                        <img src="${escapeHTML(item.image)}" alt="${escapeHTML(item.name)}" class="cart-item-img">
                         <div class="cart-item-details">
-                            <div class="cart-item-title">${item.name}</div>
-                            <div class="cart-item-price">₹${item.price} <span class="small text-muted">(${item.unit})</span></div>
+                            <div class="cart-item-title">${escapeHTML(item.name)}</div>
+                            <div class="cart-item-price">₹${Number(item.price)} <span class="small text-muted">(${escapeHTML(item.unit)})</span></div>
                             <div class="d-flex align-items-center gap-2 mt-1">
-                                <div class="stepper-box" style="height: 28px; width: 90px;">
-                                    <button class="stepper-btn" onclick="updateItemQuantity('${item.id}', -1)">&minus;</button>
-                                    <span class="stepper-value">${item.quantity}</span>
-                                    <button class="stepper-btn" onclick="updateItemQuantity('${item.id}', 1)">&plus;</button>
-                                </div>
-                                <span class="small fw-bold text-dark">₹${item.price * item.quantity}</span>
+                                 <div class="stepper-box" style="height: 28px; width: 90px;">
+                                     <button class="stepper-btn" onclick="updateItemQuantity('${escapeHTML(String(item.id))}', -1)">&minus;</button>
+                                     <span class="stepper-value">${Number(item.quantity)}</span>
+                                     <button class="stepper-btn" onclick="updateItemQuantity('${escapeHTML(String(item.id))}', 1)">&plus;</button>
+                                 </div>
+                                 <span class="small fw-bold text-dark">₹${Number(item.price) * Number(item.quantity)}</span>
                             </div>
                         </div>
-                        <button class="cart-item-remove-btn" onclick="removeCartItem('${item.id}')" title="Remove item">
+                        <button class="cart-item-remove-btn" onclick="removeCartItem('${escapeHTML(String(item.id))}')" title="Remove item">
                             <i class="bi bi-trash3"></i>
                         </button>
                     </div>
@@ -532,16 +532,16 @@
             dropdown.innerHTML = `<div class="p-3 text-muted small text-center">No grocery products found for "${escapeHTML(query)}".</div>`;
         } else {
             dropdown.innerHTML = matches.map(p => `
-                <div class="search-suggestion-item" onclick="selectSearchResult('${p.id}')">
+                <div class="search-suggestion-item" onclick="selectSearchResult('${escapeHTML(String(p.id))}')">
                     <div class="d-flex align-items-center gap-2">
-                        <img src="${p.image}" alt="${p.name}" style="width: 36px; height: 36px; object-fit: contain; border-radius: 4px;">
+                        <img src="${escapeHTML(p.image)}" alt="${escapeHTML(p.name)}" style="width: 36px; height: 36px; object-fit: contain; border-radius: 4px;">
                         <div>
-                            <div class="small fw-bold text-dark">${p.name}</div>
-                            <div class="smallest text-muted">${p.unit}</div>
+                            <div class="small fw-bold text-dark">${escapeHTML(p.name)}</div>
+                            <div class="smallest text-muted">${escapeHTML(p.unit)}</div>
                         </div>
                     </div>
                     <div class="text-end">
-                        <span class="small fw-bold text-success">₹${p.price}</span>
+                        <span class="small fw-bold text-success">₹${Number(p.price)}</span>
                     </div>
                 </div>
             `).join('');

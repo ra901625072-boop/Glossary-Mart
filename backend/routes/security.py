@@ -58,7 +58,8 @@ def forgot_password():
     
     user = db.session.query(User).filter_by(email=email).first()
     if user:
-        token = secrets.token_urlsafe(32)
+        raw_token = secrets.token_urlsafe(32)
+        token = f"{raw_token}.{int(time.time())}"
         user.reset_token = hash_token(token)
         db.session.commit()
         try:
@@ -67,7 +68,7 @@ def forgot_password():
                 recipients=[user.email],
             )
             reset_url = url_for("security.reset_password", token=token, _external=True)
-            msg.body = f"Click here to reset your password: {reset_url}\nIf you did not request this, please ignore it."
+            msg.body = f"Click here to reset your password: {reset_url}\nThis link expires in 15 minutes. If you did not request this, please ignore it."
             mail.send(msg)
         except Exception:
             current_app.logger.exception("Failed to send password reset email")
@@ -82,6 +83,20 @@ def forgot_password():
 @security_bp.route("/reset-password/<token>", methods=["GET", "POST"])
 @limiter.limit("5 per minute")
 def reset_password(token):
+    # Enforce 15-minute token expiration
+    if "." in token:
+        try:
+            _, ts_str = token.rsplit(".", 1)
+            token_time = int(ts_str)
+            if time.time() - token_time > 900:  # 15 minutes
+                msg = "This password reset link has expired. Please request a new one."
+                if request.is_json:
+                    return jsonify({"success": False, "message": msg}), 400
+                flash(msg, "danger")
+                return redirect(url_for("auth.customer_login"))
+        except (ValueError, TypeError):
+            pass
+
     user = db.session.query(User).filter_by(reset_token=hash_token(token)).first()
     if not user:
         if request.is_json:
@@ -100,8 +115,14 @@ def reset_password(token):
         password = request.form.get("password")
         confirm_password = request.form.get("confirm_password")
 
-    if not password or len(password) < 8:
-        msg = "Password must be at least 8 characters."
+    min_length = current_app.config.get("MIN_PASSWORD_LENGTH", 8)
+    if not password or len(password) < min_length:
+        msg = f"Password must be at least {min_length} characters."
+        if request.is_json:
+            return jsonify({"success": False, "message": msg}), 400
+        flash(msg, "danger")
+    elif password in ("password", "password123", "12345678", "admin123", "qwertyuiop"):
+        msg = "Password is too common or easily guessed."
         if request.is_json:
             return jsonify({"success": False, "message": msg}), 400
         flash(msg, "danger")
@@ -126,6 +147,7 @@ def reset_password(token):
 
 
 @security_bp.route("/setup-2fa", methods=["GET", "POST"])
+@limiter.limit("5 per minute")
 def setup_2fa():
     if not current_user.is_authenticated or current_user.role != "admin":
         if request.is_json:
@@ -167,7 +189,7 @@ def setup_2fa():
             token = request.form.get("token")
         totp = pyotp.TOTP(current_user.two_factor_secret)
 
-        if totp.verify(token):
+        if totp.verify(token, valid_window=1):
             current_user.two_factor_enabled = True
             db.session.commit()
             if request.is_json:
@@ -182,6 +204,7 @@ def setup_2fa():
 
 
 @security_bp.route("/verify-2fa", methods=["GET", "POST"])
+@limiter.limit("5 per minute")
 def verify_2fa():
     if "2fa_user_id" not in session or "2fa_expires_at" not in session:
         if request.is_json:
@@ -197,21 +220,27 @@ def verify_2fa():
         return redirect(url_for("auth.login"))
 
     user = db.session.get(User, session["2fa_user_id"])
+    if not user or not user.two_factor_secret:
+        return jsonify({"success": False, "message": "Invalid 2FA account state."}), 400
 
     if request.method == "GET":
         return serve_frontend_page("admin.html")
 
     # POST — verify 2FA code
     if request.is_json:
-        token = request.json.get("token", "")
+        token = str(request.json.get("token", "")).strip()
     else:
-        token = request.form.get("token")
+        token = str(request.form.get("token", "")).strip()
     totp = pyotp.TOTP(user.two_factor_secret)
 
-    if totp.verify(token):
-        login_user(user)
+    if totp.verify(token, valid_window=1):
         session.pop("2fa_user_id", None)
         session.pop("2fa_expires_at", None)
+        old_cart = session.get("cart")
+        session.clear()
+        if old_cart:
+            session["cart"] = old_cart
+        login_user(user)
         if request.is_json:
             return jsonify({"success": True, "message": "Login successful!", "redirect": url_for("admin.dashboard")})
         flash("Login successful!", "success")

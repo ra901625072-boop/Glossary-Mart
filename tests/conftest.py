@@ -49,9 +49,12 @@ def session(_db, app):
         _db.session.commit()
         _db.session.remove()
 
+from backend.extensions import limiter
+
 @pytest.fixture(scope='function')
 def client(app, session):
     """A test client for the app."""
+    limiter.reset()
     return app.test_client()
 
 @pytest.fixture(scope='function')

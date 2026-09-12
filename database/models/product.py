@@ -61,25 +61,27 @@ class Product(db.Model):
             return Decimal(str(margin)).quantize(Decimal('0.1'))
         return 0
 
-    def to_dict(self):
-        """Convert product to dictionary"""
-        return {
+    def to_dict(self, is_admin=False):
+        """Convert product to dictionary (redacting wholesale metrics for non-admins)"""
+        data = {
             'id': self.id,
             'name': self.name,
             'category': self.category_rel.name if self.category_rel else 'Uncategorized',
             'category_name': self.category_rel.name if self.category_rel else 'Uncategorized',
             'category_id': self.category_id,
-            'cost_price': float(self.cost_price),
             'selling_price': float(self.selling_price),
             'stock_quantity': self.stock_quantity,
-            'minimum_stock_alert': self.minimum_stock_alert,
-            'supplier_name': self.supplier_name,
             'image_path': self.image_path,
-            'profit_margin': float(self.profit_margin),
             'average_rating': float(self.average_rating),
             'reviews_count': len(self.reviews),
-            'created_at': self.created_at.strftime('%Y-%m-%d %H:%M:%S')
+            'created_at': self.created_at.strftime('%Y-%m-%d %H:%M:%S') if self.created_at else None
         }
+        if is_admin:
+            data['cost_price'] = float(self.cost_price)
+            data['profit_margin'] = float(self.profit_margin)
+            data['minimum_stock_alert'] = self.minimum_stock_alert
+            data['supplier_name'] = self.supplier_name
+        return data
 
 
 class Review(db.Model):

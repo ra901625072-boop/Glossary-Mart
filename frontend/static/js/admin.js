@@ -6,6 +6,19 @@
 (function () {
     'use strict';
 
+    function escapeHTML(str) {
+        if (str === null || str === undefined) return '';
+        return String(str).replace(/[&<>"']/g, function (m) {
+            return {
+                '&': '&amp;',
+                '<': '&lt;',
+                '>': '&gt;',
+                '"': '&quot;',
+                "'": '&#39;'
+            }[m];
+        });
+    }
+
     // ── Pre-Seeded ERP Data ──
     const DEFAULT_PRODUCTS = [
         { id: 1, sku: 'JG-STA-001', name: 'Aashirvaad Superior MP Atta 5kg', category: 'Staples & Grains', cost: 240, price: 279, stock: 50, image: 'https://images.unsplash.com/photo-1586201375761-83865001e31c?auto=format&fit=crop&w=300&q=80' },
@@ -184,13 +197,13 @@
             } else {
                 recentOrdersTbody.innerHTML = state.orders.slice(0, 5).map(o => `
                     <tr>
-                        <td class="fw-bold text-dark">#${o.id}</td>
-                        <td>${o.customer || 'Customer'}</td>
-                        <td>${o.date}</td>
-                        <td class="fw-bold">₹${o.total}</td>
-                        <td><span class="badge ${getStatusBadgeClass(o.status)}">${o.status}</span></td>
+                        <td class="fw-bold text-dark">#${escapeHTML(o.id)}</td>
+                        <td>${escapeHTML(o.customer || 'Customer')}</td>
+                        <td>${escapeHTML(o.date)}</td>
+                        <td class="fw-bold">₹${escapeHTML(o.total)}</td>
+                        <td><span class="badge ${getStatusBadgeClass(o.status)}">${escapeHTML(o.status)}</span></td>
                         <td>
-                            <button class="btn btn-sm btn-outline-success rounded-pill px-3" onclick="window.Adm.viewOrderDetail('${o.id}')">
+                            <button class="btn btn-sm btn-outline-success rounded-pill px-3" onclick="window.Adm.viewOrderDetail('${escapeHTML(o.id)}')">
                                 View
                             </button>
                         </td>
@@ -268,13 +281,13 @@
 
         grid.innerHTML = state.products.map(p => `
             <div class="col-6 col-md-4 col-xl-3">
-                <div class="pos-product-tile" onclick="window.Adm.posAddToCart(${p.id})">
-                    <img src="${p.image}" alt="${p.name}" class="pos-product-img">
-                    <div class="fw-bold text-dark text-truncate small">${p.name}</div>
+                <div class="pos-product-tile" onclick="window.Adm.posAddToCart(${Number(p.id)})">
+                    <img src="${escapeHTML(p.image)}" alt="${escapeHTML(p.name)}" class="pos-product-img">
+                    <div class="fw-bold text-dark text-truncate small">${escapeHTML(p.name)}</div>
                     <div class="d-flex justify-content-between align-items-center mt-2">
-                        <span class="fw-bold text-success">₹${p.price}</span>
+                        <span class="fw-bold text-success">₹${Number(p.price)}</span>
                         <span class="smallest badge ${p.stock <= 5 ? 'bg-danger' : 'bg-light text-dark border'}">
-                            Qty: ${p.stock}
+                            Qty: ${Number(p.stock)}
                         </span>
                     </div>
                 </div>
@@ -312,17 +325,17 @@
             return `
                 <div class="d-flex align-items-center justify-content-between py-2 border-bottom">
                     <div class="text-truncate me-2" style="max-width: 140px;">
-                        <div class="fw-bold text-dark small text-truncate">${p.name}</div>
-                        <div class="smallest text-muted">₹${p.price} x ${item.qty}</div>
+                        <div class="fw-bold text-dark small text-truncate">${escapeHTML(p.name)}</div>
+                        <div class="smallest text-muted">₹${Number(p.price)} x ${Number(item.qty)}</div>
                     </div>
                     <div class="d-flex align-items-center gap-2">
                         <div class="btn-group btn-group-sm">
-                            <button class="btn btn-outline-secondary btn-sm px-2" onclick="window.Adm.posUpdateQty(${p.id}, -1)">-</button>
-                            <span class="btn btn-light btn-sm fw-bold disabled text-dark" style="width: 32px;">${item.qty}</span>
-                            <button class="btn btn-outline-secondary btn-sm px-2" onclick="window.Adm.posUpdateQty(${p.id}, 1)">+</button>
+                            <button class="btn btn-outline-secondary btn-sm px-2" onclick="window.Adm.posUpdateQty(${Number(p.id)}, -1)">-</button>
+                            <span class="btn btn-light btn-sm fw-bold disabled text-dark" style="width: 32px;">${Number(item.qty)}</span>
+                            <button class="btn btn-outline-secondary btn-sm px-2" onclick="window.Adm.posUpdateQty(${Number(p.id)}, 1)">+</button>
                         </div>
                         <div class="fw-bold text-dark small text-end" style="min-width: 50px;">₹${lineTotal}</div>
-                        <button class="btn btn-link text-danger p-0 ms-1" onclick="window.Adm.posRemoveItem(${p.id})">
+                        <button class="btn btn-link text-danger p-0 ms-1" onclick="window.Adm.posRemoveItem(${Number(p.id)})">
                             <i class="bi bi-x fs-5"></i>
                         </button>
                     </div>
@@ -347,28 +360,28 @@
             const margin = Math.round(((p.price - p.cost) / p.price) * 100);
             return `
                 <tr>
-                    <td class="text-muted smallest font-monospace">${p.sku}</td>
+                    <td class="text-muted smallest font-monospace">${escapeHTML(p.sku)}</td>
                     <td>
                         <div class="d-flex align-items-center gap-2">
-                            <img src="${p.image}" alt="${p.name}" class="rounded" style="width: 36px; height: 36px; object-fit: contain; background:#f8fafc; border:1px solid #e2e8f0;">
-                            <span class="fw-bold text-dark">${p.name}</span>
+                            <img src="${escapeHTML(p.image)}" alt="${escapeHTML(p.name)}" class="rounded" style="width: 36px; height: 36px; object-fit: contain; background:#f8fafc; border:1px solid #e2e8f0;">
+                            <span class="fw-bold text-dark">${escapeHTML(p.name)}</span>
                         </div>
                     </td>
-                    <td><span class="badge bg-light text-dark border">${p.category}</span></td>
-                    <td>₹${p.cost}</td>
-                    <td class="fw-bold text-dark">₹${p.price}</td>
+                    <td><span class="badge bg-light text-dark border">${escapeHTML(p.category)}</span></td>
+                    <td>₹${Number(p.cost)}</td>
+                    <td class="fw-bold text-dark">₹${Number(p.price)}</td>
                     <td><span class="badge bg-success-subtle text-success fw-bold">${margin}%</span></td>
                     <td>
                         <span class="badge ${p.stock <= 5 ? 'bg-danger' : 'bg-success'}">
-                            ${p.stock} units
+                            ${Number(p.stock)} units
                         </span>
                     </td>
                     <td>
                         <div class="d-flex gap-1">
-                            <button class="btn btn-sm btn-outline-primary rounded-pill px-2" title="Edit" onclick="window.Adm.openEditProductModal(${p.id})">
+                            <button class="btn btn-sm btn-outline-primary rounded-pill px-2" title="Edit" onclick="window.Adm.openEditProductModal(${Number(p.id)})">
                                 <i class="bi bi-pencil-square"></i>
                             </button>
-                            <button class="btn btn-sm btn-outline-danger rounded-pill px-2" title="Delete" onclick="window.Adm.deleteProduct(${p.id})">
+                            <button class="btn btn-sm btn-outline-danger rounded-pill px-2" title="Delete" onclick="window.Adm.deleteProduct(${Number(p.id)})">
                                 <i class="bi bi-trash3"></i>
                             </button>
                         </div>
@@ -389,12 +402,12 @@
                 <div class="col-md-6 col-xl-4">
                     <div class="kpi-card p-4">
                         <div class="d-flex justify-content-between align-items-start mb-3">
-                            <div class="fs-1">${c.icon || '📦'}</div>
+                            <div class="fs-1">${escapeHTML(c.icon || '📦')}</div>
                             <span class="badge bg-success text-white px-3 py-1 rounded-pill">${prodCount} Products</span>
                         </div>
-                        <h4 class="fw-bold brand-font text-dark mb-1">${c.name}</h4>
-                        <p class="text-muted small mb-3">${c.desc || 'Category items collection'}</p>
-                        <button class="btn btn-sm btn-outline-secondary rounded-pill px-3" onclick="window.Adm.filterInventoryByCategory('${c.name}')">
+                        <h4 class="fw-bold brand-font text-dark mb-1">${escapeHTML(c.name)}</h4>
+                        <p class="text-muted small mb-3">${escapeHTML(c.desc || 'Category items collection')}</p>
+                        <button class="btn btn-sm btn-outline-secondary rounded-pill px-3" onclick="window.Adm.filterInventoryByCategory('${escapeHTML(c.name)}')">
                             <i class="bi bi-eye me-1"></i> View Items
                         </button>
                     </div>
@@ -415,17 +428,17 @@
 
         tbody.innerHTML = state.orders.map(o => `
             <tr>
-                <td class="fw-bold text-dark">#${o.id}</td>
+                <td class="fw-bold text-dark">#${escapeHTML(o.id)}</td>
                 <td>
-                    <div class="fw-bold">${o.customer || 'Customer'}</div>
-                    <div class="smallest text-muted">${o.phone || ''}</div>
+                    <div class="fw-bold">${escapeHTML(o.customer || 'Customer')}</div>
+                    <div class="smallest text-muted">${escapeHTML(o.phone || '')}</div>
                 </td>
-                <td class="small">${o.date}</td>
+                <td class="small">${escapeHTML(o.date)}</td>
                 <td class="text-center">${o.items ? o.items.length : 1} items</td>
-                <td class="fw-bold text-dark">₹${o.total}</td>
-                <td><span class="badge bg-light text-dark border small">${o.payment || 'UPI'}</span></td>
+                <td class="fw-bold text-dark">₹${escapeHTML(o.total)}</td>
+                <td><span class="badge bg-light text-dark border small">${escapeHTML(o.payment || 'UPI')}</span></td>
                 <td>
-                    <select class="form-select form-select-sm rounded-pill" style="width: 140px;" onchange="window.Adm.updateOrderStatus('${o.id}', this.value)">
+                    <select class="form-select form-select-sm rounded-pill" style="width: 140px;" onchange="window.Adm.updateOrderStatus('${escapeHTML(o.id)}', this.value)">
                         <option value="Confirmed" ${o.status === 'Confirmed' || o.status === 'Order Placed' ? 'selected' : ''}>Confirmed</option>
                         <option value="Shipped" ${o.status === 'Shipped' || o.status === 'Out for Delivery' ? 'selected' : ''}>Shipped</option>
                         <option value="Delivered" ${o.status === 'Delivered' ? 'selected' : ''}>Delivered</option>
@@ -433,7 +446,7 @@
                     </select>
                 </td>
                 <td>
-                    <button class="btn btn-sm btn-outline-success rounded-pill px-3" onclick="window.Adm.viewOrderDetail('${o.id}')">
+                    <button class="btn btn-sm btn-outline-success rounded-pill px-3" onclick="window.Adm.viewOrderDetail('${escapeHTML(o.id)}')">
                         <i class="bi bi-file-text me-1"></i>Detail
                     </button>
                 </td>
@@ -456,16 +469,16 @@
                 <td>
                     <div class="d-flex align-items-center gap-2">
                         <div class="bg-success text-white rounded-circle d-inline-flex align-items-center justify-content-center fw-bold" style="width: 32px; height: 32px; font-size: 0.8rem;">
-                            ${c.name.substring(0, 2).toUpperCase()}
+                            ${escapeHTML((c.name || 'CU').substring(0, 2).toUpperCase())}
                         </div>
-                        <span class="fw-bold text-dark">${c.name}</span>
+                        <span class="fw-bold text-dark">${escapeHTML(c.name)}</span>
                     </div>
                 </td>
-                <td>${c.email}</td>
-                <td>${c.phone}</td>
-                <td><span class="badge bg-light text-dark border">${c.city}</span></td>
-                <td class="text-center fw-bold">${c.orders}</td>
-                <td class="fw-bold text-success">₹${c.spend.toLocaleString()}</td>
+                <td>${escapeHTML(c.email)}</td>
+                <td>${escapeHTML(c.phone)}</td>
+                <td><span class="badge bg-light text-dark border">${escapeHTML(c.city)}</span></td>
+                <td class="text-center fw-bold">${Number(c.orders || 0)}</td>
+                <td class="fw-bold text-success">₹${Number(c.spend || 0).toLocaleString()}</td>
             </tr>
         `).join('');
     }
@@ -483,14 +496,14 @@
 
         tbody.innerHTML = validSales.map(o => `
             <tr>
-                <td class="fw-bold text-dark">#BILL-${o.id.replace('JG-', '').replace('EG-', '')}</td>
-                <td>${o.date}</td>
-                <td>${o.customer || 'Walk-in Customer'}</td>
-                <td><span class="badge bg-light text-dark border">${o.payment}</span></td>
-                <td class="fw-bold text-dark">₹${o.total}</td>
+                <td class="fw-bold text-dark">#BILL-${escapeHTML(String(o.id).replace('JG-', '').replace('EG-', ''))}</td>
+                <td>${escapeHTML(o.date)}</td>
+                <td>${escapeHTML(o.customer || 'Walk-in Customer')}</td>
+                <td><span class="badge bg-light text-dark border">${escapeHTML(o.payment)}</span></td>
+                <td class="fw-bold text-dark">₹${escapeHTML(o.total)}</td>
                 <td class="fw-bold text-success">₹${Math.round(o.total * 0.22)}</td>
                 <td>
-                    <button class="btn btn-sm btn-outline-secondary rounded-pill px-2" onclick="window.Adm.viewOrderDetail('${o.id}')">
+                    <button class="btn btn-sm btn-outline-secondary rounded-pill px-2" onclick="window.Adm.viewOrderDetail('${escapeHTML(o.id)}')">
                         <i class="bi bi-printer me-1"></i>Invoice
                     </button>
                 </td>
@@ -510,12 +523,12 @@
 
         tbody.innerHTML = state.purchases.map(p => `
             <tr>
-                <td class="fw-bold text-dark">#${p.id}</td>
-                <td class="font-monospace text-muted small">${p.invoice}</td>
-                <td class="fw-bold">${p.supplier}</td>
-                <td>${p.date}</td>
-                <td class="text-center">${p.itemsCount} units</td>
-                <td class="fw-bold text-dark">₹${p.total.toLocaleString()}</td>
+                <td class="fw-bold text-dark">#${escapeHTML(p.id)}</td>
+                <td class="font-monospace text-muted small">${escapeHTML(p.invoice)}</td>
+                <td class="fw-bold">${escapeHTML(p.supplier)}</td>
+                <td>${escapeHTML(p.date)}</td>
+                <td class="text-center">${Number(p.itemsCount)} units</td>
+                <td class="fw-bold text-dark">₹${Number(p.total).toLocaleString()}</td>
                 <td><span class="badge bg-success">Received</span></td>
             </tr>
         `).join('');
@@ -530,14 +543,14 @@
             <div class="col-md-6 col-xl-4">
                 <div class="kpi-card p-4">
                     <div class="d-flex justify-content-between align-items-center mb-2">
-                        <span class="badge bg-light text-dark border">${s.category}</span>
+                        <span class="badge bg-light text-dark border">${escapeHTML(s.category)}</span>
                         <i class="bi bi-building text-success fs-4"></i>
                     </div>
-                    <h5 class="fw-bold brand-font text-dark mb-1">${s.name}</h5>
-                    <div class="small text-muted mb-2"><i class="bi bi-person me-1"></i>Contact: <strong>${s.contact}</strong></div>
-                    <div class="small text-muted mb-2"><i class="bi bi-telephone me-1"></i>${s.phone}</div>
-                    <div class="small text-muted mb-3"><i class="bi bi-envelope me-1"></i>${s.email}</div>
-                    <button class="btn btn-sm btn-outline-success rounded-pill px-3" onclick="window.Adm.openRecordPurchaseModal('${s.name}')">
+                    <h5 class="fw-bold brand-font text-dark mb-1">${escapeHTML(s.name)}</h5>
+                    <div class="small text-muted mb-2"><i class="bi bi-person me-1"></i>Contact: <strong>${escapeHTML(s.contact)}</strong></div>
+                    <div class="small text-muted mb-2"><i class="bi bi-telephone me-1"></i>${escapeHTML(s.phone)}</div>
+                    <div class="small text-muted mb-3"><i class="bi bi-envelope me-1"></i>${escapeHTML(s.email)}</div>
+                    <button class="btn btn-sm btn-outline-success rounded-pill px-3" onclick="window.Adm.openRecordPurchaseModal('${escapeHTML(s.name)}')">
                         + Record Stock In
                     </button>
                 </div>
@@ -552,18 +565,18 @@
 
         tbody.innerHTML = state.coupons.map(c => `
             <tr>
-                <td class="fw-bold text-success font-monospace">${c.code}</td>
-                <td class="fw-bold">${c.discount}</td>
-                <td>₹${c.minSpend}</td>
-                <td>${c.expiry}</td>
-                <td class="text-center">${c.used} times</td>
+                <td class="fw-bold text-success font-monospace">${escapeHTML(c.code)}</td>
+                <td class="fw-bold">${escapeHTML(c.discount)}</td>
+                <td>₹${Number(c.minSpend)}</td>
+                <td>${escapeHTML(c.expiry)}</td>
+                <td class="text-center">${Number(c.used)} times</td>
                 <td>
                     <span class="badge ${c.active ? 'bg-success' : 'bg-secondary'}">
                         ${c.active ? 'Active' : 'Inactive'}
                     </span>
                 </td>
                 <td>
-                    <button class="btn btn-sm btn-outline-danger rounded-pill px-2" onclick="window.Adm.toggleCoupon(${c.id})">
+                    <button class="btn btn-sm btn-outline-danger rounded-pill px-2" onclick="window.Adm.toggleCoupon(${Number(c.id)})">
                         ${c.active ? 'Deactivate' : 'Activate'}
                     </button>
                 </td>
@@ -588,11 +601,11 @@
                 </div>
                 <div class="flex-grow-1">
                     <div class="d-flex justify-content-between align-items-center mb-1">
-                        <span class="badge bg-dark text-white fw-bold">${a.action}</span>
-                        <span class="smallest text-muted">${a.time}</span>
+                        <span class="badge bg-dark text-white fw-bold">${escapeHTML(a.action)}</span>
+                        <span class="smallest text-muted">${escapeHTML(a.time)}</span>
                     </div>
-                    <div class="small text-dark mb-1">${a.details}</div>
-                    <div class="smallest text-muted">Actor: <strong>${a.actor}</strong></div>
+                    <div class="small text-dark mb-1">${escapeHTML(a.details)}</div>
+                    <div class="smallest text-muted">Actor: <strong>${escapeHTML(a.actor)}</strong></div>
                 </div>
             </div>
         `).join('');
@@ -715,10 +728,10 @@
             const tbody = document.getElementById('billModalItemsTbody');
             tbody.innerHTML = billedItems.map((it, idx) => `
                 <tr>
-                    <td>${idx + 1}. ${it.name}</td>
-                    <td class="text-center">${it.qty}</td>
-                    <td class="text-end">₹${it.price}</td>
-                    <td class="text-end fw-bold">₹${it.total}</td>
+                    <td>${idx + 1}. ${escapeHTML(it.name)}</td>
+                    <td class="text-center">${Number(it.qty)}</td>
+                    <td class="text-end">₹${Number(it.price)}</td>
+                    <td class="text-end fw-bold">₹${Number(it.total)}</td>
                 </tr>
             `).join('');
 
@@ -841,10 +854,10 @@
             tbody.innerHTML = (order.items || []).map((it, i) => `
                 <tr>
                     <td>${i + 1}</td>
-                    <td>${it.name}</td>
-                    <td class="text-center">${it.qty}</td>
-                    <td class="text-end">₹${it.price}</td>
-                    <td class="text-end fw-bold">₹${it.qty * it.price}</td>
+                    <td>${escapeHTML(it.name)}</td>
+                    <td class="text-center">${Number(it.qty)}</td>
+                    <td class="text-end">₹${Number(it.price)}</td>
+                    <td class="text-end fw-bold">₹${Number(it.qty * it.price)}</td>
                 </tr>
             `).join('');
 
@@ -1019,7 +1032,7 @@
         const purchaseProdSelect = document.getElementById('purchaseProductSelect');
         if (purchaseProdSelect) {
             purchaseProdSelect.innerHTML = state.products.map(p => `
-                <option value="${p.id}">${p.name} (Current stock: ${p.stock})</option>
+                <option value="${Number(p.id)}">${escapeHTML(p.name)} (Current stock: ${Number(p.stock)})</option>
             `).join('');
         }
 

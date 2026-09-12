@@ -105,18 +105,20 @@ class OrderItem(db.Model):
         """Calculate subtotal for this order item"""
         return self.price * self.quantity
     
-    def to_dict(self):
-        """Convert order item to dictionary"""
-        return {
+    def to_dict(self, is_admin=False):
+        """Convert order item to dictionary (redacting profit from non-admins)"""
+        data = {
             'id': self.id,
             'order_id': self.order_id,
             'product_id': self.product_id,
             'product_name': self.product.name if self.product else 'Deleted Product',
             'quantity': self.quantity,
             'price': float(self.price) if self.price is not None else 0.0,
-            'profit': float(self.profit) if self.profit is not None else 0.0,
             'subtotal': float(self.subtotal) if self.subtotal is not None else 0.0
         }
+        if is_admin:
+            data['profit'] = float(self.profit) if self.profit is not None else 0.0
+        return data
 
 
 class Wishlist(db.Model):

@@ -6,6 +6,19 @@
 (function () {
     'use strict';
 
+    function escapeHTML(str) {
+        if (str === null || str === undefined) return '';
+        return String(str).replace(/[&<>"']/g, function (m) {
+            return {
+                '&': '&amp;',
+                '<': '&lt;',
+                '>': '&gt;',
+                '"': '&quot;',
+                "'": '&#39;'
+            }[m];
+        });
+    }
+
     // ── Pre-Seeded Product Catalog ──
     const CATALOG = [
         {
@@ -466,14 +479,14 @@
             const qty = cartEntry ? cartEntry.qty : 0;
 
             const actionButtonHtml = qty === 0 ? `
-                <button class="btn-add-cart-init" onclick="window.JG.addToCart(${product.id})">
+                <button class="btn-add-cart-init" onclick="window.JG.addToCart(${Number(product.id)})">
                     <i class="bi bi-plus-lg me-1"></i>ADD
                 </button>
             ` : `
                 <div class="product-qty-stepper">
-                    <button class="stepper-btn" onclick="window.JG.updateCartQty(${product.id}, -1)">-</button>
+                    <button class="stepper-btn" onclick="window.JG.updateCartQty(${Number(product.id)}, -1)">-</button>
                     <span class="stepper-val">${qty}</span>
-                    <button class="stepper-btn" onclick="window.JG.updateCartQty(${product.id}, 1)">+</button>
+                    <button class="stepper-btn" onclick="window.JG.updateCartQty(${Number(product.id)}, 1)">+</button>
                 </div>
             `;
 
@@ -484,36 +497,36 @@
                             ${discountPercent > 0 ? `<span class="discount-badge-pill">${discountPercent}% OFF</span>` : ''}
                             <button class="wishlist-toggle-btn ${inWishlist ? 'active' : ''}" 
                                     title="${inWishlist ? 'Remove from Wishlist' : 'Add to Wishlist'}"
-                                    onclick="window.JG.toggleWishlist(${product.id})">
+                                    onclick="window.JG.toggleWishlist(${Number(product.id)})">
                                 <i class="bi bi-heart${inWishlist ? '-fill' : ''}"></i>
                             </button>
-                            <img src="${product.image}" alt="${product.name}" class="product-thumb-img" 
-                                 onclick="window.JG.openProductModal(${product.id})" style="cursor:pointer;">
+                            <img src="${escapeHTML(product.image)}" alt="${escapeHTML(product.name)}" class="product-thumb-img" 
+                                 onclick="window.JG.openProductModal(${Number(product.id)})" style="cursor:pointer;">
                         </div>
 
                         <div class="delivery-eta-tag">
-                            <i class="bi bi-stopwatch"></i> ${product.eta}
+                            <i class="bi bi-stopwatch"></i> ${escapeHTML(product.eta)}
                         </div>
 
                         <div class="d-flex align-items-center gap-2 mb-1">
                             <span class="veg-icon" title="100% Vegetarian"></span>
-                            <span class="product-pack-size mb-0">${product.unit}</span>
+                            <span class="product-pack-size mb-0">${escapeHTML(product.unit)}</span>
                         </div>
 
-                        <h3 class="product-title-text" onclick="window.JG.openProductModal(${product.id})" style="cursor:pointer;">
-                            ${product.name}
+                        <h3 class="product-title-text" onclick="window.JG.openProductModal(${Number(product.id)})" style="cursor:pointer;">
+                            ${escapeHTML(product.name)}
                         </h3>
 
                         <div class="product-rating-line">
                             <span>★</span>
-                            <span class="text-dark fw-bold">${product.rating}</span>
-                            <span class="text-muted">(${product.ratingCount})</span>
+                            <span class="text-dark fw-bold">${Number(product.rating)}</span>
+                            <span class="text-muted">(${Number(product.ratingCount)})</span>
                         </div>
 
                         <div class="price-box-wrap">
                             <div>
-                                <span class="curr-price">₹${product.price}</span>
-                                ${product.mrp > product.price ? `<span class="mrp-strike">₹${product.mrp}</span>` : ''}
+                                <span class="curr-price">₹${Number(product.price)}</span>
+                                ${product.mrp > product.price ? `<span class="mrp-strike">₹${Number(product.mrp)}</span>` : ''}
                             </div>
                             <div>
                                 ${actionButtonHtml}
@@ -566,25 +579,25 @@
             return `
                 <div class="cart-item-row">
                     <div class="d-flex align-items-center gap-3">
-                        <img src="${prod.image}" alt="${prod.name}" class="cart-item-img">
+                        <img src="${escapeHTML(prod.image)}" alt="${escapeHTML(prod.name)}" class="cart-item-img">
                         <div>
-                            <div class="fw-bold text-dark mb-1">${prod.name}</div>
-                            <div class="text-muted small">${prod.unit} • ₹${prod.price} each</div>
+                            <div class="fw-bold text-dark mb-1">${escapeHTML(prod.name)}</div>
+                            <div class="text-muted small">${escapeHTML(prod.unit)} • ₹${Number(prod.price)} each</div>
                         </div>
                     </div>
 
                     <div class="d-flex align-items-center gap-4">
                         <div class="product-qty-stepper">
-                            <button class="stepper-btn" onclick="window.JG.updateCartQty(${prod.id}, -1)">-</button>
-                            <span class="stepper-val">${cartItem.qty}</span>
-                            <button class="stepper-btn" onclick="window.JG.updateCartQty(${prod.id}, 1)">+</button>
+                            <button class="stepper-btn" onclick="window.JG.updateCartQty(${Number(prod.id)}, -1)">-</button>
+                            <span class="stepper-val">${Number(cartItem.qty)}</span>
+                            <button class="stepper-btn" onclick="window.JG.updateCartQty(${Number(prod.id)}, 1)">+</button>
                         </div>
 
                         <div class="fw-bold text-dark text-end" style="min-width: 65px;">
-                            ₹${itemTotal}
+                            ₹${Number(itemTotal)}
                         </div>
 
-                        <button class="btn btn-sm btn-link text-danger p-0" title="Remove" onclick="window.JG.removeCartItem(${prod.id})">
+                        <button class="btn btn-sm btn-link text-danger p-0" title="Remove" onclick="window.JG.removeCartItem(${Number(prod.id)})">
                             <i class="bi bi-trash3 fs-5"></i>
                         </button>
                     </div>
@@ -662,15 +675,15 @@
                 <div class="ss-surface-card mb-4">
                     <div class="d-flex flex-wrap justify-content-between align-items-center pb-3 border-bottom mb-3 gap-2">
                         <div>
-                            <span class="badge ${badgeColor} me-2 px-3 py-2 rounded-pill fw-bold">${order.status}</span>
-                            <span class="fw-bold text-dark fs-5">#${order.id}</span>
-                            <span class="text-muted small ms-2">• ${order.date}</span>
+                            <span class="badge ${badgeColor} me-2 px-3 py-2 rounded-pill fw-bold">${escapeHTML(order.status)}</span>
+                            <span class="fw-bold text-dark fs-5">#${escapeHTML(order.id)}</span>
+                            <span class="text-muted small ms-2">• ${escapeHTML(order.date)}</span>
                         </div>
                         <div class="d-flex gap-2">
-                            <button class="btn btn-sm btn-outline-secondary rounded-pill px-3" onclick="window.JG.viewInvoice('${order.id}')">
+                            <button class="btn btn-sm btn-outline-secondary rounded-pill px-3" onclick="window.JG.viewInvoice('${escapeHTML(order.id)}')">
                                 <i class="bi bi-receipt me-1"></i> Receipt
                             </button>
-                            <button class="btn btn-sm btn-success rounded-pill px-3" onclick="window.JG.reorder('${order.id}')">
+                            <button class="btn btn-sm btn-success rounded-pill px-3" onclick="window.JG.reorder('${escapeHTML(order.id)}')">
                                 <i class="bi bi-arrow-repeat me-1"></i> Reorder
                             </button>
                         </div>
@@ -709,7 +722,7 @@
                     ${order.rider ? `
                         <div class="alert alert-info py-2 px-3 small d-flex align-items-center gap-2 mb-3">
                             <i class="bi bi-person-badge-fill fs-5"></i>
-                            <div>Assigned Rider: <strong>${order.rider}</strong></div>
+                            <div>Assigned Rider: <strong>${escapeHTML(order.rider)}</strong></div>
                         </div>
                     ` : ''}
 
@@ -718,12 +731,12 @@
                         <div class="col-md-8">
                             <div class="text-muted small mb-1">Ordered Items:</div>
                             <div class="fw-semibold small">
-                                ${order.items.map(it => `${it.name} (${it.qty}x)`).join(' • ')}
+                                ${(order.items || []).map(it => `${escapeHTML(it.name)} (${Number(it.qty)}x)`).join(' • ')}
                             </div>
                         </div>
                         <div class="col-md-4 text-md-end">
-                            <div class="text-muted small">Total Paid via ${order.paymentMethod}</div>
-                            <div class="fs-4 fw-bold text-dark">₹${order.total}</div>
+                            <div class="text-muted small">Total Paid via ${escapeHTML(order.paymentMethod)}</div>
+                            <div class="fs-4 fw-bold text-dark">₹${escapeHTML(order.total)}</div>
                         </div>
                     </div>
                 </div>
@@ -751,16 +764,16 @@
             <div class="col-6 col-md-4 col-lg-3">
                 <div class="product-card-customer">
                     <div class="product-thumb-wrapper">
-                        <button class="wishlist-toggle-btn active" title="Remove" onclick="window.JG.toggleWishlist(${prod.id})">
+                        <button class="wishlist-toggle-btn active" title="Remove" onclick="window.JG.toggleWishlist(${Number(prod.id)})">
                             <i class="bi bi-trash3 text-danger"></i>
                         </button>
-                        <img src="${prod.image}" alt="${prod.name}" class="product-thumb-img">
+                        <img src="${escapeHTML(prod.image)}" alt="${escapeHTML(prod.name)}" class="product-thumb-img">
                     </div>
-                    <div class="product-pack-size">${prod.unit}</div>
-                    <h3 class="product-title-text">${prod.name}</h3>
+                    <div class="product-pack-size">${escapeHTML(prod.unit)}</div>
+                    <h3 class="product-title-text">${escapeHTML(prod.name)}</h3>
                     <div class="price-box-wrap">
-                        <div class="curr-price">₹${prod.price}</div>
-                        <button class="btn btn-sm btn-success rounded-pill px-3" onclick="window.JG.addToCart(${prod.id}); window.JG.toggleWishlist(${prod.id});">
+                        <div class="curr-price">₹${Number(prod.price)}</div>
+                        <button class="btn btn-sm btn-success rounded-pill px-3" onclick="window.JG.addToCart(${Number(prod.id)}); window.JG.toggleWishlist(${Number(prod.id)});">
                             <i class="bi bi-bag-plus me-1"></i> Move to Bag
                         </button>
                     </div>
@@ -1026,10 +1039,10 @@
             itemsTbody.innerHTML = order.items.map((it, i) => `
                 <tr>
                     <td>${i + 1}</td>
-                    <td>${it.name}</td>
-                    <td class="text-center">${it.qty}</td>
-                    <td class="text-end">₹${it.price}</td>
-                    <td class="text-end fw-bold">₹${it.qty * it.price}</td>
+                    <td>${escapeHTML(it.name)}</td>
+                    <td class="text-center">${Number(it.qty)}</td>
+                    <td class="text-end">₹${Number(it.price)}</td>
+                    <td class="text-end fw-bold">₹${Number(it.qty * it.price)}</td>
                 </tr>
             `).join('');
 

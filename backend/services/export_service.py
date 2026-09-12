@@ -6,20 +6,36 @@ from reportlab.lib.styles import ParagraphStyle, getSampleStyleSheet
 from reportlab.lib.units import inch
 from reportlab.platypus import Paragraph, SimpleDocTemplate, Table, TableStyle
 
+def sanitize_csv_cell(val):
+    """
+    Sanitizes values to prevent CSV Formula Injection (CWE-1236).
+    If a cell begins with '=', '+', '-', '@', tab, or carriage return,
+    prefix with a single quote to neutralize formula execution.
+    """
+    if val is None:
+        return ''
+    s = str(val)
+    if s and s[0] in ('=', '+', '-', '@', '\t', '\r'):
+        return f"'{s}"
+    return s
+
+
 def generate_sales_csv(sales):
-    """Generate CSV from sales records"""
+    """Generate CSV from sales records with formula injection protection."""
     output = io.StringIO()
     writer = csv.writer(output)
     writer.writerow(['ID', 'Product', 'Category', 'Quantity', 'Price', 'Profit', 'Date'])
     
     for sale in sales:
+        product_name = sale.product.name if sale.product else 'Deleted Product'
+        category_name = (sale.product.category_rel.name if sale.product and sale.product.category_rel else sale.product.category) if sale.product else 'N/A'
         writer.writerow([
-            f"#SAL-{sale.id:04d}",
-            sale.product.name if sale.product else 'Deleted Product',
-            (sale.product.category_rel.name if sale.product and sale.product.category_rel else sale.product.category) if sale.product else 'N/A',
+            sanitize_csv_cell(f"#SAL-{sale.id:04d}"),
+            sanitize_csv_cell(product_name),
+            sanitize_csv_cell(category_name),
             sale.quantity,
-            f"INR {sale.total_price:.2f}",
-            f"INR {sale.profit:.2f}",
+            sanitize_csv_cell(f"INR {sale.total_price:.2f}"),
+            sanitize_csv_cell(f"INR {sale.profit:.2f}"),
             sale.sale_date.strftime('%Y-%m-%d %H:%M:%S')
         ])
     return output.getvalue()

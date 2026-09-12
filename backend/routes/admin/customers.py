@@ -4,6 +4,7 @@ from flask import current_app, jsonify, request
 from database.models import db
 from database.models.user import User
 from backend.routes.decorators import admin_required
+from .helpers import _log_action
 from . import admin_bp
 
 
@@ -58,6 +59,12 @@ def clear_credit(user_id):
             }), 400
 
         customer.credit = current_balance - amount_paid
+        _log_action(
+            action='CLEAR_CUSTOMER_CREDIT',
+            entity_type='User',
+            entity_id=user_id,
+            details=f"Settled ₹{amount_paid:.2f} credit for {customer.username}. New balance: ₹{float(customer.credit):.2f}"
+        )
         try:
             db.session.commit()
             return jsonify({

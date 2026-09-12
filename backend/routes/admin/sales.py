@@ -1,7 +1,7 @@
 """Admin sales management routes (record, history, export, bill)."""
 from datetime import datetime, timedelta
 
-from flask import Response, current_app, jsonify, make_response, request
+from flask import Response, current_app, jsonify, make_response, request, url_for
 
 from database.models import db
 from database.models.product import Product, Sale

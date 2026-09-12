@@ -80,6 +80,7 @@ def login():
                 return jsonify({'success': True, 'requires_2fa': True, 'redirect': url_for('security.verify_2fa')})
             return redirect(url_for('security.verify_2fa'))
         else:
+            session.clear()
             login_user(user)
             if request.is_json:
                 return jsonify({'success': True, 'message': 'Login successful!', 'redirect': url_for('admin.admin_erp_console')})
@@ -210,6 +211,18 @@ def customer_login():
                 return jsonify({'success': False, 'message': 'Please verify your email address before logging in.'}), 403
             flash('Please verify your email address before logging in.', 'warning')
             return redirect(url_for('auth.customer_login'))
+            
+        if user.two_factor_enabled:
+            session['2fa_user_id'] = user.id
+            session['2fa_expires_at'] = time.time() + 300
+            if request.is_json:
+                return jsonify({'success': True, 'requires_2fa': True, 'redirect': url_for('security.verify_2fa')})
+            return redirect(url_for('security.verify_2fa'))
+
+        old_cart = session.get('cart')
+        session.clear()
+        if old_cart:
+            session['cart'] = old_cart
         login_user(user)
         
         if user.role == 'admin':

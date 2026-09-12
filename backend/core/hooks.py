@@ -1,4 +1,4 @@
-from flask import request, redirect, url_for, session
+from flask import jsonify, request, redirect, url_for, session
 from flask_login import current_user
 
 def init_hooks(app):
@@ -54,6 +54,14 @@ def init_hooks(app):
         }
 
         if request.endpoint and request.endpoint not in allowed_endpoints:
+            if (
+                request.is_json
+                or request.path.startswith('/api/')
+                or '/api/' in request.path
+                or request.headers.get('X-Requested-With') == 'XMLHttpRequest'
+                or 'application/json' in request.headers.get('Accept', '')
+            ):
+                return jsonify({'success': False, 'message': 'Authentication required.'}), 401
             return redirect(url_for('auth.customer_login'))
 
 
@@ -69,8 +77,12 @@ def init_hooks(app):
             "script-src 'self' 'unsafe-inline' cdn.jsdelivr.net js.stripe.com; "
             "style-src 'self' 'unsafe-inline' cdn.jsdelivr.net fonts.googleapis.com; "
             "font-src 'self' fonts.gstatic.com cdn.jsdelivr.net; "
-            "img-src 'self' data: blob: *; "
-            "connect-src 'self' api.stripe.com; "
-            "frame-src js.stripe.com;"
+            "img-src 'self' data: blob: https://images.unsplash.com https://*.s3.amazonaws.com https://cdn.jsdelivr.net https://api.qrserver.com; "
+            "connect-src 'self' api.stripe.com https://api.stripe.com; "
+            "frame-src js.stripe.com; "
+            "frame-ancestors 'self'; "
+            "base-uri 'self';"
         )
+        if not app.debug and not app.testing:
+            response.headers['Strict-Transport-Security'] = 'max-age=31536000; includeSubDomains'
         return response

@@ -110,7 +110,6 @@ def shop():
                 'name': p.name,
                 'category': p.category_rel.name if p.category_rel else 'General',
                 'selling_price': float(p.selling_price),
-                'cost_price': float(p.cost_price),
                 'stock_quantity': p.stock_quantity,
                 'image_path': p.image_path or '',
                 'created_at': p.created_at.isoformat() if p.created_at else None,
@@ -151,7 +150,6 @@ def product_detail(product_id):
         'name': product.name,
         'category': product.category_rel.name if product.category_rel else 'General',
         'selling_price': float(product.selling_price),
-        'cost_price': float(product.cost_price),
         'stock_quantity': product.stock_quantity,
         'image_path': product.image_path or '',
         'description': getattr(product, 'description', '') or '',
@@ -284,14 +282,31 @@ def checkout():
     # POST — process checkout
     try:
         if request.is_json:
-            shipping_address = request.json.get('shipping_address', '')
-            payment_method = request.json.get('payment_method', 'COD')
+            shipping_address = (request.json.get('shipping_address') or '').strip()
+            payment_method = (request.json.get('payment_method') or 'COD').strip().upper()
         else:
-            shipping_address = request.form.get('shipping_address')
-            payment_method = request.form.get('payment_method', 'COD')
+            shipping_address = (request.form.get('shipping_address') or '').strip()
+            payment_method = (request.form.get('payment_method') or 'COD').strip().upper()
 
-        if not shipping_address or len(shipping_address.strip()) < 15:
-            msg = 'Please enter a complete shipping address (minimum 15 characters).'
+        valid_methods = {'COD', 'UPI', 'CARD', 'UDHAR'}
+        if payment_method not in valid_methods:
+            msg = 'Invalid payment method selected.'
+            if request.is_json:
+                return jsonify({'success': False, 'message': msg}), 400
+            flash(msg, 'danger')
+            return redirect(url_for('customer.checkout'))
+
+        if payment_method == 'UDHAR':
+            current_credit = float(getattr(current_user, 'credit', 0) or 0)
+            if not getattr(current_user, 'is_verified', True) or (current_credit + float(total)) > 5000:
+                msg = 'Store credit (Udhar) limit reached or account not verified for credit.'
+                if request.is_json:
+                    return jsonify({'success': False, 'message': msg}), 400
+                flash(msg, 'danger')
+                return redirect(url_for('customer.checkout'))
+
+        if not shipping_address or len(shipping_address.strip()) < 15 or len(shipping_address) > 500:
+            msg = 'Please enter a complete shipping address (between 15 and 500 characters).'
             if request.is_json:
                 return jsonify({'success': False, 'message': msg}), 400
             flash(msg, 'danger')
@@ -393,24 +408,47 @@ def payment_success(order_id):
             
         try:
             stripe.api_key = stripe_key
-            session = stripe.checkout.Session.retrieve(session_id)
-            if session.payment_status == 'paid':
+            session_obj = stripe.checkout.Session.retrieve(session_id)
+            session_order_id = (session_obj.metadata or {}).get('order_id') or session_obj.client_reference_id
+            if str(session_order_id) != str(order.id):
+                current_app.logger.warning(f"Payment session order mismatch: {session_order_id} != {order.id}")
+                if request.is_json:
+                    return jsonify({'success': False, 'message': 'Payment verification failed: session mismatch.'}), 400
+                flash('Payment verification failed.', 'danger')
+                return redirect(url_for('customer.order_confirmation', order_id=order.id))
+
+            expected_cents = int(float(order.total_amount) * 100)
+            if session_obj.amount_total is not None and session_obj.amount_total != expected_cents:
+                current_app.logger.warning(f"Payment amount mismatch: session {session_obj.amount_total} != expected {expected_cents}")
+                if request.is_json:
+                    return jsonify({'success': False, 'message': 'Payment verification failed: amount mismatch.'}), 400
+                flash('Payment amount mismatch.', 'danger')
+                return redirect(url_for('customer.order_confirmation', order_id=order.id))
+
+            if session_obj.payment_status == 'paid':
                 order.payment_status = 'Paid'
             else:
-                msg = 'Payment verification failed. Please contact support.'
+                msg = 'Payment is not completed in gateway.'
                 if request.is_json:
                     return jsonify({'success': False, 'message': msg}), 400
                 flash(msg, 'danger')
                 return redirect(url_for('customer.order_confirmation', order_id=order.id))
-        except Exception as e:
-            current_app.logger.error(f"Stripe verification error: {str(e)}")
+        except Exception:
+            current_app.logger.exception(f"Stripe verification error for order #{order.id}")
             msg = 'Error verifying payment. We will update your order status once confirmed.'
             if request.is_json:
                 return jsonify({'success': False, 'message': msg}), 400
             flash(msg, 'warning')
             return redirect(url_for('customer.order_confirmation', order_id=order.id))
     else:
-        # Fallback for demo mode (only executes if NO Stripe key is configured server-side)
+        # Fallback for local testing / demo only — forbidden in production
+        import os
+        is_prod = not current_app.debug and not current_app.testing and os.getenv('FLASK_ENV') != 'development'
+        if is_prod:
+            if request.is_json:
+                return jsonify({'success': False, 'message': 'Payment gateway is not configured.'}), 503
+            flash('Payment gateway is not configured.', 'danger')
+            return redirect(url_for('customer.order_confirmation', order_id=order.id))
         order.payment_status = 'Paid'
     
     db.session.commit()
@@ -570,14 +608,13 @@ def order_detail(order_id):
         return jsonify({'error': 'Unauthorized access.'}), 403
     
     items = []
-    if hasattr(order, 'items'):
-        for oi in order.items:
-            items.append({
-                'product_name': oi.product.name if oi.product else 'Unknown',
-                'quantity': oi.quantity,
-                'price': float(oi.price),
-                'subtotal': float(oi.price * oi.quantity),
-            })
+    for oi in order.order_items:
+        items.append({
+            'product_name': oi.product.name if oi.product else 'Unknown',
+            'quantity': oi.quantity,
+            'price': float(oi.price),
+            'subtotal': float(oi.price * oi.quantity),
+        })
     
     return jsonify({
         'id': order.id,
@@ -698,6 +735,16 @@ def create_checkout_session(order_id):
     order = db.session.get(Order, order_id)
     if not order:
         return jsonify(error="Order not found"), 404
+
+    # Ownership check — prevent IDOR/BOLA
+    if order.user_id != current_user.id:
+        return jsonify(error="Unauthorized access to order."), 403
+
+    if order.payment_status == 'Paid':
+        return jsonify(error="Order has already been paid for."), 400
+
+    if order.order_status in ('Cancelled', 'Returned'):
+        return jsonify(error=f"Cannot initiate payment for order in '{order.order_status}' status."), 400
         
     stripe_key = current_app.config.get('STRIPE_SECRET_KEY')
     if not stripe_key:
@@ -707,13 +754,18 @@ def create_checkout_session(order_id):
     try:
         checkout_session = stripe.checkout.Session.create(
             payment_method_types=['card'],
+            client_reference_id=str(order.id),
+            metadata={
+                'order_id': str(order.id),
+                'user_id': str(current_user.id)
+            },
             line_items=[{
                 'price_data': {
                     'currency': 'inr',
                     'product_data': {
                         'name': f'Order #{order.id}',
                     },
-                    'unit_amount': int(order.total_amount * 100),
+                    'unit_amount': int(float(order.total_amount) * 100),
                 },
                 'quantity': 1,
             }],
@@ -722,5 +774,6 @@ def create_checkout_session(order_id):
             cancel_url=url_for('customer.order_confirmation', order_id=order.id, _external=True),
         )
         return jsonify({'id': checkout_session.id})
-    except Exception as e:
-        return jsonify(error=str(e)), 403
+    except Exception:
+        current_app.logger.exception(f"Stripe session creation failed for order #{order_id}")
+        return jsonify(error="Failed to initialize payment session. Please try again later."), 500

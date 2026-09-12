@@ -74,7 +74,7 @@ class Config:
         'http://127.0.0.1:5500',
         'http://127.0.0.1:8000',
         'http://127.0.0.1:8080',
-        r"^https:\/\/.*\.vercel\.app$"
+        r"^https:\/\/glossary-mart(-[a-zA-Z0-9_-]+)?\.vercel\.app$"
     ]
     if _cors_env:
         for origin in _cors_env.split(','):
@@ -102,7 +102,7 @@ class Config:
         os.path.join(_project_root, 'frontend', 'static', 'uploads')
     )
     MAX_CONTENT_LENGTH = int(os.getenv('MAX_FILE_SIZE', 5 * 1024 * 1024))  # 5MB
-    ALLOWED_EXTENSIONS = {'png', 'jpg', 'jpeg', 'gif'}
+    ALLOWED_EXTENSIONS = {'png', 'jpg', 'jpeg', 'gif', 'webp'}
 
     # ------------------------------------------------------------------ #
     # Admin Credentials (seed only — override in production .env)

@@ -34,33 +34,50 @@ class StorageService:
         return cls._s3_client
 
     @classmethod
-    def upload_file(cls, file):
-        """Uploads a file to S3 if configured, else saves locally."""
-        filename = secure_filename(file.filename)
-        filename = f"{datetime.now().timestamp()}_{filename}"
-        
+    def upload_file(cls, file, allowed_extensions=None):
+        """Uploads a validated image file using UUID naming to S3 or local storage."""
+        import uuid
+        from backend.utils.files import validate_image_file
+
+        if allowed_extensions is None and current_app:
+            allowed_extensions = current_app.config.get('ALLOWED_EXTENSIONS', {'png', 'jpg', 'jpeg', 'gif', 'webp'})
+
+        is_valid, result = validate_image_file(file, allowed_extensions)
+        if not is_valid:
+            raise ValueError(f"File upload rejected: {result}")
+
+        ext = result
+        safe_name = f"{uuid.uuid4().hex}.{ext}"
+
         bucket_name = os.getenv('AWS_BUCKET_NAME')
         s3_client = cls.get_s3_client()
-        
+
         if bucket_name and s3_client:
             # Upload to S3
             try:
                 s3_client.upload_fileobj(
                     file,
                     bucket_name,
-                    filename,
-                    ExtraArgs={'ACL': 'public-read'} # Or whatever your bucket ACL requires
+                    safe_name,
+                    ExtraArgs={'ACL': 'public-read'}
                 )
                 # Return the S3 URL
-                return f"https://{bucket_name}.s3.amazonaws.com/{filename}"
+                return f"https://{bucket_name}.s3.amazonaws.com/{safe_name}"
             except Exception as e:
                 current_app.logger.error(f"S3 Upload failed: {e}")
                 raise e
         else:
             # Fallback to local storage
-            filepath = os.path.join(current_app.config['UPLOAD_FOLDER'], filename)
-            file.save(filepath)
-            return f"uploads/{filename}"
+            upload_dir = current_app.config.get('UPLOAD_FOLDER', 'frontend/static/uploads')
+            os.makedirs(upload_dir, exist_ok=True)
+            filepath = os.path.join(upload_dir, safe_name)
+            if hasattr(file, 'save'):
+                file.save(filepath)
+            else:
+                file.seek(0)
+                with open(filepath, 'wb') as f_out:
+                    f_out.write(file.read())
+            return f"uploads/{safe_name}"
 
     @classmethod
     def delete_file(cls, path_or_url):

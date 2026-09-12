@@ -60,6 +60,7 @@ def get_products():
 
     total = query.count()
     products = query.offset((page - 1) * per_page).limit(per_page).all()
+    is_admin = current_user.is_authenticated and current_user.role == 'admin'
 
     return jsonify({
         'success': True,
@@ -67,18 +68,19 @@ def get_products():
         'page': page,
         'per_page': per_page,
         'total_pages': (total + per_page - 1) // per_page if per_page else 1,
-        'products': [p.to_dict() for p in products]
+        'products': [p.to_dict(is_admin=is_admin) for p in products]
     }), 200
 
 
 @api_bp.route('/products/<int:product_id>', methods=['GET'])
 def get_product(product_id):
-    """Get single product details with reviews"""
+    """Get single product details with reviews (wholesale data redacted for non-admins)"""
     product = db.session.query(Product).filter_by(id=product_id, is_active=True).first()
     if not product:
         return jsonify({'success': False, 'message': 'Product not found'}), 404
 
-    data = product.to_dict()
+    is_admin = current_user.is_authenticated and current_user.role == 'admin'
+    data = product.to_dict(is_admin=is_admin)
     reviews = db.session.query(Review).filter_by(product_id=product.id).order_by(Review.created_at.desc()).all()
     data['reviews'] = [{
         'id': r.id,
@@ -119,7 +121,7 @@ def add_product_review(product_id):
 
     data = request.get_json(silent=True) or request.form
     rating = data.get('rating')
-    comment = (data.get('comment') or '').strip()
+    comment = (data.get('comment') or '').strip()[:500]
 
     try:
         rating = int(rating)

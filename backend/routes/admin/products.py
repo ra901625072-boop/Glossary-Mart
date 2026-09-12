@@ -73,8 +73,11 @@ def add_product():
     image_path = None
     if 'image' in request.files:
         file = request.files['image']
-        if file and file.filename and allowed_file(file.filename, current_app.config['ALLOWED_EXTENSIONS']):
-            image_path = StorageService.upload_file(file)
+        if file and file.filename:
+            try:
+                image_path = StorageService.upload_file(file)
+            except ValueError as ve:
+                return jsonify({'success': False, 'message': str(ve)}), 400
 
     product = Product(
         name=name,
@@ -148,10 +151,14 @@ def edit_product(product_id):
 
     if 'image' in request.files:
         file = request.files['image']
-        if file and file.filename and allowed_file(file.filename, current_app.config['ALLOWED_EXTENSIONS']):
-            if product.image_path:
-                StorageService.delete_file(product.image_path)
-            product.image_path = StorageService.upload_file(file)
+        if file and file.filename:
+            try:
+                new_image_path = StorageService.upload_file(file)
+                if product.image_path:
+                    StorageService.delete_file(product.image_path)
+                product.image_path = new_image_path
+            except ValueError as ve:
+                return jsonify({'success': False, 'message': str(ve)}), 400
 
     try:
         db.session.commit()
@@ -190,4 +197,4 @@ def get_product_api(product_id):
     product = db.session.get(Product, product_id)
     if not product:
         return jsonify({"error": "Product not found"}), 404
-    return jsonify(product.to_dict())
+    return jsonify(product.to_dict(is_admin=True))
