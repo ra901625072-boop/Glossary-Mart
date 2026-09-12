@@ -64,6 +64,7 @@
     async function verifyAdminAuth() {
         const localAuth = JSON.parse(localStorage.getItem('jg_auth_user') || 'null');
         if (!localAuth || localAuth.role !== 'admin') {
+            if (document.documentElement) document.documentElement.style.display = 'none';
             if (document.body) document.body.style.display = 'none';
         }
 
@@ -75,6 +76,7 @@
                 if (data && data.authenticated && data.user && data.user.role === 'admin') {
                     state.user = data.user;
                     localStorage.setItem('jg_auth_user', JSON.stringify(data.user));
+                    if (document.documentElement) document.documentElement.style.display = '';
                     if (document.body) document.body.style.display = '';
                     updateAdminHeaderUI(data.user);
                     return true;
@@ -92,6 +94,7 @@
         const redirectParam = encodeURIComponent(inAdmin ? `admin/${targetPage}` : targetPage);
         const loginUrl = inAdmin ? `../auth/login.html?redirect=${redirectParam}` : `auth/login.html?redirect=${redirectParam}`;
 
+        if (document.documentElement) document.documentElement.style.display = 'none';
         if (document.body) document.body.style.display = 'none';
         window.location.replace(loginUrl);
         return false;

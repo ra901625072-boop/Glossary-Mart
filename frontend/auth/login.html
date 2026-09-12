@@ -119,5 +119,15 @@
     <script src="../static/js/core/utils.js"></script>
     <script src="../static/js/services/auth.service.js"></script>
     <script src="../static/js/homepage.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            const params = new URLSearchParams(window.location.search);
+            const redirect = params.get('redirect');
+            if (redirect) {
+                const regLink = document.querySelector('a[href="register.html"]');
+                if (regLink) regLink.href = 'register.html?redirect=' + encodeURIComponent(redirect);
+            }
+        });
+    </script>
 </body>
 </html>

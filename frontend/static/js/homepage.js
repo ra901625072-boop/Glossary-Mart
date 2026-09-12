@@ -228,6 +228,7 @@
     function saveCart() {
         try {
             localStorage.setItem('egm_cart', JSON.stringify(cart));
+            localStorage.setItem('jg_cart', JSON.stringify(cart));
         } catch (e) {
             console.warn("Could not save cart", e);
         }
@@ -301,17 +302,21 @@
         const stepperEl = document.getElementById(`stepper-val-${product.id}`);
         const qtyToAdd = explicitQty !== null ? explicitQty : (stepperEl ? parseInt(stepperEl.innerText) || 1 : 1);
 
-        const existingIndex = cart.findIndex(item => String(item.id) === String(product.id));
+        const existingIndex = cart.findIndex(item => String(item.id || item.productId) === String(product.id));
         if (existingIndex > -1) {
-            cart[existingIndex].quantity += qtyToAdd;
+            const newQty = (cart[existingIndex].quantity || cart[existingIndex].qty || 0) + qtyToAdd;
+            cart[existingIndex].quantity = newQty;
+            cart[existingIndex].qty = newQty;
         } else {
             cart.push({
                 id: product.id,
+                productId: product.id,
                 name: product.name,
-                price: product.price,
-                mrp: product.mrp,
+                price: Number(product.price) || 0,
+                mrp: Number(product.mrp) || Math.round(Number(product.price) * 1.15),
                 unit: product.unit,
                 quantity: qtyToAdd,
+                qty: qtyToAdd,
                 image: product.image
             });
         }
@@ -670,6 +675,32 @@
         }
     }
 
+    function isCustomerAuthenticated() {
+        try {
+            const user = JSON.parse(localStorage.getItem('jg_auth_user') || 'null');
+            return Boolean(user && user.id && user.role === 'customer');
+        } catch (e) {
+            return false;
+        }
+    }
+
+    function handleCheckoutNavigation(e) {
+        if (e) e.preventDefault();
+        if (cart.length === 0) {
+            showToast('Your shopping bag is empty! Add items first.', 'warning');
+            return false;
+        }
+        if (!isCustomerAuthenticated()) {
+            showToast('Please sign in with your customer account to proceed to checkout.', 'info');
+            setTimeout(() => {
+                window.location.href = 'auth/login.html?redirect=customer/checkout.html';
+            }, 600);
+            return false;
+        }
+        window.location.href = 'customer/checkout.html';
+        return false;
+    }
+
     // ── 12. Checkout & Order Placement Flow ──
     function initiateCheckout() {
         if (cart.length === 0) {
@@ -684,21 +715,15 @@
             if (offcanvas) offcanvas.hide();
         }
 
-        // Render Checkout Summary Items
-        const summaryBox = document.getElementById('checkoutSummaryItems');
-        if (summaryBox) {
-            summaryBox.innerHTML = cart.map(item => `
-                <div class="d-flex justify-content-between py-1 border-bottom border-light">
-                    <span>${item.name} &times; ${item.quantity}</span>
-                    <span class="fw-bold">₹${item.price * item.quantity}</span>
-                </div>
-            `).join('');
+        if (!isCustomerAuthenticated()) {
+            showToast('Please sign in with your customer account to proceed to checkout.', 'info');
+            setTimeout(() => {
+                window.location.href = 'auth/login.html?redirect=customer/checkout.html';
+            }, 600);
+            return;
         }
 
-        if (window.bootstrap) {
-            const modal = new bootstrap.Modal(document.getElementById('checkoutModal'));
-            modal.show();
-        }
+        window.location.href = 'customer/checkout.html';
     }
 
     function placeOrder() {
@@ -1079,7 +1104,16 @@
                 const sessionUser = { id: data.user?.id || Date.now(), name: name, email: email, phone: phone, role: 'customer' };
                 localStorage.setItem('jg_auth_user', JSON.stringify(sessionUser));
                 showToast(`Welcome to e Grossary, ${name}!`, 'success');
-                setTimeout(() => { location.href = 'customer/shop.html'; }, 600);
+
+                const isInAuthDir = window.location.pathname.includes('/auth/') || window.location.pathname.endsWith('/auth');
+                const urlParams = new URLSearchParams(window.location.search);
+                const redirectTarget = urlParams.get('redirect');
+                let targetDest = isInAuthDir ? '../customer/shop.html' : 'customer/shop.html';
+                if (redirectTarget) {
+                    const clean = redirectTarget.replace(/^customer\//, '');
+                    targetDest = isInAuthDir ? `../customer/${clean}` : `customer/${clean}`;
+                }
+                setTimeout(() => { window.location.href = targetDest; }, 600);
                 return;
             } else {
                 if (feedback) feedback.innerHTML = `<div class="alert alert-danger py-2 small mb-3">${escapeHTML(data.message || 'Registration failed.')}</div>`;
@@ -1185,6 +1219,8 @@
     window.setDeliveryLocation = setDeliveryLocation;
     window.openQuickView = openQuickView;
     window.initiateCheckout = initiateCheckout;
+    window.handleCheckoutNavigation = handleCheckoutNavigation;
+    window.isCustomerAuthenticated = isCustomerAuthenticated;
     window.placeOrder = placeOrder;
     window.subscribeNewsletter = subscribeNewsletter;
     window.scrollBestsellers = scrollBestsellers;

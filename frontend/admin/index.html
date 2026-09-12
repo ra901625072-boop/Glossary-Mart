@@ -25,6 +25,22 @@
     <!-- Stylesheet -->
     <link rel="stylesheet" href="../static/css/core/variables.css">
     <link rel="stylesheet" href="../static/css/admin.css">
+    <!-- Immediate Admin ERP Authentication Guard -->
+    <script>
+        (function() {
+            try {
+                var user = JSON.parse(localStorage.getItem('jg_auth_user') || 'null');
+                if (!user || !user.id || user.role !== 'admin') {
+                    document.documentElement.style.display = 'none';
+                    var page = window.location.pathname.split('/').pop() || 'index.html';
+                    window.location.replace('../auth/login.html?redirect=admin/' + page);
+                }
+            } catch (e) {
+                document.documentElement.style.display = 'none';
+                window.location.replace('../auth/login.html');
+            }
+        })();
+    </script>
 </head>
 <body class="admin-body" data-admin-page="dashboard">
 

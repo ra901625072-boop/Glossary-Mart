@@ -133,16 +133,48 @@
         }
     ];
 
+    // ── Safe Cart Loader ──
+    function loadInitialCustomerCart() {
+        try {
+            const raw = localStorage.getItem('egm_cart') || localStorage.getItem('jg_cart');
+            const list = raw ? JSON.parse(raw) : [];
+            if (!Array.isArray(list)) return [];
+            return list.map(item => {
+                const id = Number(item.productId || item.id || 0);
+                const qty = Number(item.qty || item.quantity || 1);
+                const price = Number(item.price || 0);
+                return {
+                    productId: id,
+                    id: id,
+                    qty: isNaN(qty) || qty < 1 ? 1 : qty,
+                    quantity: isNaN(qty) || qty < 1 ? 1 : qty,
+                    price: isNaN(price) ? 0 : price,
+                    name: item.name || '',
+                    image: item.image || ''
+                };
+            }).filter(i => i.productId > 0);
+        } catch (e) {
+            return [];
+        }
+    }
+
     // ── Local State Initialization ──
     let state = {
         products: DEFAULT_CATALOG,
         selectedCategory: 'all',
         searchQuery: '',
         sortBy: 'popularity',
-        cart: JSON.parse(localStorage.getItem('jg_cart')) || [],
+        cart: loadInitialCustomerCart(),
         wishlist: JSON.parse(localStorage.getItem('jg_wishlist')) || [],
         activeCoupon: JSON.parse(localStorage.getItem('jg_coupon')) || null,
-        user: JSON.parse(localStorage.getItem('jg_auth_user')) || null,
+        user: (function () {
+            try {
+                const u = JSON.parse(localStorage.getItem('jg_auth_user') || 'null');
+                return (u && u.id && u.role === 'customer') ? u : null;
+            } catch (e) {
+                return null;
+            }
+        })(),
         orders: [],
         checkoutData: {
             addressType: 'home',
@@ -154,19 +186,22 @@
 
     function persistState() {
         localStorage.setItem('jg_cart', JSON.stringify(state.cart));
+        localStorage.setItem('egm_cart', JSON.stringify(state.cart));
         localStorage.setItem('jg_wishlist', JSON.stringify(state.wishlist));
         localStorage.setItem('jg_coupon', JSON.stringify(state.activeCoupon));
-        localStorage.setItem('jg_auth_user', JSON.stringify(state.user));
+        if (state.user && state.user.role === 'customer') {
+            localStorage.setItem('jg_auth_user', JSON.stringify(state.user));
+        }
         updateNavCounters();
     }
 
     // ── Update Badge Counters ──
     function updateNavCounters() {
-        const totalCartItems = state.cart.reduce((sum, item) => sum + item.qty, 0);
+        const totalCartItems = state.cart.reduce((sum, item) => sum + (Number(item.qty || item.quantity) || 1), 0);
         const wishlistCount = state.wishlist.length;
 
         document.querySelectorAll('.cart-counter-badge').forEach(el => {
-            el.textContent = totalCartItems;
+            el.textContent = isNaN(totalCartItems) ? 0 : totalCartItems;
             el.style.display = totalCartItems > 0 ? 'inline-block' : 'none';
         });
 
@@ -177,7 +212,7 @@
 
         const subtotal = calculateCartTotals().subtotal;
         document.querySelectorAll('.cart-total-header-pill').forEach(el => {
-            el.textContent = `₹${subtotal}`;
+            el.textContent = `₹${isNaN(subtotal) ? 0 : subtotal}`;
         });
     }
 
@@ -187,22 +222,29 @@
         let originalMrpTotal = 0;
 
         state.cart.forEach(cartItem => {
-            const prod = state.products.find(p => p.id === cartItem.productId);
-            if (prod) {
-                subtotal += prod.price * cartItem.qty;
-                originalMrpTotal += (prod.mrp || prod.price * 1.15) * cartItem.qty;
-            }
+            const numId = Number(cartItem.productId || cartItem.id || 0);
+            const numQty = Number(cartItem.qty || cartItem.quantity || 1);
+            const prod = state.products.find(p => Number(p.id) === numId);
+            const price = prod ? Number(prod.price) : Number(cartItem.price || 0);
+            const mrp = prod ? Number(prod.mrp || Math.round(price * 1.15)) : (Number(cartItem.mrp) || Math.round(price * 1.15));
+
+            const validPrice = isNaN(price) ? 0 : price;
+            const validMrp = isNaN(mrp) ? validPrice : mrp;
+            const validQty = isNaN(numQty) || numQty < 1 ? 1 : numQty;
+
+            subtotal += validPrice * validQty;
+            originalMrpTotal += validMrp * validQty;
         });
 
         let couponDiscount = 0;
         if (state.activeCoupon) {
             if (state.activeCoupon.discount_amount !== undefined && state.activeCoupon.discount_amount !== null) {
-                couponDiscount = state.activeCoupon.discount_amount;
+                couponDiscount = Number(state.activeCoupon.discount_amount) || 0;
             } else if (state.activeCoupon.code === 'FRESH15' || state.activeCoupon.discountPercent) {
-                const pct = state.activeCoupon.discountPercent || 15;
-                couponDiscount = Math.round(subtotal * (pct / 100));
+                const pct = Number(state.activeCoupon.discountPercent || 15);
+                couponDiscount = Math.round((subtotal * pct) / 100);
             } else if (state.activeCoupon.discountFlat) {
-                couponDiscount = Math.min(subtotal, state.activeCoupon.discountFlat);
+                couponDiscount = Math.min(subtotal, Number(state.activeCoupon.discountFlat || 0));
             }
         }
 
@@ -212,12 +254,13 @@
         const totalSavings = Math.max(0, (originalMrpTotal - subtotal) + couponDiscount);
 
         return {
-            subtotal,
-            originalMrpTotal,
-            couponDiscount,
+            subtotal: Math.round(subtotal) || 0,
+            originalMrpTotal: Math.round(originalMrpTotal) || 0,
+            couponDiscount: Math.round(couponDiscount) || 0,
             deliveryFee,
             handlingFee,
-            finalTotal,
+            finalTotal: Math.round(finalTotal) || 0,
+            totalSavings: Math.round(totalSavings) || 0,
             totalSavings
         };
     }
@@ -530,6 +573,11 @@
         if (addrDisplay) {
             addrDisplay.textContent = (state.user && state.user.address) ? state.user.address : 'Default Delivery Address: Sector 4, Pali, Rajasthan';
         }
+
+        const phoneEl = document.getElementById('checkoutContactPhone');
+        if (phoneEl && state.user && state.user.phone) {
+            phoneEl.textContent = state.user.phone;
+        }
     }
 
     // ── Orders View Renderer ──
@@ -730,6 +778,22 @@
         document.querySelectorAll('.profile-user-name-display').forEach(el => el.textContent = user.full_name || user.username || 'Customer Profile');
         document.querySelectorAll('.profile-user-email-display').forEach(el => el.textContent = user.email || 'Sign in to sync your orders across devices');
     }
+
+    window.handleCartCheckoutProceed = function (e) {
+        if (e) e.preventDefault();
+        const count = state.cart.reduce((sum, item) => sum + (Number(item.qty || item.quantity) || 1), 0);
+        if (count === 0) {
+            alert('Your shopping bag is empty. Please add items before checking out.');
+            return false;
+        }
+        const user = JSON.parse(localStorage.getItem('jg_auth_user') || 'null');
+        if (!user || !user.id || user.role !== 'customer') {
+            window.location.href = '../auth/login.html?redirect=checkout.html';
+            return false;
+        }
+        window.location.href = 'checkout.html';
+        return false;
+    };
 
     // ── Public Global JG API ──
     window.JG = {
@@ -1170,15 +1234,19 @@
 
     // ── Check Current Authenticated Customer Session ──
     async function checkAuthSession() {
+        const pathFile = window.location.pathname.split('/').pop().replace('.html', '').toLowerCase();
+        const isProtectedCustomerRoute = ['profile', 'checkout', 'payment', 'order-confirmation'].includes(pathFile);
+
         try {
             const fetchFn = window.apiFetch || fetch;
             const res = await fetchFn('/api/auth/me');
             if (res.ok) {
                 const data = await res.json();
-                if (data && data.authenticated && data.user) {
+                if (data && data.authenticated && data.user && data.user.role === 'customer') {
                     state.user = data.user;
                     persistState();
                     renderProfileView();
+                    document.documentElement.style.display = '';
 
                     // Batch sync local cart with server
                     if (state.cart.length > 0) {
@@ -1197,16 +1265,21 @@
             console.debug('Session check deferred:', e);
         }
 
-        // Unauthenticated on server: clear user state & redirect if on protected page
+        // Unauthenticated or not customer on server: clear customer state & redirect if on protected page
         state.user = null;
-        localStorage.removeItem('jg_auth_user');
+        const currentLocal = JSON.parse(localStorage.getItem('jg_auth_user') || 'null');
+        if (currentLocal && currentLocal.role !== 'admin') {
+            localStorage.removeItem('jg_auth_user');
+        }
         renderProfileView();
 
-        const pathFile = window.location.pathname.split('/').pop().replace('.html', '').toLowerCase();
-        if (['profile', 'checkout'].includes(pathFile)) {
+        if (isProtectedCustomerRoute) {
+            document.documentElement.style.display = 'none';
             const inCustomerDir = window.location.pathname.includes('/customer/');
             const loginPath = inCustomerDir ? `../auth/login.html?redirect=${pathFile}.html` : `auth/login.html?redirect=customer/${pathFile}.html`;
             window.location.replace(loginPath);
+        } else {
+            document.documentElement.style.display = '';
         }
     }
 

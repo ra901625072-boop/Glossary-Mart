@@ -147,21 +147,39 @@
         syncUI() {
             const user = this.user;
             const isAdmin = this.isAdmin();
+            const isCustomer = Boolean(user && user.role === 'customer');
 
             // Reveal admin ERP links only for authenticated administrators
             document.querySelectorAll('.admin-only-link').forEach(el => {
                 el.style.display = isAdmin ? '' : 'none';
             });
 
-            if (!user) return;
+            if (!user) {
+                document.querySelectorAll('.profile-user-name-display, #accountBtnText').forEach(el => {
+                    el.textContent = 'Account';
+                });
+                document.querySelectorAll('.profile-user-email-display').forEach(el => {
+                    el.textContent = 'Sign in to sync orders';
+                });
+                return;
+            }
 
-            document.querySelectorAll('.profile-user-name-display, #accountBtnText').forEach(el => {
-                el.textContent = user.name || user.full_name || user.username || 'Customer';
-            });
-
-            document.querySelectorAll('.profile-user-email-display').forEach(el => {
-                el.textContent = user.email || '';
-            });
+            if (isCustomer) {
+                document.querySelectorAll('.profile-user-name-display, #accountBtnText').forEach(el => {
+                    el.textContent = user.name || user.full_name || user.username || 'Customer';
+                });
+                document.querySelectorAll('.profile-user-email-display').forEach(el => {
+                    el.textContent = user.email || '';
+                });
+            } else if (isAdmin) {
+                // If an administrator is browsing the consumer storefront, do NOT leak admin email or treat as customer
+                document.querySelectorAll('.profile-user-name-display, #accountBtnText').forEach(el => {
+                    el.textContent = 'ERP Admin';
+                });
+                document.querySelectorAll('.profile-user-email-display').forEach(el => {
+                    el.textContent = 'Administrator Console';
+                });
+            }
         }
     }
 

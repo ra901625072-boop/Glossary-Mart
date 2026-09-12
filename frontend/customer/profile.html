@@ -23,6 +23,22 @@
     <!-- Stylesheets -->
     <link rel="stylesheet" href="../static/css/core/variables.css">
     <link rel="stylesheet" href="../static/css/customer.css">
+
+    <!-- Immediate Authentication Guard -->
+    <script>
+        (function() {
+            try {
+                var user = JSON.parse(localStorage.getItem('jg_auth_user') || 'null');
+                if (!user || !user.id || user.role !== 'customer') {
+                    document.documentElement.style.display = 'none';
+                    window.location.replace('../auth/login.html?redirect=profile.html');
+                }
+            } catch (e) {
+                document.documentElement.style.display = 'none';
+                window.location.replace('../auth/login.html?redirect=profile.html');
+            }
+        })();
+    </script>
 </head>
 <body data-page="profile">
 

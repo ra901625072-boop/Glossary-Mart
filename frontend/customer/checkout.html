@@ -23,6 +23,22 @@
     <!-- Stylesheets -->
     <link rel="stylesheet" href="../static/css/core/variables.css">
     <link rel="stylesheet" href="../static/css/customer.css">
+
+    <!-- Immediate Authentication Guard -->
+    <script>
+        (function() {
+            try {
+                var user = JSON.parse(localStorage.getItem('jg_auth_user') || 'null');
+                if (!user || !user.id || user.role !== 'customer') {
+                    document.documentElement.style.display = 'none';
+                    window.location.replace('../auth/login.html?redirect=checkout.html');
+                }
+            } catch (e) {
+                document.documentElement.style.display = 'none';
+                window.location.replace('../auth/login.html?redirect=checkout.html');
+            }
+        })();
+    </script>
 </head>
 <body data-page="checkout">
 
@@ -280,7 +296,7 @@
                         </div>
                         <div class="d-flex justify-content-between mb-3 small text-muted">
                             <span>Contact</span>
-                            <span class="fw-bold text-dark">+91 9313840278</span>
+                            <span class="fw-bold text-dark" id="checkoutContactPhone">+91 98765 43210</span>
                         </div>
 
                         <div class="border-top pt-3 mb-4">

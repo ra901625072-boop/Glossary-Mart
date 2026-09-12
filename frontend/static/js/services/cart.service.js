@@ -20,7 +20,22 @@
         loadCart() {
             try {
                 const raw = localStorage.getItem(STORAGE_KEY) || localStorage.getItem('jg_cart');
-                return raw ? JSON.parse(raw) : [];
+                const list = raw ? JSON.parse(raw) : [];
+                if (!Array.isArray(list)) return [];
+                return list.map(item => {
+                    const id = Number(item.productId || item.id || 0);
+                    const qty = Number(item.qty || item.quantity || 1);
+                    const price = Number(item.price || 0);
+                    return {
+                        productId: id,
+                        id: id,
+                        qty: isNaN(qty) || qty < 1 ? 1 : qty,
+                        quantity: isNaN(qty) || qty < 1 ? 1 : qty,
+                        price: isNaN(price) ? 0 : price,
+                        name: item.name || '',
+                        image: item.image || ''
+                    };
+                }).filter(i => i.productId > 0);
             } catch (e) {
                 return [];
             }
@@ -148,19 +163,27 @@
             let originalMrpTotal = 0;
 
             this.cart.forEach(item => {
-                const product = this.catalog.find(p => Number(p.id) === Number(item.productId));
-                const price = product ? product.price : 100;
-                const mrp = product ? (product.mrp || Math.round(price * 1.15)) : 115;
-                subtotal += price * item.qty;
-                originalMrpTotal += mrp * item.qty;
+                const numQty = Number(item.qty || item.quantity || 1);
+                const numId = Number(item.productId || item.id || 0);
+                const product = this.catalog.find(p => Number(p.id) === numId);
+                const price = product ? Number(product.price) : Number(item.price || 0);
+                const mrp = product ? Number(product.mrp || Math.round(price * 1.15)) : (Number(item.mrp) || Math.round(price * 1.15));
+
+                const validPrice = isNaN(price) ? 0 : price;
+                const validMrp = isNaN(mrp) ? validPrice : mrp;
+                const validQty = isNaN(numQty) || numQty < 1 ? 1 : numQty;
+
+                subtotal += validPrice * validQty;
+                originalMrpTotal += validMrp * validQty;
             });
 
             let couponDiscount = 0;
             if (this.activeCoupon && subtotal > 0) {
+                const val = Number(this.activeCoupon.value || 0);
                 if (this.activeCoupon.type === 'percent') {
-                    couponDiscount = Math.round((subtotal * this.activeCoupon.value) / 100);
+                    couponDiscount = Math.round((subtotal * val) / 100);
                 } else {
-                    couponDiscount = Math.min(this.activeCoupon.value, subtotal);
+                    couponDiscount = Math.min(val, subtotal);
                 }
             }
 
@@ -170,13 +193,13 @@
             const totalSavings = Math.max(0, (originalMrpTotal - subtotal) + couponDiscount);
 
             return {
-                subtotal,
-                originalMrpTotal,
-                couponDiscount,
+                subtotal: Math.round(subtotal) || 0,
+                originalMrpTotal: Math.round(originalMrpTotal) || 0,
+                couponDiscount: Math.round(couponDiscount) || 0,
                 deliveryFee,
                 handlingFee,
-                finalTotal,
-                totalSavings,
+                finalTotal: Math.round(finalTotal) || 0,
+                totalSavings: Math.round(totalSavings) || 0,
                 freeDeliveryThreshold: 499,
                 freeDeliveryRemaining: Math.max(0, 499 - subtotal),
                 isFreeDelivery: subtotal >= 499
@@ -186,14 +209,16 @@
         updateBadgeElements() {
             const count = this.getItemCount();
             const totals = this.calculateTotals();
+            const safeCount = isNaN(count) ? 0 : count;
+            const safeTotal = isNaN(totals.finalTotal) ? 0 : totals.finalTotal;
 
             document.querySelectorAll('.cart-counter-badge, #cartCountBadge, #mobileCartBadge').forEach(el => {
-                el.textContent = count;
-                el.style.display = count > 0 ? (el.classList.contains('action-badge-pill') ? 'flex' : 'inline-flex') : 'none';
+                el.textContent = safeCount;
+                el.style.display = safeCount > 0 ? (el.classList.contains('action-badge-pill') ? 'flex' : 'inline-flex') : 'none';
             });
 
             document.querySelectorAll('.cart-total-header-pill, #cartTotalHeaderPill').forEach(el => {
-                el.textContent = `₹${totals.finalTotal}`;
+                el.textContent = `₹${safeTotal}`;
             });
         }
     }
