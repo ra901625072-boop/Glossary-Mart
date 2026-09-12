@@ -146,16 +146,13 @@
 
         syncUI() {
             const user = this.user;
-            const isAdmin = this.isAdmin();
             const isCustomer = Boolean(user && user.role === 'customer');
 
-            // Reveal admin ERP links only for authenticated administrators
-            document.querySelectorAll('.admin-only-link').forEach(el => {
-                el.style.display = isAdmin ? '' : 'none';
-            });
-
-            if (!user) {
-                document.querySelectorAll('.profile-user-name-display, #accountBtnText').forEach(el => {
+            if (!user || !isCustomer) {
+                document.querySelectorAll('#accountBtnText').forEach(el => {
+                    el.textContent = 'Login';
+                });
+                document.querySelectorAll('.profile-user-name-display').forEach(el => {
                     el.textContent = 'Account';
                 });
                 document.querySelectorAll('.profile-user-email-display').forEach(el => {
@@ -164,22 +161,17 @@
                 return;
             }
 
-            if (isCustomer) {
-                document.querySelectorAll('.profile-user-name-display, #accountBtnText').forEach(el => {
-                    el.textContent = user.name || user.full_name || user.username || 'Customer';
-                });
-                document.querySelectorAll('.profile-user-email-display').forEach(el => {
-                    el.textContent = user.email || '';
-                });
-            } else if (isAdmin) {
-                // If an administrator is browsing the consumer storefront, do NOT leak admin email or treat as customer
-                document.querySelectorAll('.profile-user-name-display, #accountBtnText').forEach(el => {
-                    el.textContent = 'ERP Admin';
-                });
-                document.querySelectorAll('.profile-user-email-display').forEach(el => {
-                    el.textContent = 'Administrator Console';
-                });
-            }
+            // Authenticated customer: display first name on storefront button and profile dropdown
+            const customerName = (user.name || user.full_name || user.username || 'Account').split(' ')[0];
+            document.querySelectorAll('#accountBtnText').forEach(el => {
+                el.textContent = customerName;
+            });
+            document.querySelectorAll('.profile-user-name-display').forEach(el => {
+                el.textContent = user.name || user.full_name || user.username || 'Customer';
+            });
+            document.querySelectorAll('.profile-user-email-display').forEach(el => {
+                el.textContent = user.email || '';
+            });
         }
     }
 

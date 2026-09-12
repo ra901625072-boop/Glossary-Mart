@@ -8,7 +8,7 @@
  * - Flash sale real-time countdown timer
  * - Location selector modal
  * - Multi-step checkout simulation & live order tracking
- * - Cross-project route resolver (Shop, Cart, Checkout, Profile, Auth, Admin ERP)
+ * - Cross-project route resolver (Shop, Cart, Checkout, Profile, Auth)
  */
 
 (function () {
@@ -868,21 +868,48 @@
         }
     }
 
-    // ── 18. Unified Authentication Engine (Login + Register + Admin) ──
+    // ── 18. Authentication State Synchronization ──
     async function checkAuthState() {
         const accountBtn = document.getElementById('headerAccountBtn');
         const accountText = document.getElementById('accountBtnText');
         if (!accountText) return;
+
+        // Default state is always 'Login'
+        accountText.innerText = 'Login';
+        if (accountBtn) accountBtn.title = 'Login';
+
+        // Bind profile navigation for logged-in customers
+        if (accountBtn && !accountBtn.dataset.authBound) {
+            accountBtn.dataset.authBound = 'true';
+            accountBtn.addEventListener('click', (e) => {
+                const authDataStr = localStorage.getItem('jg_auth_user');
+                if (authDataStr) {
+                    try {
+                        const user = JSON.parse(authDataStr);
+                        if (user && user.role === 'customer') {
+                            e.preventDefault();
+                            e.stopPropagation();
+                            window.location.href = 'customer/profile.html';
+                        }
+                    } catch (err) {}
+                }
+            });
+        }
 
         // 1. Optimistic render from localStorage cache
         const authDataStr = localStorage.getItem('jg_auth_user');
         if (authDataStr) {
             try {
                 const user = JSON.parse(authDataStr);
-                const displayName = user.full_name || user.name || (user.role === 'admin' ? 'Admin' : 'Account');
-                accountText.innerText = displayName.split(' ')[0];
-                if (accountBtn) {
-                    accountBtn.title = `Signed in as ${user.email || user.username} (${user.role || 'customer'})`;
+                if (user && user.role === 'customer') {
+                    const displayName = user.full_name || user.name || user.username || 'Account';
+                    accountText.innerText = displayName.split(' ')[0];
+                    if (accountBtn) {
+                        accountBtn.title = `Signed in as ${user.email || user.username}`;
+                    }
+                } else {
+                    accountText.innerText = 'Login';
+                    if (accountBtn) accountBtn.title = 'Login';
                 }
             } catch (e) {
                 // Ignore parse error
@@ -905,21 +932,27 @@
                         phone: u.phone,
                         role: u.role || 'customer'
                     }));
-                    const displayName = u.full_name || u.name || u.username;
-                    accountText.innerText = displayName.split(' ')[0];
-                    if (accountBtn) {
-                        accountBtn.title = `Signed in as ${u.email || u.username} (${u.role || 'customer'})`;
+                    if (u.role === 'customer') {
+                        const displayName = u.full_name || u.name || u.username || 'Account';
+                        accountText.innerText = displayName.split(' ')[0];
+                        if (accountBtn) {
+                            accountBtn.title = `Signed in as ${u.email || u.username}`;
+                        }
+                    } else {
+                        // Admin or guest on consumer storefront: keep button as 'Login'
+                        accountText.innerText = 'Login';
+                        if (accountBtn) accountBtn.title = 'Login';
                     }
                     return;
                 } else {
                     localStorage.removeItem('jg_auth_user');
-                    accountText.innerText = 'Account';
-                    if (accountBtn) accountBtn.title = 'Customer Account';
+                    accountText.innerText = 'Login';
+                    if (accountBtn) accountBtn.title = 'Login';
                 }
             } else if (res.status === 401) {
                 localStorage.removeItem('jg_auth_user');
-                accountText.innerText = 'Account';
-                if (accountBtn) accountBtn.title = 'Customer Account';
+                accountText.innerText = 'Login';
+                if (accountBtn) accountBtn.title = 'Login';
             }
         } catch (e) {
             // Backend network error
@@ -983,9 +1016,9 @@
      */
     async function handleLogin(e) {
         if (e) e.preventDefault();
-        const loginInput = document.getElementById('loginEmail') || document.getElementById('adminEmail');
-        const passwordInput = document.getElementById('loginPassword') || document.getElementById('adminPassword');
-        const feedback = document.getElementById('loginFeedback') || document.getElementById('adminFeedback');
+        const loginInput = document.getElementById('loginEmail');
+        const passwordInput = document.getElementById('loginPassword');
+        const feedback = document.getElementById('loginFeedback');
         const rememberInput = document.getElementById('rememberMe');
 
         const credential = loginInput?.value?.trim() || '';
@@ -1126,8 +1159,6 @@
         }
     }
 
-    // Alias for legacy forms or direct invocation
-    const handleAdminLogin = handleLogin;
 
     function handleForgotPassword(e) {
         if (e) e.preventDefault();
@@ -1183,10 +1214,6 @@
             const authModal = new bootstrap.Modal(document.getElementById('authModal'));
             switchAuthTab('register');
             authModal.show();
-        } else if (window.location.hash === '#admin') {
-            const authModal = new bootstrap.Modal(document.getElementById('authModal'));
-            switchAuthTab('admin');
-            authModal.show();
         }
 
         // Close search dropdown on click outside
@@ -1236,7 +1263,6 @@
     window.handleLogin = handleLogin;
     window.handleCustomerLogin = handleCustomerLogin;
     window.handleCustomerRegister = handleCustomerRegister;
-    window.handleAdminLogin = handleAdminLogin;
     window.handleForgotPassword = handleForgotPassword;
     window.handleLogout = handleLogout;
     window.checkAuthState = checkAuthState;
