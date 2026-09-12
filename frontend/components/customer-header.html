@@ -43,27 +43,17 @@
             <div class="search-container-box">
                 <i class="bi bi-search search-icon-pos"></i>
                 <input type="text" id="masterSearchInput" class="search-input-field" 
-                       placeholder="Search fresh vegetables, milk, atta, snacks, dairy products..."
+                       placeholder="Search fresh groceries & essentials..."
                        oninput="if(window.JG && window.JG.handleSearchInput) window.JG.handleSearchInput(this.value);"
                        onkeydown="if(event.key === 'Enter') { if(!window.location.pathname.includes('shop.html')) window.location.href = 'shop.html?search=' + encodeURIComponent(this.value); }">
             </div>
         </div>
 
-        <!-- Nav Actions -->
-        <div class="col-auto d-flex align-items-center gap-1 gap-md-2">
-            <a href="shop.html" class="nav-action-btn active d-none d-md-inline-flex" data-route-link="shop">
-                <i class="bi bi-grid-fill text-success"></i>
-                <span>Shop</span>
-            </a>
-
-            <a href="orders.html" class="nav-action-btn d-none d-md-inline-flex" data-route-link="orders">
-                <i class="bi bi-clock-history"></i>
-                <span>Orders</span>
-            </a>
-
+        <!-- Nav Actions (Minimal & Symmetrical) -->
+        <div class="col-auto d-flex align-items-center gap-2">
             <a href="wishlist.html" class="nav-action-btn" data-route-link="wishlist" title="Saved Wishlist">
                 <i class="bi bi-heart fs-5"></i>
-                <span class="d-none d-lg-inline">Wishlist</span>
+                <span class="d-none d-xxl-inline">Wishlist</span>
                 <span class="nav-badge wishlist-counter-badge" style="display: none;">0</span>
             </a>
 

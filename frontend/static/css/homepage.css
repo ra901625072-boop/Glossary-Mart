@@ -1358,8 +1358,13 @@ img {
 
 .footer-tagline {
     font-size: 0.82rem;
-    color: #9ca3af;
+    color: #cbd5e1;
     margin-bottom: 18px;
+}
+
+.master-footer p,
+.master-footer .text-muted {
+    color: #9ca3af !important;
 }
 
 .footer-col-title {
@@ -1380,9 +1385,14 @@ img {
 }
 
 .footer-link-item a {
-    color: #9ca3af;
+    color: #cbd5e1;
     text-decoration: none;
     transition: color 0.18s ease;
+    white-space: normal;
+    word-break: normal;
+    line-height: 1.4;
+    display: inline-flex;
+    align-items: center;
 }
 
 .footer-link-item a:hover {

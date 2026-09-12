@@ -54,6 +54,10 @@ h1, h2, h3, h4, h5, h6, .brand-font {
     box-shadow: var(--ss-shadow-xs, 0 1px 2px rgba(15, 23, 42, 0.04));
 }
 
+.master-header .container {
+    max-width: 1380px;
+}
+
 .brand-logo-wrap {
     text-decoration: none;
     display: inline-flex;
@@ -88,38 +92,40 @@ h1, h2, h3, h4, h5, h6, .brand-font {
     line-height: 1;
 }
 
-/* ── Location Selector Chip ── */
+/* ── Location Selector Chip (Minimal & Symmetrical) ── */
 .location-selector-chip {
-    background: #f1f5f3;
+    background: #f8faf9;
     border: 1px solid var(--border-subtle, rgba(15, 23, 42, 0.08));
     border-radius: var(--radius-full, 9999px);
-    padding: 0.35rem 0.85rem;
+    padding: 0.35rem 0.75rem;
     cursor: pointer;
     transition: var(--transition-fast, all 0.15s ease);
-    max-width: 210px;
+    max-width: 170px;
     display: inline-flex;
     align-items: center;
-    gap: 0.5rem;
+    gap: 0.45rem;
+    flex-shrink: 0;
 }
 
 .location-selector-chip:hover {
-    background: #e7eee9;
-    border-color: rgba(5, 150, 105, 0.3);
+    background: #eef5f1;
+    border-color: rgba(5, 150, 105, 0.25);
 }
 
-/* ── Fluid Live Search Bar (No Truncation) ── */
+/* ── Fluid Live Search Bar (Minimal & Symmetrical - No Truncation) ── */
 .search-container-box {
     position: relative;
     width: 100%;
-    max-width: 520px;
+    max-width: 560px;
+    min-width: 260px;
     margin: 0 auto;
 }
 
 .search-input-field {
     width: 100%;
-    padding: 0.58rem 1rem 0.58rem 2.65rem;
-    background: #f1f5f3;
-    border: 1px solid transparent;
+    padding: 0.55rem 1.1rem 0.55rem 2.65rem;
+    background: #f8fafc;
+    border: 1px solid #e2e8f0;
     border-radius: var(--radius-full, 9999px);
     font-size: 0.88rem;
     font-weight: 500;
@@ -128,14 +134,14 @@ h1, h2, h3, h4, h5, h6, .brand-font {
 }
 
 .search-input-field::placeholder {
-    color: var(--text-muted, #64748b);
+    color: #94a3b8;
     font-size: 0.86rem;
 }
 
 .search-input-field:focus {
     background: #ffffff;
     border-color: var(--brand-primary, #059669);
-    box-shadow: var(--glow-focus, 0 0 0 3px rgba(5, 150, 105, 0.15));
+    box-shadow: 0 0 0 3px rgba(5, 150, 105, 0.12);
     outline: none;
 }
 
@@ -933,10 +939,15 @@ h1, h2, h3, h4, h5, h6, .brand-font {
     color: #94a3b8;
     padding: 56px 0 28px;
     font-size: 0.86rem;
-    margin-top: 50px;
+    margin-top: 56px;
     position: relative;
     z-index: 10;
     border-top: 1px solid var(--brand-dark-border, rgba(16, 185, 129, 0.16));
+}
+
+.master-footer p,
+.master-footer .text-muted {
+    color: #94a3b8 !important;
 }
 
 .footer-brand-title {
@@ -953,8 +964,8 @@ h1, h2, h3, h4, h5, h6, .brand-font {
 }
 
 .footer-tagline {
-    font-size: 0.78rem;
-    color: #94a3b8;
+    font-size: 0.76rem;
+    color: #cbd5e1;
     margin-bottom: 14px;
     font-weight: 600;
     text-transform: uppercase;
@@ -980,12 +991,15 @@ h1, h2, h3, h4, h5, h6, .brand-font {
 }
 
 .footer-link-item a {
-    color: #94a3b8;
+    color: #cbd5e1;
     text-decoration: none;
     transition: var(--transition-fast, all 0.15s ease);
     display: inline-flex;
     align-items: center;
     font-size: 0.84rem;
+    white-space: normal;
+    word-break: normal;
+    line-height: 1.4;
 }
 
 .footer-link-item a:hover {
@@ -1050,7 +1064,7 @@ h1, h2, h3, h4, h5, h6, .brand-font {
     justify-content: space-between;
     align-items: center;
     font-size: 0.8rem;
-    color: #64748b;
+    color: #94a3b8;
     flex-wrap: wrap;
     gap: 12px;
 }
@@ -1061,13 +1075,13 @@ h1, h2, h3, h4, h5, h6, .brand-font {
 }
 
 .footer-bottom-links a {
-    color: #64748b;
+    color: #94a3b8;
     text-decoration: none;
     transition: color 0.15s ease;
 }
 
 .footer-bottom-links a:hover {
-    color: #cbd5e1;
+    color: #ffffff;
 }
 
 /* ── Dedicated Product Details Page Styles ── */
