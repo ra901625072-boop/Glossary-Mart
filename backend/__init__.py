@@ -134,6 +134,8 @@ def register_blueprints(app):
     # Exempt REST APIs from CSRF protection for cross-origin / decoupled frontend requests
     csrf.exempt(api_bp)
     csrf.exempt(admin_bp)
+    csrf.exempt(auth_bp)
+    csrf.exempt(security_bp)
 
     app.register_blueprint(api_bp)
     app.register_blueprint(auth_bp)

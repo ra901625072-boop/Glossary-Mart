@@ -112,14 +112,15 @@ class Config:
     ADMIN_EMAIL = os.getenv('ADMIN_EMAIL', 'admin@mart.com')
 
     # ------------------------------------------------------------------ #
-    # Mail
+    # Transactional Email (Resend REST API & SMTP Fallback)
     # ------------------------------------------------------------------ #
-    MAIL_SERVER = os.getenv('MAIL_SERVER', 'smtp.gmail.com')
+    RESEND_API_KEY = os.getenv('RESEND_API_KEY')
+    MAIL_SERVER = os.getenv('MAIL_SERVER', 'smtp.resend.com')
     MAIL_PORT = int(os.getenv('MAIL_PORT', 587))
     MAIL_USE_TLS = os.getenv('MAIL_USE_TLS', 'true').lower() == 'true'
     MAIL_USERNAME = os.getenv('MAIL_USERNAME')
     MAIL_PASSWORD = os.getenv('MAIL_PASSWORD')
-    MAIL_DEFAULT_SENDER = os.getenv('MAIL_DEFAULT_SENDER', 'jaygogamartstore@gmail.com')
+    MAIL_DEFAULT_SENDER = os.getenv('MAIL_DEFAULT_SENDER', 'onboarding@resend.dev')
 
     # ------------------------------------------------------------------ #
     # Payments

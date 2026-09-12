@@ -8,6 +8,7 @@ from werkzeug.security import check_password_hash, generate_password_hash
 from flask_mail import Message
 
 from backend.extensions import limiter, mail
+from backend.services import EmailService
 from database.models import db
 from database.models.user import User
 from database.models.order import Cart
@@ -130,7 +131,8 @@ def customer_register():
     
     try:
         token = secrets.token_urlsafe(32)
-        is_verified = not current_app.config.get('MAIL_USERNAME')
+        has_mail = EmailService.is_configured()
+        is_verified = not has_mail
         new_user = User(
             username=username,
             email=email,
@@ -147,18 +149,28 @@ def customer_register():
         db.session.commit()
         
         if not is_verified:
-            # Send verification email
-            try:
-                msg = Message("Verify Your Email | e Grossary Store", recipients=[new_user.email])
-                verify_url = url_for('security.verify_email', token=token, _external=True)
-                msg.body = f"Welcome! Click here to verify your email address: {verify_url}"
-                mail.send(msg)
+            email_result = EmailService.send_verification_email(new_user, token)
+            if email_result.get('success'):
                 message = 'Registration successful! Please check your email to verify your account.'
-            except Exception:
-                current_app.logger.exception("Failed to send verification email")
-                message = 'Account created, but we couldn\'t send a verification email.'
-            
-            return jsonify({'success': True, 'message': message, 'redirect': url_for('auth.customer_login')})
+                return jsonify({'success': True, 'message': message, 'redirect': url_for('auth.customer_login')})
+            elif email_result.get('is_sandbox_restriction'):
+                current_app.logger.warning(
+                    f"Resend Sandbox Mode: recipient {new_user.email} cannot receive sandbox emails. "
+                    "Auto-verifying user for test session to prevent account lockout."
+                )
+                new_user.is_verified = True
+                new_user.verification_token = None
+                db.session.commit()
+                login_user(new_user)
+                return jsonify({
+                    'success': True,
+                    'message': 'Registration successful! Welcome to eGrossary.',
+                    'redirect': url_for('customer.customer_portal')
+                })
+            else:
+                current_app.logger.error("Failed to send verification email: %s", email_result.get("message"))
+                message = "Account created, but verification email could not be delivered."
+                return jsonify({'success': True, 'message': message, 'redirect': url_for('auth.customer_login')})
         else:
             login_user(new_user)
             return jsonify({'success': True, 'message': 'Registration successful! Welcome to e Grossary Store.', 'redirect': url_for('customer.customer_portal')})
@@ -172,6 +184,12 @@ def customer_register():
 def customer_register_redirect():
     """Convenience alias redirecting /customer/register to /register"""
     return redirect(url_for('auth.customer_register'))
+
+@auth_bp.route('/forgot-password', methods=['GET', 'POST'])
+def forgot_password_alias():
+    """Convenience alias routing /forgot-password to /security/forgot-password"""
+    from .security import forgot_password
+    return forgot_password()
 
 @auth_bp.route('/login', methods=['GET', 'POST'])
 @limiter.limit("10 per minute")

@@ -1,15 +1,76 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>Order Confirmation #{{ order.id }}</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Order Confirmation #{{ order.id }} | eGrossary</title>
 </head>
-<body style="font-family: Arial, sans-serif; color: #333; line-height: 1.6; padding: 20px;">
-    <h2>e Grossary &bull; Order Confirmation</h2>
-    <p>Dear {{ user.full_name or user.username }},</p>
-    <p>Thank you for shopping with us! Your order <strong>#{{ order.id }}</strong> has been placed successfully.</p>
-    <p><strong>Total Amount:</strong> ₹{{ order.total_amount }}</p>
-    <p><strong>Payment Method:</strong> {{ order.payment_method }}</p>
-    <p>We are dispatching your items shortly.</p>
+<body style="margin: 0; padding: 0; background-color: #f8fafc; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; color: #1e293b; line-height: 1.6;">
+    <table role="presentation" width="100%" cellspacing="0" cellpadding="0" style="background-color: #f8fafc; padding: 40px 15px;">
+        <tr>
+            <td align="center">
+                <table role="presentation" width="100%" style="max-width: 560px; background-color: #ffffff; border-radius: 16px; border: 1px solid #e2e8f0; overflow: hidden; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05);">
+                    <!-- Brand Header -->
+                    <tr>
+                        <td style="padding: 32px 32px 24px; text-align: center; background: linear-gradient(180deg, #ecfdf5 0%, #ffffff 100%); border-bottom: 1px solid #f1f5f9;">
+                            <div style="font-size: 26px; font-weight: 800; letter-spacing: -0.5px; color: #0f172a;">
+                                e<span style="color: #059669;">Grossary</span>
+                            </div>
+                            <div style="font-size: 13px; color: #64748b; margin-top: 4px; font-weight: 500;">
+                                Fresh Groceries Superstore
+                            </div>
+                        </td>
+                    </tr>
+
+                    <!-- Body Content -->
+                    <tr>
+                        <td style="padding: 36px 32px;">
+                            <div style="display: inline-block; background-color: #d1fae5; color: #065f46; font-size: 12px; font-weight: 700; padding: 4px 12px; border-radius: 9999px; margin-bottom: 16px; text-transform: uppercase; letter-spacing: 0.5px;">
+                                Order Confirmed
+                            </div>
+                            <h1 style="font-size: 22px; font-weight: 700; color: #0f172a; margin: 0 0 12px;">
+                                Thank you for your order!
+                            </h1>
+                            <p style="font-size: 15px; color: #475569; margin: 0 0 24px; line-height: 1.6;">
+                                Dear {{ user.full_name or user.username }}, we have received your order <strong>#{{ order.id }}</strong> and our team is preparing it for prompt delivery.
+                            </p>
+
+                            <!-- Order Details Card -->
+                            <table role="presentation" width="100%" style="border-collapse: collapse; background-color: #f8fafc; border-radius: 12px; border: 1px solid #e2e8f0; margin: 24px 0;">
+                                <tr>
+                                    <td style="padding: 14px 20px; border-bottom: 1px solid #e2e8f0; font-size: 14px; color: #64748b;">Order Number</td>
+                                    <td style="padding: 14px 20px; border-bottom: 1px solid #e2e8f0; font-size: 14px; font-weight: 700; color: #0f172a; text-align: right;">#{{ order.id }}</td>
+                                </tr>
+                                <tr>
+                                    <td style="padding: 14px 20px; border-bottom: 1px solid #e2e8f0; font-size: 14px; color: #64748b;">Total Amount</td>
+                                    <td style="padding: 14px 20px; border-bottom: 1px solid #e2e8f0; font-size: 16px; font-weight: 800; color: #059669; text-align: right;">₹{{ "%.2f"|format(order.total_amount) if order.total_amount is number else order.total_amount }}</td>
+                                </tr>
+                                <tr>
+                                    <td style="padding: 14px 20px; font-size: 14px; color: #64748b;">Payment Method</td>
+                                    <td style="padding: 14px 20px; font-size: 14px; font-weight: 600; color: #0f172a; text-align: right;">{{ order.payment_method }}</td>
+                                </tr>
+                            </table>
+
+                            <p style="font-size: 14px; color: #475569; margin: 16px 0 0; line-height: 1.6;">
+                                You can track your order status in real time by signing in to your account.
+                            </p>
+                        </td>
+                    </tr>
+
+                    <!-- Footer -->
+                    <tr>
+                        <td style="padding: 24px 32px; background-color: #f8fafc; border-top: 1px solid #f1f5f9; text-align: center;">
+                            <p style="font-size: 12px; color: #94a3b8; margin: 0 0 6px;">
+                                Questions about your order? Reach out to support@egrossary.com
+                            </p>
+                            <p style="font-size: 12px; color: #94a3b8; margin: 0;">
+                                &copy; 2026 eGrossary Mart. All rights reserved.
+                            </p>
+                        </td>
+                    </tr>
+                </table>
+            </td>
+        </tr>
+    </table>
 </body>
 </html>

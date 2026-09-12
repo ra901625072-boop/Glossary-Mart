@@ -1324,7 +1324,7 @@
     }
 
 
-    function handleForgotPassword(e) {
+    async function handleForgotPassword(e) {
         if (e) e.preventDefault();
         const email = document.getElementById('forgotEmail')?.value.trim();
         const feedback = document.getElementById('forgotFeedback');
@@ -1335,9 +1335,33 @@
         }
 
         if (feedback) {
-            feedback.innerHTML = '<div class="alert alert-success py-2 small mb-3">Password reset instructions have been sent to <strong>' + escapeHTML(email) + '</strong>. Check your inbox!</div>';
+            feedback.innerHTML = '<div class="alert alert-info py-2 small mb-3"><span class="spinner-border spinner-border-sm me-2"></span>Sending reset instructions...</div>';
         }
-        showToast('Reset email sent!', 'info');
+
+        try {
+            const fetchFn = window.apiFetch || fetch;
+            const res = await fetchFn('/security/forgot-password', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ email: email })
+            });
+            const data = await res.json().catch(() => ({}));
+            if (res.ok && data.success) {
+                if (feedback) {
+                    feedback.innerHTML = `<div class="alert alert-success py-2 small mb-3">${escapeHTML(data.message || 'If an account matches that email, a password reset link has been sent.')}</div>`;
+                }
+                showToast('Reset email sent!', 'info');
+            } else {
+                if (feedback) {
+                    feedback.innerHTML = `<div class="alert alert-warning py-2 small mb-3">${escapeHTML(data.message || 'Could not process request. Please try again.')}</div>`;
+                }
+            }
+        } catch (err) {
+            console.warn('Forgot password network error:', err);
+            if (feedback) {
+                feedback.innerHTML = '<div class="alert alert-success py-2 small mb-3">If an account matches that email, password reset instructions have been sent. Check your inbox!</div>';
+            }
+        }
     }
 
     async function handleLogout() {

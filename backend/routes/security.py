@@ -18,6 +18,7 @@ from flask_login import current_user, login_user
 from flask_mail import Message
 
 from backend.extensions import limiter, mail
+from backend.services import EmailService
 from database.models import db
 from database.models.user import User
 from backend.utils.security import hash_token
@@ -62,16 +63,7 @@ def forgot_password():
         token = f"{raw_token}.{int(time.time())}"
         user.reset_token = hash_token(token)
         db.session.commit()
-        try:
-            msg = Message(
-                "Password Reset Request | e Grossary Store",
-                recipients=[user.email],
-            )
-            reset_url = url_for("security.reset_password", token=token, _external=True)
-            msg.body = f"Click here to reset your password: {reset_url}\nThis link expires in 15 minutes. If you did not request this, please ignore it."
-            mail.send(msg)
-        except Exception:
-            current_app.logger.exception("Failed to send password reset email")
+        EmailService.send_password_reset_email(user, token)
 
     message = "If an account matches that email, a password reset link has been sent."
     if request.is_json:

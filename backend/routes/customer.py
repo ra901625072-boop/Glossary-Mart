@@ -9,6 +9,7 @@ from database.models.product import Category, Product, Review
 from database.models.order import Order, Wishlist
 from backend.services.cart_service import CartService
 from backend.services.order_service import OrderService
+from backend.services.email_service import EmailService
 
 from . import customer_bp
 from .decorators import customer_required
@@ -330,16 +331,8 @@ def checkout():
                 return jsonify({'success': True, 'order_id': order.id, 'redirect': url_for('customer.process_payment', order_id=order.id)})
             return redirect(url_for('customer.process_payment', order_id=order.id))
         
-        # COD Flow - Send email
-        try:
-            msg = Message(
-                f"Order Confirmation - #{order.id} | e Grossary Store",
-                recipients=[current_user.email]
-            )
-            msg.html = render_template('emails/order_confirmation.html', order=order, user=current_user)
-            mail.send(msg)
-        except Exception:
-            current_app.logger.exception(f"Failed to send order confirmation email for order #{order.id}")
+        # COD Flow - Send confirmation email
+        EmailService.send_order_confirmation_email(order, current_user)
         
         if request.is_json:
             return jsonify({'success': True, 'order_id': order.id, 'message': 'Order placed with Cash on Delivery!', 'redirect': url_for('customer.order_confirmation', order_id=order.id)})
@@ -454,16 +447,7 @@ def payment_success(order_id):
     db.session.commit()
     
     # Send order confirmation email
-    if current_app.config.get('MAIL_USERNAME'):
-        try:
-            msg = Message(
-                f"Order Confirmation - #{order.id} | e Grossary Store",
-                recipients=[current_user.email]
-            )
-            msg.html = render_template('emails/order_confirmation.html', order=order, user=current_user)
-            mail.send(msg)
-        except Exception:
-            current_app.logger.exception(f"Failed to send payment confirmation email for order #{order.id}")
+    EmailService.send_order_confirmation_email(order, current_user)
             
     if request.is_json:
         return jsonify({'success': True, 'message': 'Payment successful! Your order has been placed.', 'order_id': order.id})

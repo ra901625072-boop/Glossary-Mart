@@ -44,12 +44,14 @@ services:
         value: "false"
       - key: PYTHON_VERSION
         value: 3.11.9
+      - key: RESEND_API_KEY
+        sync: false
+      - key: MAIL_DEFAULT_SENDER
+        sync: false
       - key: MAIL_USERNAME
         sync: false
       - key: MAIL_PASSWORD
         sync: false
       - key: MAIL_SERVER
-        sync: false
-      - key: MAIL_DEFAULT_SENDER
         sync: false
 
