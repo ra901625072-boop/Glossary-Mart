@@ -1,5 +1,7 @@
 from flask import jsonify, request
 from flask_login import current_user
+from sqlalchemy import func
+from sqlalchemy.orm import joinedload, selectinload
 from database.models import db
 from database.models.product import Category, Product, Review
 from . import api_bp
@@ -59,7 +61,16 @@ def get_products():
         query = query.order_by(Product.name.asc())
 
     total = query.count()
-    products = query.offset((page - 1) * per_page).limit(per_page).all()
+    # Eager load category_rel and reviews to eliminate N+1 roundtrips
+    products = (
+        query.options(
+            joinedload(Product.category_rel),
+            selectinload(Product.reviews)
+        )
+        .offset((page - 1) * per_page)
+        .limit(per_page)
+        .all()
+    )
     is_admin = current_user.is_authenticated and current_user.role == 'admin'
 
     return jsonify({
@@ -75,7 +86,12 @@ def get_products():
 @api_bp.route('/products/<int:product_id>', methods=['GET'])
 def get_product(product_id):
     """Get single product details with reviews (wholesale data redacted for non-admins)"""
-    product = db.session.query(Product).filter_by(id=product_id, is_active=True).first()
+    product = (
+        db.session.query(Product)
+        .options(joinedload(Product.category_rel), selectinload(Product.reviews))
+        .filter_by(id=product_id, is_active=True)
+        .first()
+    )
     if not product:
         return jsonify({'success': False, 'message': 'Product not found'}), 404
 
@@ -95,17 +111,23 @@ def get_product(product_id):
 
 @api_bp.route('/categories', methods=['GET'])
 def get_categories():
-    """Get all categories with active product counts"""
+    """Get all categories with active product counts in a single batch query"""
     categories = db.session.query(Category).order_by(Category.name).all()
-    results = []
-    for cat in categories:
-        count = db.session.query(Product).filter_by(category_id=cat.id, is_active=True).count()
-        results.append({
+    counts_map = dict(
+        db.session.query(Product.category_id, func.count(Product.id))
+        .filter(Product.is_active == True)
+        .group_by(Product.category_id)
+        .all()
+    )
+    results = [
+        {
             'id': cat.id,
             'name': cat.name,
             'description': cat.description,
-            'product_count': count
-        })
+            'product_count': counts_map.get(cat.id, 0)
+        }
+        for cat in categories
+    ]
     return jsonify({'success': True, 'categories': results}), 200
 
 

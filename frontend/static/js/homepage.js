@@ -837,29 +837,15 @@
     }
 
     function placeOrder() {
-        const orderId = 'EGM-' + Math.floor(100000 + Math.random() * 900000);
-
-        // Hide checkout modal
+        // Hide checkout modal if open
         const checkoutModalEl = document.getElementById('checkoutModal');
         if (checkoutModalEl && window.bootstrap) {
             const modal = bootstrap.Modal.getInstance(checkoutModalEl);
             if (modal) modal.hide();
         }
 
-        // Update Success Modal Elements
-        const orderIdDisplay = document.getElementById('confirmedOrderId');
-        if (orderIdDisplay) orderIdDisplay.innerText = '#' + orderId;
-
-        // Clear cart
-        cart = [];
-        saveCart();
-
-        // Show Success Modal
-        if (window.bootstrap) {
-            const successModal = new bootstrap.Modal(document.getElementById('orderSuccessModal'));
-            successModal.show();
-        }
-        showToast('Order confirmed successfully!', 'success');
+        // Delegate to real backend checkout pipeline
+        initiateCheckout();
     }
 
     // ── 13. Newsletter Subscription ──
@@ -1290,6 +1276,10 @@
                 setTimeout(() => {
                     window.location.href = finalDest;
                 }, 500);
+                return;
+            } else if (res.status === 429) {
+                const errorMsg = data.message || 'Too many login attempts. Please wait 1 minute before trying again.';
+                if (feedback) feedback.innerHTML = `<div class="alert alert-warning py-2 small mb-3"><i class="bi bi-clock-history me-1"></i>${escapeHTML(errorMsg)}</div>`;
                 return;
             } else {
                 const errorMsg = data.message || 'Invalid email/username or password. Please try again.';

@@ -95,6 +95,18 @@ def create_app(config_class=Config):
         from flask import send_from_directory
         return send_from_directory(app.config['UPLOAD_FOLDER'], filename)
 
+    @app.errorhandler(429)
+    def ratelimit_handler(e):
+        from flask import jsonify, request
+        if request.path.startswith('/api/') or request.is_json or 'application/json' in request.headers.get('Accept', ''):
+            desc = getattr(e, 'description', 'Too many requests')
+            return jsonify({
+                'success': False,
+                'error': 'Too Many Requests',
+                'message': f"Rate limit exceeded: {desc}. Please wait a moment."
+            }), 429
+        return e
+
     return app
 
 

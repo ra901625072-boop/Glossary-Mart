@@ -666,8 +666,13 @@
             const inWishlist = state.wishlist.includes(product.id);
             const cartEntry = state.cart.find(item => item.productId === product.id);
             const qty = cartEntry ? cartEntry.qty : 0;
+            const isOutOfStock = product.inStock === false;
 
-            const actionButtonHtml = qty === 0 ? `
+            const actionButtonHtml = isOutOfStock ? `
+                <button class="btn-add-cart-init disabled" disabled style="background:#f1f5f9; color:#94a3b8; border:1px solid #cbd5e1; cursor:not-allowed; font-size:0.75rem; padding: 4px 10px;">
+                    <i class="bi bi-x-circle me-1"></i>OUT OF STOCK
+                </button>
+            ` : (qty === 0 ? `
                 <button class="btn-add-cart-init" onclick="window.JG.addToCart(${Number(product.id)})">
                     <i class="bi bi-plus-lg me-1"></i>ADD
                 </button>
@@ -677,13 +682,13 @@
                     <span class="stepper-val">${qty}</span>
                     <button class="stepper-btn" onclick="window.JG.updateCartQty(${Number(product.id)}, 1)">+</button>
                 </div>
-            `;
+            `);
 
             return `
                 <div class="col-6 col-md-4 col-lg-3">
                     <div class="product-card product-card-customer">
                         <div class="product-thumb-wrapper">
-                            ${discountPercent > 0 ? `<span class="discount-badge-pill">${discountPercent}% OFF</span>` : ''}
+                            ${isOutOfStock ? `<span class="badge bg-danger position-absolute top-0 start-0 m-2 rounded-pill px-2 py-1 small fw-bold" style="z-index: 2;">OUT OF STOCK</span>` : (discountPercent > 0 ? `<span class="discount-badge-pill">${discountPercent}% OFF</span>` : '')}
                             <button class="wishlist-toggle-btn ${inWishlist ? 'active' : ''}" 
                                     title="${inWishlist ? 'Remove from Wishlist' : 'Add to Wishlist'}"
                                     onclick="window.JG.toggleWishlist(${Number(product.id)})">
@@ -878,9 +883,11 @@
     }
 
     function getOrderStep(status) {
-        if (status === 'Delivered') return 4;
-        if (status === 'Shipped' || status === 'Out for Delivery') return 3;
-        if (status === 'Processing' || status === 'Packed') return 2;
+        const clean = String(status || '').toLowerCase();
+        if (clean === 'cancelled' || clean === 'returned') return 0;
+        if (clean === 'delivered') return 4;
+        if (clean === 'shipped' || clean.includes('out for delivery') || clean === 'dispatched') return 3;
+        if (clean === 'processing' || clean === 'packed') return 2;
         return 1;
     }
 
@@ -920,8 +927,53 @@
 
         container.innerHTML = state.orders.map(order => {
             const isDelivered = order.status === 'Delivered';
-            const badgeColor = isDelivered ? 'bg-success' : 'bg-primary';
+            const isCancelled = order.status === 'Cancelled';
+            const isReturned = order.status === 'Returned';
+            let badgeColor = 'bg-primary';
+            if (isDelivered) badgeColor = 'bg-success';
+            else if (isCancelled) badgeColor = 'bg-danger';
+            else if (isReturned) badgeColor = 'bg-secondary';
             const invoiceUrl = window.apiUrl ? window.apiUrl(`/api/orders/${Number(order.id)}/invoice`) : `/api/orders/${Number(order.id)}/invoice`;
+
+            const stepperHtml = (isCancelled || isReturned) ? `
+                <div class="px-3 py-3 mb-3 ${isCancelled ? 'bg-danger bg-opacity-10 text-danger border border-danger-subtle' : 'bg-secondary bg-opacity-10 text-secondary border'} rounded-3 d-flex align-items-center gap-2">
+                    <i class="bi ${isCancelled ? 'bi-x-circle-fill' : 'bi-arrow-counterclockwise'} fs-5"></i>
+                    <div>
+                        <div class="fw-bold">${isCancelled ? 'Order Cancelled' : 'Order Returned'}</div>
+                        <div class="small">${isCancelled ? 'This order has been cancelled and items were returned to inventory stock.' : 'Items from this order were returned to the store.'}</div>
+                    </div>
+                </div>
+            ` : `
+                <!-- Visual Delivery Stepper -->
+                <div class="px-3 py-2 mb-3 bg-light rounded-3">
+                    <div class="row text-center g-2">
+                        <div class="col-3">
+                            <div class="fw-bold small text-${order.step >= 1 ? 'success' : 'muted'}">
+                                <i class="bi bi-check-circle-fill"></i> Placed
+                            </div>
+                        </div>
+                        <div class="col-3">
+                            <div class="fw-bold small text-${order.step >= 2 ? 'success' : 'muted'}">
+                                <i class="bi bi-check-circle-fill"></i> Packed
+                            </div>
+                        </div>
+                        <div class="col-3">
+                            <div class="fw-bold small text-${order.step >= 3 ? 'success' : 'muted'}">
+                                <i class="bi bi-truck"></i> Out for Delivery
+                            </div>
+                        </div>
+                        <div class="col-3">
+                            <div class="fw-bold small text-${order.step >= 4 ? 'success' : 'muted'}">
+                                <i class="bi bi-house-door-fill"></i> Delivered
+                            </div>
+                        </div>
+                    </div>
+                    <div class="progress mt-2" style="height: 6px;">
+                        <div class="progress-bar bg-success progress-bar-striped ${!isDelivered ? 'progress-bar-animated' : ''}" 
+                             style="width: ${order.step * 25}%"></div>
+                    </div>
+                </div>
+            `;
 
             return `
                 <div class="ss-surface-card mb-4 p-4 rounded-4 shadow-sm border">
@@ -944,35 +996,7 @@
                         </div>
                     </div>
 
-                    <!-- Visual Delivery Stepper -->
-                    <div class="px-3 py-2 mb-3 bg-light rounded-3">
-                        <div class="row text-center g-2">
-                            <div class="col-3">
-                                <div class="fw-bold small text-${order.step >= 1 ? 'success' : 'muted'}">
-                                    <i class="bi bi-check-circle-fill"></i> Placed
-                                </div>
-                            </div>
-                            <div class="col-3">
-                                <div class="fw-bold small text-${order.step >= 2 ? 'success' : 'muted'}">
-                                    <i class="bi bi-check-circle-fill"></i> Packed
-                                </div>
-                            </div>
-                            <div class="col-3">
-                                <div class="fw-bold small text-${order.step >= 3 ? 'success' : 'muted'}">
-                                    <i class="bi bi-truck"></i> Out for Delivery
-                                </div>
-                            </div>
-                            <div class="col-3">
-                                <div class="fw-bold small text-${order.step >= 4 ? 'success' : 'muted'}">
-                                    <i class="bi bi-house-door-fill"></i> Delivered
-                                </div>
-                            </div>
-                        </div>
-                        <div class="progress mt-2" style="height: 6px;">
-                            <div class="progress-bar bg-success progress-bar-striped ${!isDelivered ? 'progress-bar-animated' : ''}" 
-                                 style="width: ${order.step * 25}%"></div>
-                        </div>
-                    </div>
+                    ${stepperHtml}
 
                     <div class="row g-2 align-items-center">
                         <div class="col-md-8">
@@ -1120,6 +1144,11 @@
         addToCart: async function (productId, quantityToAdd = 1) {
             const addQty = Math.max(1, Number(quantityToAdd) || 1);
             const numId = Number(productId);
+            const prod = state.products.find(p => Number(p.id) === numId);
+            if (prod && prod.inStock === false) {
+                alert(`Sorry, "${prod.name}" is currently out of stock.`);
+                return;
+            }
             const existing = state.cart.find(i => Number(i.productId || i.id) === numId);
             if (existing) {
                 existing.qty = (Number(existing.qty) || 0) + addQty;

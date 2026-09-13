@@ -103,3 +103,149 @@ def test_process_checkout_insufficient_stock(app, session, customer_user, produc
         # Verify stock was NOT deducted
         db_p1 = session.get(Product, p1.id)
         assert db_p1.stock_quantity == 50
+
+
+def test_process_checkout_netbanking(app, session, customer_user, products, monkeypatch):
+    """Test successful checkout with NETBANKING payment method"""
+    p1, _ = products
+    
+    class MockCartItem:
+        def __init__(self, product, quantity):
+            self.product_id = product.id
+            self.quantity = quantity
+            self.subtotal = product.selling_price * quantity
+            
+    cart_items = [MockCartItem(p1, 5)]
+    
+    with app.test_request_context():
+        import flask_login
+        monkeypatch.setattr(flask_login.utils, '_get_user', lambda: customer_user)
+        
+        success, order, message = OrderService.process_checkout(
+            cart_items=cart_items,
+            shipping_address='789 Commercial Boulevard, Ahmedabad',
+            payment_method='NETBANKING'
+        )
+        
+        assert success is True
+        assert order is not None
+        assert order.payment_method == 'NETBANKING'
+        assert order.order_status == 'Pending'
+        
+        db_p1 = session.get(Product, p1.id)
+        assert db_p1.stock_quantity == 45 # 50 - 5
+
+
+def test_admin_orders_api_and_status_alias(client, admin_user, customer_user, products, session):
+    """Test admin orders list includes customer profile and status alias normalization"""
+    p1, _ = products
+    
+    # 1. Create an order for customer_user
+    customer_user.phone = '9876543210'
+    customer_user.full_name = 'Anita Sharma'
+    session.commit()
+    
+    order = Order(
+        user_id=customer_user.id,
+        shipping_address='789 Commercial Boulevard, Ahmedabad',
+        payment_method='COD',
+        order_status='Pending',
+        payment_status='Pending',
+        total_amount=100.0
+    )
+    session.add(order)
+    session.flush()
+    
+    order_item = OrderItem(
+        order_id=order.id,
+        product_id=p1.id,
+        quantity=5,
+        price=20.0,
+        profit=50.0
+    )
+    session.add(order_item)
+    # Deduct initial stock for order
+    p1.stock_quantity -= 5
+    session.commit()
+    assert p1.stock_quantity == 45
+    
+    # 2. Login as admin
+    client.post('/auth/admin/login', data={'email': 'admin@test.com', 'password': 'admin123'})
+    
+    # 3. GET /admin/orders - verify customer profile in response
+    resp = client.get('/admin/orders')
+    assert resp.status_code == 200
+    data = resp.get_json()
+    assert len(data['orders']) >= 1
+    ord_summary = next(o for o in data['orders'] if o['id'] == order.id)
+    assert ord_summary['customer_name'] == 'Anita Sharma'
+    assert ord_summary['customer_phone'] == '9876543210'
+    assert ord_summary['customer_email'] == 'cust@test.com'
+    
+    # 4. GET /admin/orders/<id> - verify single detail
+    detail_resp = client.get(f'/admin/orders/{order.id}')
+    assert detail_resp.status_code == 200
+    detail_data = detail_resp.get_json()
+    assert detail_data['customer_name'] == 'Anita Sharma'
+    assert detail_data['customer_phone'] == '9876543210'
+    
+    # 5. Update status using alias 'Confirmed' -> should become 'Processing'
+    update_resp = client.post(f'/admin/orders/{order.id}/update-status', json={
+        'order_status': 'Confirmed'
+    })
+    assert update_resp.status_code == 200
+    assert update_resp.get_json()['order_status'] == 'Processing'
+    session.refresh(order)
+    assert order.order_status == 'Processing'
+    
+    # 6. Update status using alias 'Shipped' -> should become 'Out for Delivery'
+    update_resp = client.post(f'/admin/orders/{order.id}/update-status', json={
+        'order_status': 'Shipped'
+    })
+    assert update_resp.status_code == 200
+    assert update_resp.get_json()['order_status'] == 'Out for Delivery'
+    session.refresh(order)
+    assert order.order_status == 'Out for Delivery'
+    
+    # 7. Test invalid transition: from Out for Delivery directly to Pending should be rejected
+    inv_resp = client.post(f'/admin/orders/{order.id}/update-status', json={
+        'order_status': 'Pending'
+    })
+    assert inv_resp.status_code == 400
+    assert inv_resp.get_json()['success'] is False
+    
+    # 8. Cancel order: Out for Delivery -> Cancelled should restore inventory
+    cancel_resp = client.post(f'/admin/orders/{order.id}/update-status', json={
+        'order_status': 'Cancelled'
+    })
+    assert cancel_resp.status_code == 200
+    session.refresh(p1)
+    assert p1.stock_quantity == 50 # Restored from 45 back to 50!
+
+
+def test_api_checkout_payload_cart_sync(client, customer_user, products, session):
+    """Test customer checkout via /api/orders/checkout with items payload sync and stock reduction"""
+    p1, _ = products
+    initial_stock = p1.stock_quantity
+    
+    # Login as customer
+    client.post('/auth/login', data={'email': 'cust@test.com', 'password': 'cust123'})
+    
+    checkout_payload = {
+        'shipping_address': 'Flat 101, Galaxy Tower, SG Highway, Ahmedabad',
+        'payment_method': 'NETBANKING',
+        'items': [
+            {'product_id': p1.id, 'quantity': 4}
+        ]
+    }
+    
+    resp = client.post('/api/orders/checkout', json=checkout_payload)
+    assert resp.status_code == 201
+    resp_data = resp.get_json()
+    assert resp_data['success'] is True
+    assert resp_data['order']['payment_method'] == 'NETBANKING'
+    
+    # Verify stock deducted in DB
+    session.refresh(p1)
+    assert p1.stock_quantity == initial_stock - 4
+

@@ -84,7 +84,7 @@ class OrderService:
         if not cart_items:
             return None, 'Shopping cart is empty.'
 
-        valid_methods = {'COD', 'UPI', 'CARD', 'UDHAR'}
+        valid_methods = {'COD', 'UPI', 'CARD', 'UDHAR', 'NETBANKING'}
         clean_method = str(payment_method or 'COD').strip().upper()
         if clean_method not in valid_methods:
             return None, 'Invalid payment method.'

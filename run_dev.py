@@ -8,12 +8,19 @@ import sys
 import subprocess
 import time
 
+if sys.platform == "win32":
+    try:
+        sys.stdout.reconfigure(encoding="utf-8")
+        sys.stderr.reconfigure(encoding="utf-8")
+    except Exception:
+        pass
+
 PROJECT_ROOT = os.path.dirname(os.path.abspath(__file__))
 FRONTEND_DIR = os.path.join(PROJECT_ROOT, "frontend")
 
 def main():
     print("=" * 65)
-    print(" 🛒 E GROSSARY — DUAL-SERVER DEVELOPMENT ENVIRONMENT")
+    print(" E GROSSARY - DUAL-SERVER DEVELOPMENT ENVIRONMENT")
     print("=" * 65)
     print(" [1/2] Backend API:  http://127.0.0.1:5000/ (Health Check)")
     print("                     http://127.0.0.1:5000/api/products (REST API)")

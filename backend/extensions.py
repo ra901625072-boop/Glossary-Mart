@@ -19,7 +19,7 @@ from flask_wtf.csrf import CSRFProtect
 # In production → set REDIS_URL env var to a Redis Cloud / Upstash URL.
 limiter = Limiter(
     key_func=get_remote_address,
-    default_limits=["200 per day", "50 per hour"],
+    default_limits=["2000 per day", "500 per hour"],
     storage_uri=None,  # Overridden by app.config['RATELIMIT_STORAGE_URI'] at init_app()
 )
 

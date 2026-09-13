@@ -1,5 +1,6 @@
 """Admin product management routes (CRUD + API endpoint)."""
 from flask import current_app, jsonify, request
+from sqlalchemy.orm import joinedload
 
 from database.models import db
 from database.models.product import Category, Product
@@ -16,7 +17,13 @@ def products():
     """Product management — returns JSON product list."""
     page = request.args.get('page', 1, type=int)
     per_page = 20
-    pagination = db.session.query(Product).filter_by(is_active=True).order_by(Product.created_at.desc()).paginate(page=page, per_page=per_page, error_out=False)
+    pagination = (
+        db.session.query(Product)
+        .options(joinedload(Product.category_rel))
+        .filter_by(is_active=True)
+        .order_by(Product.created_at.desc())
+        .paginate(page=page, per_page=per_page, error_out=False)
+    )
     return jsonify({
         'success': True,
         'products': [

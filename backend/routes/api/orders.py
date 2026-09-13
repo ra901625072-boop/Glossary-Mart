@@ -79,22 +79,25 @@ def api_checkout():
         payment_method = 'UPI'
     elif raw_method in ('CREDIT_CARD', 'DEBIT_CARD'):
         payment_method = 'CARD'
+    elif raw_method in ('NETBANKING', 'NET_BANKING', 'NET'):
+        payment_method = 'NETBANKING'
     else:
         payment_method = raw_method
 
-    valid_methods = {'COD', 'UPI', 'CARD', 'UDHAR'}
+    valid_methods = {'COD', 'UPI', 'CARD', 'UDHAR', 'NETBANKING'}
     if payment_method not in valid_methods:
         return jsonify({'success': False, 'message': 'Invalid payment method'}), 400
 
     if not shipping_address or len(shipping_address) < 10 or len(shipping_address) > 500:
         return jsonify({'success': False, 'message': 'Shipping address must be between 10 and 500 characters'}), 400
 
-    # If DB cart is empty, but items were provided in payload, populate them first
+    # If items were explicitly provided in checkout payload, sync them into the DB cart
     from database.models.order import Cart
     from backend.services.cart_service import CartService
-    db_cart_count = db.session.query(Cart).filter_by(user_id=current_user.id).count()
-    if db_cart_count == 0 and data.get('items'):
-        for item in data.get('items'):
+    payload_items = data.get('items')
+    if payload_items and isinstance(payload_items, list) and len(payload_items) > 0:
+        db.session.query(Cart).filter_by(user_id=current_user.id).delete()
+        for item in payload_items:
             pid = item.get('product_id') or item.get('productId') or item.get('id')
             qty = item.get('quantity') or item.get('qty', 1)
             try:

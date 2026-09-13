@@ -28,6 +28,46 @@
         });
     }
 
+    // ── Modern Non-blocking Toast Notification Engine ──
+    function showToast(message, type = 'success', duration = 3500) {
+        let container = document.getElementById('admToastContainer');
+        if (!container) {
+            container = document.createElement('div');
+            container.id = 'admToastContainer';
+            document.body.appendChild(container);
+        }
+
+        const toast = document.createElement('div');
+        toast.className = `adm-toast toast-${type}`;
+        
+        let iconClass = 'bi-check-circle-fill text-success';
+        if (type === 'danger') iconClass = 'bi-x-circle-fill text-danger';
+        else if (type === 'warning') iconClass = 'bi-exclamation-triangle-fill text-warning';
+        else if (type === 'info') iconClass = 'bi-info-circle-fill text-primary';
+
+        toast.innerHTML = `
+            <i class="bi ${iconClass} fs-5 flex-shrink-0"></i>
+            <div class="flex-grow-1">${escapeHTML(message)}</div>
+            <button type="button" class="btn-close ms-2" style="font-size: 0.65rem;" aria-label="Close"></button>
+        `;
+
+        toast.querySelector('.btn-close').onclick = () => {
+            toast.style.opacity = '0';
+            toast.style.transform = 'translateY(-8px)';
+            setTimeout(() => toast.remove(), 200);
+        };
+
+        container.appendChild(toast);
+
+        setTimeout(() => {
+            if (toast.parentNode) {
+                toast.style.opacity = '0';
+                toast.style.transform = 'translateY(-8px)';
+                setTimeout(() => toast.remove(), 200);
+            }
+        }, duration);
+    }
+
     // ── Application State ──
     let state = {
         products: [],
@@ -39,10 +79,13 @@
         coupons: [],
         activity: [],
         sales: [],
+        expenses: [],
+        intelligence: null,
         posCart: [],
         posDiscount: 0,
         twoFactorEnabled: false,
-        user: null
+        user: null,
+        lastDashboardData: null
     };
 
     let salesChartInstance = null;
@@ -80,10 +123,33 @@
                     if (document.body) document.body.style.display = '';
                     updateAdminHeaderUI(data.user);
                     return true;
+                } else if (data && data.authenticated === false) {
+                    // Explicitly unauthenticated by server
+                    localStorage.removeItem('jg_auth_user');
+                }
+            } else if (res.status === 401) {
+                // Explicit 401 Unauthorized
+                localStorage.removeItem('jg_auth_user');
+            } else if (res.status === 429 || res.status >= 500) {
+                // Rate limit or server error: retain verified local session if available
+                console.warn(`[Admin ERP] Server returned status ${res.status} on /api/auth/me, keeping local session.`);
+                if (localAuth && localAuth.role === 'admin') {
+                    state.user = localAuth;
+                    if (document.documentElement) document.documentElement.style.display = '';
+                    if (document.body) document.body.style.display = '';
+                    updateAdminHeaderUI(localAuth);
+                    return true;
                 }
             }
         } catch (e) {
             console.warn('[Admin ERP] Auth verification error:', e);
+            if (localAuth && localAuth.role === 'admin') {
+                state.user = localAuth;
+                if (document.documentElement) document.documentElement.style.display = '';
+                if (document.body) document.body.style.display = '';
+                updateAdminHeaderUI(localAuth);
+                return true;
+            }
         }
 
         // Unauthorized access: strictly purge stale client state and redirect to login
@@ -181,7 +247,10 @@
                 if (data && data.orders) {
                     state.orders = data.orders.map(o => ({
                         id: o.id,
-                        customer: `Customer #${o.user_id}`,
+                        customer: o.customer_name || `Customer #${o.user_id}`,
+                        customer_name: o.customer_name || `Customer #${o.user_id}`,
+                        customer_phone: o.customer_phone || '',
+                        customer_email: o.customer_email || '',
                         user_id: o.user_id,
                         date: o.created_at ? new Date(o.created_at).toLocaleString('en-IN', { dateStyle: 'short', timeStyle: 'short' }) : 'Recent',
                         total: parseFloat(o.total_amount || 0),
@@ -357,6 +426,24 @@
         renderSales();
     }
 
+    async function loadExpensesData() {
+        try {
+            const fetchFn = window.apiFetch || fetch;
+            const res = await fetchFn('/api/admin/expenses');
+            if (res.ok) {
+                const data = await res.json();
+                if (data && data.expenses) {
+                    state.expenses = data.expenses;
+                    renderExpenses(data);
+                    return;
+                }
+            }
+        } catch (e) {
+            console.warn('[Admin ERP] Expenses load error:', e);
+        }
+        renderExpenses();
+    }
+
     function getCategoryIcon(name) {
         const n = (name || '').toLowerCase();
         if (n.includes('fruit') || n.includes('veg')) return '🥦';
@@ -388,7 +475,7 @@
 
         // If inside /admin/ and a hash points to an admin page not on the current DOM, redirect to that file
         if (rawHash && inAdminDir && !document.getElementById(`adm-view-${rawHash}`)) {
-            const knownAdminPages = ['dashboard', 'pos', 'products', 'categories', 'orders', 'customers', 'sales', 'purchases', 'suppliers', 'coupons', 'activity', 'security'];
+            const knownAdminPages = ['dashboard', 'expenses', 'pos', 'products', 'categories', 'orders', 'customers', 'sales', 'purchases', 'suppliers', 'coupons', 'activity', 'security'];
             if (knownAdminPages.includes(rawHash)) {
                 const targetFile = rawHash === 'dashboard' ? 'index.html' : `${rawHash}.html`;
                 window.location.href = targetFile;
@@ -431,6 +518,7 @@
 
         // Route specific live loader
         if (route === 'dashboard') loadDashboardData();
+        else if (route === 'expenses') loadExpensesData();
         else if (route === 'pos') { loadProductsData(); renderPOS(); }
         else if (route === 'products') loadProductsData();
         else if (route === 'categories') loadCategoriesData();
@@ -448,67 +536,610 @@
 
     // ── 4. Renderers ──
 
-    function renderDashboardWithData(data) {
-        const stats30 = data.stats_30_days || {};
-        const totalRev = Number(data.total_order_revenue || stats30.revenue || 0);
-        const totalOrders = Number(data.total_orders || stats30.count || 0);
-        const lowStockCount = Number(data.stock_stats?.low_stock_count || 0);
-        const totalProducts = Number(data.stock_stats?.total_products || state.products.length);
+    // Dynamic Vertical Linear Gradient Builder for Chart.js
+    function createVerticalLinearGradient(ctx, colorRgb, startAlpha, endAlpha, height = 280) {
+        const gradient = ctx.createLinearGradient(0, 0, 0, height);
+        gradient.addColorStop(0, `rgba(${colorRgb}, ${startAlpha})`);
+        gradient.addColorStop(1, `rgba(${colorRgb}, ${endAlpha})`);
+        return gradient;
+    }
 
-        document.getElementById('dashKpiRevenue').textContent = `₹${totalRev.toLocaleString('en-IN')}`;
-        document.getElementById('dashKpiOrders').textContent = totalOrders;
-        document.getElementById('dashKpiProducts').textContent = totalProducts;
-        document.getElementById('dashKpiLowStock').textContent = lowStockCount;
+    function renderModernSalesChart(chartData) {
+        if (typeof Chart === 'undefined' || !chartData) return;
+        const ctxSales = document.getElementById('dashSalesChart');
+        if (!ctxSales) return;
+
+        const isDark = (document.documentElement.getAttribute('data-theme') === 'dark');
+        const ctx = ctxSales.getContext('2d');
+        const emeraldGradient = createVerticalLinearGradient(ctx, '5, 150, 105', 0.28, 0.0);
+        const skyGradient = createVerticalLinearGradient(ctx, '2, 132, 199', 0.20, 0.0);
+
+        const rawLabels = chartData.labels || ['1', '2', '3', '4', '5', '6', '7'];
+        const formattedLabels = rawLabels.map(lbl => {
+            try {
+                const parts = String(lbl).split('-');
+                if (parts.length === 3) {
+                    const d = new Date(lbl);
+                    if (!isNaN(d.getTime())) {
+                        return d.toLocaleDateString('en-IN', { month: 'short', day: 'numeric' });
+                    }
+                }
+            } catch (e) {}
+            return lbl;
+        });
+
+        if (salesChartInstance) salesChartInstance.destroy();
+        salesChartInstance = new Chart(ctxSales, {
+            type: 'line',
+            data: {
+                labels: formattedLabels,
+                datasets: [
+                    {
+                        label: 'Revenue (₹)',
+                        data: chartData.revenue || [],
+                        borderColor: '#059669',
+                        backgroundColor: emeraldGradient,
+                        fill: true,
+                        tension: 0.4,
+                        borderWidth: 2.5,
+                        pointBackgroundColor: '#ffffff',
+                        pointBorderColor: '#059669',
+                        pointBorderWidth: 2,
+                        pointRadius: 3.5,
+                        pointHoverRadius: 6,
+                        pointHoverBackgroundColor: '#059669',
+                        pointHoverBorderColor: '#ffffff',
+                        pointHoverBorderWidth: 2
+                    },
+                    {
+                        label: 'Profit (₹)',
+                        data: chartData.profit || [],
+                        borderColor: '#0284c7',
+                        backgroundColor: skyGradient,
+                        fill: true,
+                        tension: 0.4,
+                        borderWidth: 2,
+                        pointBackgroundColor: '#ffffff',
+                        pointBorderColor: '#0284c7',
+                        pointBorderWidth: 2,
+                        pointRadius: 3,
+                        pointHoverRadius: 5,
+                        pointHoverBackgroundColor: '#0284c7',
+                        pointHoverBorderColor: '#ffffff',
+                        pointHoverBorderWidth: 2
+                    }
+                ]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                interaction: {
+                    mode: 'index',
+                    intersect: false
+                },
+                plugins: {
+                    legend: {
+                        display: true,
+                        position: 'top',
+                        align: 'end',
+                        labels: {
+                            usePointStyle: true,
+                            boxWidth: 8,
+                            boxHeight: 8,
+                            padding: 14,
+                            font: { family: "'Inter', sans-serif", size: 11, weight: '600' },
+                            color: isDark ? '#94a3b8' : '#64748b'
+                        }
+                    },
+                    tooltip: {
+                        backgroundColor: isDark ? 'rgba(17, 24, 39, 0.96)' : 'rgba(255, 255, 255, 0.98)',
+                        titleColor: isDark ? '#f8fafc' : '#0f172a',
+                        bodyColor: isDark ? '#cbd5e1' : '#334155',
+                        borderColor: isDark ? 'rgba(255, 255, 255, 0.08)' : 'rgba(0, 0, 0, 0.08)',
+                        borderWidth: 1,
+                        padding: 10,
+                        cornerRadius: 8,
+                        boxPadding: 4,
+                        usePointStyle: true,
+                        titleFont: { family: "'Outfit', sans-serif", size: 12, weight: '700' },
+                        bodyFont: { family: "'Inter', sans-serif", size: 11, weight: '500' },
+                        callbacks: {
+                            label: function (context) {
+                                const val = context.parsed.y !== null ? context.parsed.y : context.raw;
+                                return ` ${context.dataset.label}: ₹${Number(val).toLocaleString('en-IN')}`;
+                            }
+                        }
+                    }
+                },
+                scales: {
+                    x: {
+                        grid: { display: false },
+                        ticks: {
+                            font: { family: "'Inter', sans-serif", size: 11 },
+                            color: isDark ? '#64748b' : '#94a3b8',
+                            maxTicksLimit: 7,
+                            maxRotation: 0,
+                            autoSkip: true
+                        }
+                    },
+                    y: {
+                        beginAtZero: true,
+                        grid: {
+                            color: isDark ? 'rgba(255, 255, 255, 0.04)' : 'rgba(0, 0, 0, 0.04)'
+                        },
+                        ticks: {
+                            font: { family: "'Inter', sans-serif", size: 11 },
+                            color: isDark ? '#64748b' : '#94a3b8',
+                            callback: (v) => '₹' + Number(v).toLocaleString('en-IN')
+                        }
+                    }
+                }
+            }
+        });
+    }
+
+    function renderModernOrderStatusChart() {
+        if (typeof Chart === 'undefined') return;
+        const ctxOrder = document.getElementById('dashOrderStatusChart');
+        if (!ctxOrder) return;
+
+        const statusCounts = {
+            'Delivered': 0,
+            'Shipped': 0,
+            'Out for Delivery': 0,
+            'Processing': 0,
+            'Pending': 0,
+            'Cancelled': 0
+        };
+
+        if (state.orders && state.orders.length > 0) {
+            state.orders.forEach(o => {
+                const st = o.status || 'Pending';
+                if (statusCounts[st] !== undefined) {
+                    statusCounts[st]++;
+                } else if (st.toLowerCase().includes('deliv')) {
+                    statusCounts['Delivered']++;
+                } else {
+                    statusCounts['Processing']++;
+                }
+            });
+        } else {
+            statusCounts['Delivered'] = 14;
+            statusCounts['Shipped'] = 6;
+            statusCounts['Processing'] = 5;
+            statusCounts['Pending'] = 3;
+            statusCounts['Cancelled'] = 1;
+        }
+
+        const labels = Object.keys(statusCounts).filter(k => statusCounts[k] > 0);
+        const dataVals = labels.map(k => statusCounts[k]);
+        const colorMap = {
+            'Delivered': '#059669',
+            'Shipped': '#0284c7',
+            'Out for Delivery': '#06b6d4',
+            'Processing': '#f59e0b',
+            'Pending': '#8b5cf6',
+            'Cancelled': '#ef4444'
+        };
+        const bgColors = labels.map(l => colorMap[l] || '#64748b');
+        const isDark = (document.documentElement.getAttribute('data-theme') === 'dark');
+
+        if (orderStatusChartInstance) orderStatusChartInstance.destroy();
+        orderStatusChartInstance = new Chart(ctxOrder, {
+            type: 'doughnut',
+            data: {
+                labels: labels,
+                datasets: [{
+                    data: dataVals,
+                    backgroundColor: bgColors,
+                    borderColor: isDark ? '#111827' : '#ffffff',
+                    borderWidth: 2,
+                    hoverOffset: 6
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                cutout: '72%',
+                plugins: {
+                    legend: {
+                        position: 'bottom',
+                        labels: {
+                            usePointStyle: true,
+                            boxWidth: 8,
+                            boxHeight: 8,
+                            padding: 12,
+                            font: { family: "'Inter', sans-serif", size: 11, weight: '500' },
+                            color: isDark ? '#94a3b8' : '#64748b'
+                        }
+                    },
+                    tooltip: {
+                        backgroundColor: isDark ? 'rgba(17, 24, 39, 0.94)' : 'rgba(255, 255, 255, 0.96)',
+                        titleColor: isDark ? '#f8fafc' : '#0f172a',
+                        bodyColor: isDark ? '#cbd5e1' : '#334155',
+                        borderColor: isDark ? 'rgba(255, 255, 255, 0.08)' : 'rgba(0, 0, 0, 0.06)',
+                        borderWidth: 1,
+                        padding: 10,
+                        cornerRadius: 10,
+                        usePointStyle: true,
+                        titleFont: { family: "'Outfit', sans-serif", size: 12, weight: '700' },
+                        bodyFont: { family: "'Inter', sans-serif", size: 11, weight: '500' },
+                        callbacks: {
+                            label: function (ctx) {
+                                return ` ${ctx.label}: ${ctx.raw} orders`;
+                            }
+                        }
+                    }
+                }
+            }
+        });
+    }
+
+    function renderDashboardWithData(data) {
+        const fin = data.financials || {};
+        const stats30 = data.stats_30_days || {};
+
+        // 1. Total Revenue
+        const totalRev = Number(fin.total_revenue ?? data.total_revenue ?? data.total_order_revenue ?? stats30.revenue ?? 0);
+        const onlineRev = Number(fin.online_revenue ?? data.total_order_revenue ?? 0);
+        const posRev = Number(fin.pos_revenue ?? 0);
+        const revEl = document.getElementById('dashKpiRevenue');
+        if (revEl) revEl.textContent = `₹${totalRev.toLocaleString('en-IN', { minimumFractionDigits: 0, maximumFractionDigits: 2 })}`;
+
+        const revSplitEl = document.getElementById('dashKpiRevSplit');
+        if (revSplitEl) {
+            if (onlineRev > 0 || posRev > 0) {
+                revSplitEl.innerHTML = `<i class="bi bi-arrow-up-right"></i> Online ₹${onlineRev.toLocaleString('en-IN')} &bull; POS ₹${posRev.toLocaleString('en-IN')}`;
+            } else {
+                revSplitEl.innerHTML = `<i class="bi bi-arrow-up-right"></i> Online &bull; POS Live Feed`;
+            }
+        }
+
+        // 2. Total Sales & Volume
+        const salesCount = Number(fin.total_sales_count ?? data.total_sales ?? data.total_orders ?? stats30.count ?? 0);
+        const unitsSold = Number(fin.total_units_sold ?? data.total_units_sold ?? 0);
+        const salesEl = document.getElementById('dashKpiSalesCount');
+        if (salesEl) salesEl.textContent = salesCount.toLocaleString('en-IN');
+        const unitsEl = document.getElementById('dashKpiUnitsSold');
+        if (unitsEl) unitsEl.innerHTML = `<i class="bi bi-cart-check"></i> ${unitsSold.toLocaleString('en-IN')} units sold`;
+
+        // 3. Net Profit & Margin
+        const netProfit = Number(fin.net_profit ?? data.net_profit ?? data.total_order_profit ?? 0);
+        const marginPct = Number(fin.profit_margin_pct ?? data.profit_margin_pct ?? 0);
+        const profitEl = document.getElementById('dashKpiProfit');
+        if (profitEl) {
+            const isNeg = netProfit < 0;
+            profitEl.textContent = `${isNeg ? '-' : ''}₹${Math.abs(netProfit).toLocaleString('en-IN', { minimumFractionDigits: 0, maximumFractionDigits: 2 })}`;
+            profitEl.className = `fw-bold mt-1 mb-0 ${isNeg ? 'text-danger' : 'text-dark'}`;
+        }
+        const marginEl = document.getElementById('dashKpiMargin');
+        if (marginEl) {
+            marginEl.className = `smallest fw-semibold ${marginPct >= 0 ? 'text-success' : 'text-danger'}`;
+            marginEl.innerHTML = `<i class="bi ${marginPct >= 0 ? 'bi-graph-up-arrow' : 'bi-graph-down-arrow'}"></i> ${marginPct.toFixed(1)}% Margin`;
+        }
+
+        // 4. Total Expenses
+        const totalExpenses = Number(fin.total_expenses ?? data.total_expenses ?? 0);
+        const monthlyExpenses = Number(fin.monthly_expenses ?? data.monthly_expenses ?? 0);
+        const expensesEl = document.getElementById('dashKpiExpenses');
+        if (expensesEl) expensesEl.textContent = `₹${totalExpenses.toLocaleString('en-IN', { minimumFractionDigits: 0, maximumFractionDigits: 2 })}`;
+        const expMonthEl = document.getElementById('dashKpiExpenseMonth');
+        if (expMonthEl) {
+            expMonthEl.innerHTML = monthlyExpenses > 0 
+                ? `<i class="bi bi-receipt"></i> Month: ₹${monthlyExpenses.toLocaleString('en-IN')}`
+                : `<i class="bi bi-receipt"></i> Store Overhead`;
+        }
+
+        // 5. Total Orders & Pending Queue
+        const totalOrders = Number(data.total_orders || fin.total_sales_count || 0);
+        const pendingOrders = Number(fin.pending_orders ?? data.pending_orders ?? 0);
+        const ordersEl = document.getElementById('dashKpiOrders');
+        if (ordersEl) ordersEl.textContent = totalOrders.toLocaleString('en-IN');
+        const pendingEl = document.getElementById('dashKpiPendingOrders');
+        if (pendingEl) pendingEl.textContent = pendingOrders;
+
+        // 6. Inventory Valuation & Active Catalog
+        const invVal = Number(fin.inventory_valuation ?? data.inventory_valuation ?? 0);
+        const totalProducts = Number(fin.active_catalog_count ?? data.stock_stats?.total_products ?? state.products.length);
+        const invValEl = document.getElementById('dashKpiInvVal');
+        if (invValEl) invValEl.textContent = `₹${invVal.toLocaleString('en-IN', { minimumFractionDigits: 0, maximumFractionDigits: 0 })}`;
+        const productsEl = document.getElementById('dashKpiProducts');
+        if (productsEl) productsEl.textContent = totalProducts;
+
+        // 7. Critical Low Stock
+        const lowStockCount = Number(fin.critical_low_stock ?? data.stock_stats?.low_stock_count ?? 0);
+        const lowStockEl = document.getElementById('dashKpiLowStock');
+        if (lowStockEl) lowStockEl.textContent = lowStockCount;
+
+        // 8. Customer Udhar
+        const totalUdhar = Number(fin.total_udhar ?? data.total_udhar ?? 0);
+        const udharEl = document.getElementById('dashKpiUdhar');
+        if (udharEl) udharEl.textContent = `₹${totalUdhar.toLocaleString('en-IN')}`;
 
         const lowStockBanner = document.getElementById('dashLowStockBanner');
         if (lowStockBanner) {
             lowStockBanner.style.display = lowStockCount > 0 ? 'flex' : 'none';
-            document.getElementById('dashLowStockCount').textContent = lowStockCount;
+            const bannerCount = document.getElementById('dashLowStockCount');
+            if (bannerCount) bannerCount.textContent = lowStockCount;
         }
+
+        // Save dashboard state for theme re-renders
+        state.lastDashboardData = data;
 
         // Recent Orders
         loadOrdersData();
 
-        // Chart.js Sales Graph
+        // Modern Chart.js Sales Graph with Dynamic Vertical Linear Gradients
         if (typeof Chart !== 'undefined' && data.chart_data) {
-            const ctxSales = document.getElementById('dashSalesChart');
-            if (ctxSales) {
-                if (salesChartInstance) salesChartInstance.destroy();
-                salesChartInstance = new Chart(ctxSales, {
-                    type: 'line',
-                    data: {
-                        labels: data.chart_data.labels || ['1', '2', '3', '4', '5', '6', '7'],
-                        datasets: [
-                            {
-                                label: 'Revenue (₹)',
-                                data: data.chart_data.revenue || [],
-                                borderColor: '#059669',
-                                backgroundColor: 'rgba(5, 150, 105, 0.1)',
-                                fill: true,
-                                tension: 0.35,
-                                borderWidth: 3,
-                                pointRadius: 4
-                            },
-                            {
-                                label: 'Profit (₹)',
-                                data: data.chart_data.profit || [],
-                                borderColor: '#0284c7',
-                                backgroundColor: 'rgba(2, 132, 199, 0.05)',
-                                fill: true,
-                                tension: 0.35,
-                                borderWidth: 2,
-                                pointRadius: 3
-                            }
-                        ]
-                    },
-                    options: {
-                        responsive: true,
-                        plugins: {
-                            legend: { display: true, position: 'top' }
-                        },
-                        scales: { y: { beginAtZero: true } }
-                    }
-                });
+            renderModernSalesChart(data.chart_data);
+            renderModernOrderStatusChart();
+        }
+
+        // Render Decision Intelligence Layer
+        const intel = data.intelligence || {};
+        if (intel.health_score) renderHealthScore(intel.health_score);
+        if (intel.cash_flow || intel.forecast) renderTodayCashFlow(intel.cash_flow, intel.forecast);
+        if (intel.action_center) renderActionCenter(intel.action_center);
+        if (intel.ai_insights) renderAIInsights(intel.ai_insights);
+        if (intel.inventory_intelligence) renderLockedCapital(intel.inventory_intelligence);
+        if (intel.profitability_matrix) renderProfitabilityMatrix(intel.profitability_matrix);
+    }
+
+    function renderHealthScore(hs) {
+        if (!hs) return;
+        const numEl = document.getElementById('healthScoreNum');
+        const badgeEl = document.getElementById('healthStatusBadge');
+        const sumEl = document.getElementById('healthSummaryText');
+
+        if (numEl) numEl.textContent = hs.overall_score;
+        if (badgeEl) {
+            badgeEl.className = `badge bg-${hs.badge_class}-subtle text-${hs.badge_class} fs-6 fw-bold px-3 py-2 rounded-pill`;
+            badgeEl.textContent = `${hs.overall_score}/100 • ${hs.status}`;
+        }
+        if (sumEl) sumEl.textContent = hs.summary || '';
+
+        const comps = hs.components || {};
+        const setComp = (key, barId, valId) => {
+            const bar = document.getElementById(barId);
+            const val = document.getElementById(valId);
+            const score = comps[key]?.score ?? 0;
+            if (bar) bar.style.width = `${Math.min(100, Math.max(0, score))}%`;
+            if (val) val.textContent = `${score}%`;
+        };
+
+        setComp('sales', 'healthBarSales', 'healthValSales');
+        setComp('inventory', 'healthBarInventory', 'healthValInventory');
+        setComp('profit', 'healthBarProfit', 'healthValProfit');
+        setComp('customers', 'healthBarCustomers', 'healthValCustomers');
+        setComp('credit', 'healthBarCredit', 'healthValCredit');
+    }
+
+    function renderTodayCashFlow(cf, fc) {
+        if (cf && cf.today) {
+            const inEl = document.getElementById('cfTodayIn');
+            const outEl = document.getElementById('cfTodayOut');
+            const netEl = document.getElementById('cfTodayNet');
+            const statusEl = document.getElementById('cfTodayStatusBadge');
+
+            if (inEl) inEl.textContent = `₹${Number(cf.today.money_in || 0).toLocaleString('en-IN')}`;
+            if (outEl) outEl.textContent = `₹${Number(cf.today.money_out || 0).toLocaleString('en-IN')}`;
+            if (netEl) {
+                const netVal = Number(cf.today.net_cash_flow || 0);
+                netEl.textContent = `₹${netVal.toLocaleString('en-IN')}`;
+                netEl.className = netVal >= 0 ? 'text-success fw-bold' : 'text-danger fw-bold';
+            }
+            if (statusEl) {
+                const isPos = cf.today.net_cash_flow >= 0;
+                statusEl.className = `badge ${isPos ? 'bg-success-subtle text-success' : 'bg-danger-subtle text-danger'} border px-2 py-1 smallest`;
+                statusEl.textContent = isPos ? 'Positive Cash Flow' : 'Deficit Outflow';
+            }
+        }
+
+        if (cf && cf.expected_receivables) {
+            const udharEl = document.getElementById('cfUdharVal');
+            if (udharEl) udharEl.textContent = `₹${Number(cf.expected_receivables.customer_udhar || 0).toLocaleString('en-IN')}`;
+        }
+
+        if (fc) {
+            const confEl = document.getElementById('forecastConfidenceBadge');
+            const tomEl = document.getElementById('forecastTomorrowVal');
+            const monEl = document.getElementById('forecastMonthlyVal');
+
+            if (confEl) confEl.textContent = fc.confidence_label || `${fc.confidence_score}% Confidence`;
+            if (tomEl) tomEl.textContent = `₹${Number(fc.tomorrow_sales_forecast || 0).toLocaleString('en-IN')}`;
+            if (monEl) monEl.textContent = `₹${Number(fc.expected_monthly_revenue || 0).toLocaleString('en-IN')}`;
+        }
+    }
+
+    function renderActionCenter(ac) {
+        if (!ac) return;
+        const cCount = document.getElementById('actCountCrit');
+        const wCount = document.getElementById('actCountWarn');
+        const oCount = document.getElementById('actCountOpp');
+
+        if (cCount) cCount.textContent = ac.critical?.length || 0;
+        if (wCount) wCount.textContent = ac.warnings?.length || 0;
+        if (oCount) oCount.textContent = ac.opportunities?.length || 0;
+
+        const colCrit = document.getElementById('actionColCritical');
+        if (colCrit) {
+            if (!ac.critical || ac.critical.length === 0) {
+                colCrit.innerHTML = `<div class="smallest text-muted py-2">No urgent critical items today.</div>`;
+            } else {
+                colCrit.innerHTML = ac.critical.map(item => `
+                    <div class="p-2 bg-white rounded border shadow-sm">
+                        <div class="fw-bold text-danger smallest">${escapeHTML(item.title)}</div>
+                        <div class="smallest text-muted mb-2">${escapeHTML(item.subtitle)}</div>
+                        <a href="${escapeHTML(item.action_url)}" class="btn btn-sm btn-danger rounded-pill px-3 py-0 smallest fw-semibold">${escapeHTML(item.action_label)} &rarr;</a>
+                    </div>
+                `).join('');
+            }
+        }
+
+        const colWarn = document.getElementById('actionColWarnings');
+        if (colWarn) {
+            if (!ac.warnings || ac.warnings.length === 0) {
+                colWarn.innerHTML = `<div class="smallest text-muted py-2">Stock levels are currently balanced.</div>`;
+            } else {
+                colWarn.innerHTML = ac.warnings.map(item => `
+                    <div class="p-2 bg-white rounded border shadow-sm">
+                        <div class="fw-bold text-dark smallest">${escapeHTML(item.title)}</div>
+                        <div class="smallest text-muted mb-2">${escapeHTML(item.subtitle)}</div>
+                        <a href="${escapeHTML(item.action_url)}" class="btn btn-sm btn-outline-dark rounded-pill px-3 py-0 smallest fw-semibold">${escapeHTML(item.action_label)} &rarr;</a>
+                    </div>
+                `).join('');
+            }
+        }
+
+        const colOpp = document.getElementById('actionColOpportunities');
+        if (colOpp) {
+            if (!ac.opportunities || ac.opportunities.length === 0) {
+                colOpp.innerHTML = `<div class="smallest text-muted py-2">No active growth prompts today.</div>`;
+            } else {
+                colOpp.innerHTML = ac.opportunities.map(item => `
+                    <div class="p-2 bg-white rounded border shadow-sm">
+                        <div class="fw-bold text-success smallest">${escapeHTML(item.title)}</div>
+                        <div class="smallest text-muted mb-2">${escapeHTML(item.subtitle)}</div>
+                        <a href="${escapeHTML(item.action_url)}" class="btn btn-sm btn-success rounded-pill px-3 py-0 smallest fw-semibold">${escapeHTML(item.action_label)} &rarr;</a>
+                    </div>
+                `).join('');
+            }
+        }
+    }
+
+    function renderAIInsights(insights) {
+        const grid = document.getElementById('aiInsightsGrid');
+        if (!grid) return;
+
+        if (!insights || insights.length === 0) {
+            grid.innerHTML = `<div class="col-12 text-center text-muted small py-3">Store metrics are operating within baseline parameters.</div>`;
+            return;
+        }
+
+        grid.innerHTML = insights.map(ins => {
+            const borderCol = ins.severity === 'danger' ? 'border-danger' : ins.severity === 'warning' ? 'border-warning' : ins.severity === 'success' ? 'border-success' : 'border-info';
+            const bgBadge = ins.severity === 'danger' ? 'bg-danger' : ins.severity === 'warning' ? 'bg-warning text-dark' : ins.severity === 'success' ? 'bg-success' : 'bg-info text-dark';
+            return `
+                <div class="col-md-6 col-xl-4">
+                    <div class="p-3 bg-light rounded-3 border ${borderCol} h-100 d-flex flex-column justify-content-between">
+                        <div>
+                            <div class="d-flex justify-content-between align-items-center mb-2">
+                                <span class="badge ${bgBadge} smallest">${escapeHTML(ins.type.toUpperCase())}</span>
+                                <i class="bi ${escapeHTML(ins.icon || 'bi-lightbulb')} fs-5 text-${ins.severity}"></i>
+                            </div>
+                            <h6 class="fw-bold text-dark mb-1 small">${escapeHTML(ins.headline)}</h6>
+                            <p class="smallest text-muted mb-3">${escapeHTML(ins.explanation)}</p>
+                        </div>
+                        <div class="p-2 bg-white rounded border">
+                            <div class="smallest fw-bold text-dark mb-2">${escapeHTML(ins.action_title)}</div>
+                            <a href="${escapeHTML(ins.action_url)}" class="btn btn-sm btn-outline-success rounded-pill px-3 py-0 smallest fw-bold">
+                                ${escapeHTML(ins.btn_label)} &rarr;
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            `;
+        }).join('');
+    }
+
+    function renderLockedCapital(invIntel) {
+        if (!invIntel) return;
+        const lockedEl = document.getElementById('lockedCapitalVal');
+        const totEl = document.getElementById('invTotalVal');
+        const toEl = document.getElementById('invTurnoverVal');
+
+        if (lockedEl) lockedEl.textContent = `₹${Number(invIntel.slow_moving_locked_capital || invIntel.dead_stock_value || 0).toLocaleString('en-IN')}`;
+        if (totEl) totEl.textContent = `₹${Number(invIntel.total_inventory_value || 0).toLocaleString('en-IN')}`;
+        if (toEl) toEl.textContent = `${Number(invIntel.stock_turnover_ratio || 0).toFixed(1)}x`;
+    }
+
+    function renderProfitabilityMatrix(mat) {
+        if (!mat) return;
+        const cStars = document.getElementById('countStars');
+        const cRev = document.getElementById('countReview');
+        const cProm = document.getElementById('countPromote');
+        const cDead = document.getElementById('countDeadStock');
+
+        if (cStars) cStars.textContent = mat.counts?.stars || 0;
+        if (cRev) cRev.textContent = mat.counts?.review_price || 0;
+        if (cProm) cProm.textContent = mat.counts?.promote || 0;
+        if (cDead) cDead.textContent = mat.counts?.dead_stock || 0;
+
+        const renderRows = (items, tbodyId, actionLabel, actionUrl) => {
+            const tbody = document.getElementById(tbodyId);
+            if (!tbody) return;
+            if (!items || items.length === 0) {
+                tbody.innerHTML = `<tr><td colspan="6" class="text-center text-muted small py-3">No products in this quadrant.</td></tr>`;
+                return;
+            }
+            tbody.innerHTML = items.map(p => `
+                <tr>
+                    <td class="fw-bold text-dark">${escapeHTML(p.name)}</td>
+                    <td><span class="badge bg-light text-dark border">${escapeHTML(p.category)}</span></td>
+                    <td>${Number(p.units_sold)} units</td>
+                    <td class="fw-bold text-success">${Number(p.margin_pct)}%</td>
+                    <td>${Number(p.stock)}</td>
+                    <td>
+                        <a href="${actionUrl}?product_id=${p.id}" class="btn btn-sm btn-outline-secondary rounded-pill px-2 py-0 smallest">${actionLabel}</a>
+                    </td>
+                </tr>
+            `).join('');
+        };
+
+        renderRows(mat.stars, 'matrixStarsTbody', 'Restock', 'purchases.html');
+        renderRows(mat.review_price, 'matrixReviewTbody', 'Edit Price', 'products.html');
+        renderRows(mat.promote, 'matrixPromoteTbody', 'Create Promo', 'coupons.html');
+        renderRows(mat.dead_stock, 'matrixDeadStockTbody', 'Clearance', 'coupons.html');
+    }
+
+    function renderExpenses(data) {
+        const tbody = document.getElementById('expensesTableTbody');
+        if (tbody) {
+            if (!state.expenses || state.expenses.length === 0) {
+                tbody.innerHTML = `<tr><td colspan="8" class="text-center text-muted py-4 small">No operating expenses recorded this period.</td></tr>`;
+            } else {
+                tbody.innerHTML = state.expenses.map(e => `
+                    <tr>
+                        <td class="text-muted small tabular-nums">#${Number(e.id)}</td>
+                        <td class="tabular-nums">${escapeHTML(e.expense_date || '-')}</td>
+                        <td><span class="badge bg-light text-dark border">${escapeHTML(e.category)}</span></td>
+                        <td>${escapeHTML(e.description || '-')}</td>
+                        <td><span class="badge bg-secondary-subtle text-secondary">${escapeHTML(e.payment_mode || 'Cash')}</span></td>
+                        <td class="fw-bold text-danger tabular-nums">₹${Number(e.amount).toLocaleString('en-IN')}</td>
+                        <td>${e.is_recurring ? '<span class="badge bg-primary">Recurring</span>' : '<span class="badge bg-light text-dark border">One-off</span>'}</td>
+                        <td>
+                            <button class="btn btn-sm btn-outline-danger rounded-pill px-2 py-0 smallest" onclick="window.Adm.deleteExpense(${Number(e.id)})">
+                                <i class="bi bi-trash3"></i>
+                            </button>
+                        </td>
+                    </tr>
+                `).join('');
+            }
+        }
+
+        // Summary KPI cards in expenses.html
+        if (data && data.summary) {
+            const monthlyEl = document.getElementById('expKpiMonthly');
+            if (monthlyEl) monthlyEl.textContent = `₹${Number(data.summary.monthly_total || 0).toLocaleString('en-IN')}`;
+
+            // Category bars in expenses.html
+            const catContainer = document.getElementById('expenseCategoryBars');
+            if (catContainer && data.summary.categories) {
+                const total = Number(data.summary.monthly_total || 1);
+                catContainer.innerHTML = data.summary.categories.map(c => {
+                    const pct = Math.round((c.total / total) * 100);
+                    return `
+                        <div>
+                            <div class="d-flex justify-content-between small fw-bold mb-1">
+                                <span>${escapeHTML(c.category)}</span>
+                                <span>₹${Number(c.total).toLocaleString('en-IN')} (${pct}%)</span>
+                            </div>
+                            <div class="progress" style="height: 8px;">
+                                <div class="progress-bar bg-danger" role="progressbar" style="width: ${pct}%"></div>
+                            </div>
+                        </div>
+                    `;
+                }).join('');
             }
         }
     }
@@ -516,11 +1147,22 @@
     function renderDashboardFallback() {
         const todayRevenue = state.orders.reduce((sum, o) => sum + (o.status !== 'Cancelled' ? o.total : 0), 0);
         const lowStockItems = state.products.filter(p => p.stock <= 5);
+        const totalSales = state.orders.length;
+        const totalProfit = todayRevenue * 0.25; // Estimated 25% fallback margin
+        const totalExpenses = 0;
+        const totalInvVal = state.products.reduce((sum, p) => sum + ((p.stock || 0) * (p.price || 0)), 0);
 
-        document.getElementById('dashKpiRevenue').textContent = `₹${todayRevenue.toLocaleString('en-IN')}`;
-        document.getElementById('dashKpiOrders').textContent = state.orders.length;
-        document.getElementById('dashKpiProducts').textContent = state.products.length;
-        document.getElementById('dashKpiLowStock').textContent = lowStockItems.length;
+        const setVal = (id, val) => { const el = document.getElementById(id); if (el) el.textContent = val; };
+        setVal('dashKpiRevenue', `₹${todayRevenue.toLocaleString('en-IN')}`);
+        setVal('dashKpiSalesCount', totalSales);
+        setVal('dashKpiProfit', `₹${totalProfit.toLocaleString('en-IN')}`);
+        setVal('dashKpiExpenses', `₹${totalExpenses.toLocaleString('en-IN')}`);
+        setVal('dashKpiOrders', state.orders.length);
+        setVal('dashKpiProducts', state.products.length);
+        setVal('dashKpiLowStock', lowStockItems.length);
+        setVal('dashKpiInvVal', `₹${totalInvVal.toLocaleString('en-IN')}`);
+        setVal('dashKpiPendingOrders', state.orders.filter(o => o.status === 'Pending').length);
+        setVal('dashKpiUdhar', '₹0');
     }
 
     // POS
@@ -691,7 +1333,8 @@
             <tr>
                 <td class="fw-bold text-dark">#${escapeHTML(o.id)}</td>
                 <td>
-                    <div class="fw-bold">${escapeHTML(o.customer || 'Customer')}</div>
+                    <div class="fw-bold text-dark">${escapeHTML(o.customer || 'Customer')}</div>
+                    ${o.customer_phone ? `<div class="smallest text-success fw-semibold"><i class="bi bi-telephone me-1"></i>${escapeHTML(o.customer_phone)}</div>` : ''}
                     <div class="smallest text-muted">${escapeHTML(o.shipping_address ? o.shipping_address.substring(0, 30) + '...' : '')}</div>
                 </td>
                 <td class="small">${escapeHTML(o.date)}</td>
@@ -699,13 +1342,14 @@
                 <td class="fw-bold text-dark">₹${escapeHTML(o.total)}</td>
                 <td><span class="badge bg-light text-dark border small">${escapeHTML(o.payment || 'COD')}</span></td>
                 <td>
-                    <select class="form-select form-select-sm rounded-pill" style="width: 140px;" onchange="window.Adm.updateOrderStatus('${escapeHTML(o.id)}', this.value)">
+                    <select class="form-select form-select-sm rounded-pill" style="width: 155px;" onchange="window.Adm.updateOrderStatus('${escapeHTML(o.id)}', this.value)">
                         <option value="Pending" ${o.status === 'Pending' ? 'selected' : ''}>Pending</option>
-                        <option value="Confirmed" ${o.status === 'Confirmed' || o.status === 'Order Placed' ? 'selected' : ''}>Confirmed</option>
                         <option value="Processing" ${o.status === 'Processing' ? 'selected' : ''}>Processing</option>
-                        <option value="Shipped" ${o.status === 'Shipped' || o.status === 'Out for Delivery' ? 'selected' : ''}>Shipped</option>
+                        <option value="Packed" ${o.status === 'Packed' ? 'selected' : ''}>Packed</option>
+                        <option value="Out for Delivery" ${o.status === 'Out for Delivery' ? 'selected' : ''}>Out for Delivery</option>
                         <option value="Delivered" ${o.status === 'Delivered' ? 'selected' : ''}>Delivered</option>
                         <option value="Cancelled" ${o.status === 'Cancelled' ? 'selected' : ''}>Cancelled</option>
+                        <option value="Returned" ${o.status === 'Returned' ? 'selected' : ''}>Returned</option>
                     </select>
                 </td>
                 <td>
@@ -856,7 +1500,7 @@
                     <div class="small text-muted mb-2"><i class="bi bi-person me-1"></i>Contact: <strong>${escapeHTML(s.contact)}</strong></div>
                     <div class="small text-muted mb-2"><i class="bi bi-telephone me-1"></i>${escapeHTML(s.phone)}</div>
                     <div class="small text-muted mb-3"><i class="bi bi-envelope me-1"></i>${escapeHTML(s.email)}</div>
-                    <button class="btn btn-sm btn-outline-success rounded-pill px-3" onclick="window.Adm.openRecordPurchaseModal('${escapeHTML(s.name)}')">
+                    <button class="btn btn-sm btn-outline-success rounded-2 px-3" onclick="window.Adm.openRecordPurchaseModal('${escapeHTML(s.name)}')">
                         + Record Stock In
                     </button>
                 </div>
@@ -878,16 +1522,16 @@
             <tr>
                 <td class="fw-bold text-success font-monospace">${escapeHTML(c.code)}</td>
                 <td class="fw-bold">${escapeHTML(c.discount)}</td>
-                <td>₹${Number(c.minSpend)}</td>
-                <td>${escapeHTML(c.expiry)}</td>
-                <td class="text-center">${Number(c.used)} times</td>
+                <td class="tabular-nums">₹${Number(c.minSpend)}</td>
+                <td class="tabular-nums">${escapeHTML(c.expiry)}</td>
+                <td class="text-center tabular-nums">${Number(c.used)} times</td>
                 <td>
                     <span class="badge ${c.active ? 'bg-success' : 'bg-secondary'}">
                         ${c.active ? 'Active' : 'Inactive'}
                     </span>
                 </td>
                 <td>
-                    <button class="btn btn-sm btn-outline-danger rounded-pill px-2" onclick="window.Adm.toggleCoupon(${Number(c.id)})">
+                    <button class="btn btn-sm btn-outline-danger rounded-2 px-2" onclick="window.Adm.toggleCoupon(${Number(c.id)})">
                         ${c.active ? 'Deactivate' : 'Activate'}
                     </button>
                 </td>
@@ -913,10 +1557,10 @@
                 <div class="flex-grow-1">
                     <div class="d-flex justify-content-between align-items-center mb-1">
                         <span class="badge bg-dark text-white fw-bold">${escapeHTML(a.action)}</span>
-                        <span class="smallest text-muted">${a.created_at ? new Date(a.created_at).toLocaleString('en-IN') : 'Recent'}</span>
+                        <span class="smallest text-muted tabular-nums">${a.created_at ? new Date(a.created_at).toLocaleString('en-IN') : 'Recent'}</span>
                     </div>
                     <div class="small text-dark mb-1">${escapeHTML(a.details || '')}</div>
-                    <div class="smallest text-muted">Entity: <strong>${escapeHTML(a.entity_type || 'System')} #${escapeHTML(a.entity_id || '')}</strong></div>
+                    <div class="smallest text-muted">Entity: <strong>${escapeHTML(a.entity_type || 'System')} <span class="tabular-nums">#${escapeHTML(a.entity_id || '')}</span></strong></div>
                 </div>
             </div>
         `).join('');
@@ -934,10 +1578,12 @@
 
     // ── 5. Public Global Adm Controller API ──
     window.Adm = {
+        showToast: showToast,
+
         posAddToCart: function (productId) {
             const p = state.products.find(prod => prod.id === productId);
             if (!p || p.stock <= 0) {
-                alert('Item is currently out of stock in warehouse!');
+                showToast('Item is currently out of stock in warehouse!', 'danger');
                 return;
             }
 
@@ -946,7 +1592,7 @@
                 if (existing.qty < p.stock) {
                     existing.qty += 1;
                 } else {
-                    alert(`Cannot exceed available warehouse stock (${p.stock})!`);
+                    showToast(`Cannot exceed available warehouse stock (${p.stock})!`, 'warning');
                 }
             } else {
                 state.posCart.push({ productId: productId, qty: 1 });
@@ -963,7 +1609,7 @@
                     state.posCart = state.posCart.filter(i => i.productId !== productId);
                 } else if (p && item.qty > p.stock) {
                     item.qty = p.stock;
-                    alert(`Maximum available stock reached (${p.stock})!`);
+                    showToast(`Maximum available stock reached (${p.stock})!`, 'warning');
                 }
             }
             renderPOSCart();
@@ -988,7 +1634,7 @@
 
         posCompleteSale: async function () {
             if (state.posCart.length === 0) {
-                alert('POS cart is empty! Select products first.');
+                showToast('POS cart is empty! Select products first.', 'warning');
                 return;
             }
 
@@ -1013,7 +1659,7 @@
                 const data = await res.json();
 
                 if (!res.ok || !data.success) {
-                    alert(data.error || data.message || 'POS Checkout failed on server.');
+                    showToast(data.error || data.message || 'POS Checkout failed on server.', 'danger');
                     return;
                 }
 
@@ -1049,13 +1695,14 @@
                 renderPOS();
                 loadProductsData();
                 logActionLocally('POS Counter Sale', `Billed ₹${total} (${paymentMode}) for ${phone}`);
+                showToast(`POS Sale completed! Bill #${billId}`, 'success');
 
                 const modal = new bootstrap.Modal(document.getElementById('billModal'));
                 modal.show();
 
             } catch (err) {
                 console.error('POS Checkout network error:', err);
-                alert('Network error connecting to POS billing service.');
+                showToast('Network error connecting to POS billing service.', 'danger');
             }
         },
 
@@ -1069,7 +1716,7 @@
             const minAlert = 5;
 
             if (!name) {
-                alert('Product name is required.');
+                showToast('Product name is required.', 'warning');
                 return;
             }
 
@@ -1090,17 +1737,17 @@
                 const data = await res.json();
 
                 if (res.ok && data.success) {
-                    alert(data.message || 'Product created successfully in database!');
+                    showToast(data.message || 'Product created successfully in database!', 'success');
                     const modalEl = document.getElementById('addProductModal');
                     const modal = bootstrap.Modal.getInstance(modalEl);
                     if (modal) modal.hide();
                     loadProductsData();
                 } else {
-                    alert(data.message || 'Failed to save product on server.');
+                    showToast(data.message || 'Failed to save product on server.', 'danger');
                 }
             } catch (err) {
                 console.error('Save product error:', err);
-                alert('Network error while saving product.');
+                showToast('Network error while saving product.', 'danger');
             }
         },
 
@@ -1140,17 +1787,17 @@
                 });
                 const data = await res.json();
                 if (res.ok && data.success) {
-                    alert('Product updated successfully!');
+                    showToast('Product updated successfully!', 'success');
                     const modalEl = document.getElementById('editProductModal');
                     const modal = bootstrap.Modal.getInstance(modalEl);
                     if (modal) modal.hide();
                     loadProductsData();
                 } else {
-                    alert(data.message || 'Failed to update product.');
+                    showToast(data.message || 'Failed to update product.', 'danger');
                 }
             } catch (err) {
                 console.error('Update product error:', err);
-                alert('Network error updating product.');
+                showToast('Network error updating product.', 'danger');
             }
         },
 
@@ -1166,10 +1813,10 @@
                 });
                 const data = await res.json();
                 if (res.ok && data.success) {
-                    alert(`Product "${p.name}" deactivated.`);
+                    showToast(`Product "${p.name}" deactivated.`, 'info');
                     loadProductsData();
                 } else {
-                    alert(data.message || 'Could not deactivate product.');
+                    showToast(data.message || 'Could not deactivate product.', 'danger');
                 }
             } catch (err) {
                 console.error('Delete product error:', err);
@@ -1189,9 +1836,10 @@
                 const data = await res.json();
                 if (res.ok && data.success) {
                     logActionLocally('Order Status Changed', `Order #${orderId} moved to ${newStatus}`);
+                    showToast(`Order #${orderId} moved to ${newStatus}`, 'success');
                     loadOrdersData();
                 } else {
-                    alert(data.message || 'Invalid status transition.');
+                    showToast(data.message || 'Invalid status transition.', 'danger');
                     loadOrdersData();
                 }
             } catch (err) {
@@ -1206,8 +1854,8 @@
                 if (res.ok) {
                     const data = await res.json();
                     document.getElementById('orderDetailModalId').textContent = `#${data.id}`;
-                    document.getElementById('orderDetailModalCustomer').textContent = `Customer #${data.user_id}`;
-                    document.getElementById('orderDetailModalPhone').textContent = data.shipping_address || '-';
+                    document.getElementById('orderDetailModalCustomer').textContent = data.customer_name || `Customer #${data.user_id}`;
+                    document.getElementById('orderDetailModalPhone').textContent = data.customer_phone || (data.shipping_address ? data.shipping_address.substring(0, 35) : '-');
                     document.getElementById('orderDetailModalDate').textContent = data.created_at ? new Date(data.created_at).toLocaleString('en-IN') : 'Recent';
                     document.getElementById('orderDetailModalPayment').textContent = `${data.payment_method} (${data.payment_status})`;
                     document.getElementById('orderDetailModalStatus').textContent = data.order_status;
@@ -1236,7 +1884,10 @@
             if (e) e.preventDefault();
             const name = document.getElementById('newCatName').value.trim();
             const desc = document.getElementById('newCatDesc').value.trim();
-            if (!name) return;
+            if (!name) {
+                showToast('Category name is required.', 'warning');
+                return;
+            }
 
             const fetchFn = window.apiFetch || fetch;
             try {
@@ -1247,16 +1898,17 @@
                 });
                 const data = await res.json();
                 if (res.ok && data.success) {
-                    alert('Category created successfully!');
+                    showToast('Category created successfully!', 'success');
                     const modalEl = document.getElementById('addCategoryModal');
                     const modal = bootstrap.Modal.getInstance(modalEl);
                     if (modal) modal.hide();
                     loadCategoriesData();
                 } else {
-                    alert(data.message || 'Failed to create category.');
+                    showToast(data.message || 'Failed to create category.', 'danger');
                 }
             } catch (err) {
                 console.error('Create category error:', err);
+                showToast('Network error creating category.', 'danger');
             }
         },
 
@@ -1276,7 +1928,7 @@
             const supplierId = suppSelect && suppSelect.value ? parseInt(suppSelect.value) || 1 : 1;
 
             if (qty <= 0) {
-                alert('Quantity must be greater than zero.');
+                showToast('Quantity must be greater than zero.', 'warning');
                 return;
             }
 
@@ -1294,17 +1946,18 @@
                 });
                 const data = await res.json();
                 if (res.ok && data.success) {
-                    alert('Stock purchase recorded and product quantity increased!');
+                    showToast('Stock purchase recorded and product quantity increased!', 'success');
                     const modalEl = document.getElementById('addPurchaseModal');
                     const modal = bootstrap.Modal.getInstance(modalEl);
                     if (modal) modal.hide();
                     loadPurchasesData();
                     loadProductsData();
                 } else {
-                    alert(data.message || data.error || 'Failed to record stock purchase.');
+                    showToast(data.message || data.error || 'Failed to record stock purchase.', 'danger');
                 }
             } catch (err) {
                 console.error('Purchase record error:', err);
+                showToast('Network error recording purchase.', 'danger');
             }
         },
 
@@ -1316,6 +1969,7 @@
                 });
                 const data = await res.json();
                 if (res.ok && data.success) {
+                    showToast('Coupon status updated.', 'success');
                     loadCouponsData();
                 }
             } catch (e) {
@@ -1336,7 +1990,7 @@
             const expiry = expiryInput ? expiryInput.value.trim() : '';
 
             if (!code || !rawDiscount) {
-                alert('Coupon code and discount value are required.');
+                showToast('Coupon code and discount value are required.', 'warning');
                 return;
             }
 
@@ -1360,7 +2014,7 @@
                 });
                 const data = await res.json().catch(() => ({}));
                 if (res.ok && data.success) {
-                    alert(data.message || `Coupon ${code} published successfully!`);
+                    showToast(data.message || `Coupon ${code} published successfully!`, 'success');
                     const modalEl = document.getElementById('createCouponModal');
                     const modal = bootstrap.Modal.getInstance(modalEl);
                     if (modal) modal.hide();
@@ -1368,11 +2022,11 @@
                     if (discInput) discInput.value = '';
                     loadCouponsData();
                 } else {
-                    alert(data.message || 'Could not publish coupon.');
+                    showToast(data.message || 'Could not publish coupon.', 'danger');
                 }
             } catch (err) {
                 console.error('Save coupon error:', err);
-                alert('Network error publishing coupon.');
+                showToast('Network error publishing coupon.', 'danger');
             }
         },
 
@@ -1380,9 +2034,9 @@
             const toggle = document.getElementById('security2faToggle');
             const isChecked = toggle ? toggle.checked : false;
             if (isChecked) {
-                alert('To complete 2FA setup, visit the Security console or scan the TOTP QR key with your Authenticator app.');
+                showToast('To complete 2FA setup, visit the Security console or scan the TOTP QR key.', 'info');
             } else {
-                alert('Two-factor authentication toggle updated.');
+                showToast('Two-factor authentication toggle updated.', 'info');
             }
         },
 
@@ -1397,13 +2051,14 @@
                 });
                 const data = await res.json();
                 if (res.ok && data.success) {
-                    alert('Udhar settled successfully!');
+                    showToast('Udhar settled successfully!', 'success');
                     loadCustomersData();
                 } else {
-                    alert(data.message || 'Could not settle credit.');
+                    showToast(data.message || 'Could not settle credit.', 'danger');
                 }
             } catch (err) {
                 console.error('Clear credit error:', err);
+                showToast('Network error settling credit.', 'danger');
             }
         },
 
@@ -1429,11 +2084,104 @@
             const newTheme = currentTheme === 'dark' ? 'light' : 'dark';
             document.documentElement.setAttribute('data-theme', newTheme);
             localStorage.setItem('jg_admin_theme', newTheme);
+            if (state.lastDashboardData && typeof Chart !== 'undefined') {
+                renderModernSalesChart(state.lastDashboardData.chart_data);
+                renderModernOrderStatusChart();
+            }
         },
 
-        toggleSidebar: function () {
+        toggleSidebar: function (forceState) {
             const sidebar = document.getElementById('adminSidebar');
-            if (sidebar) sidebar.classList.toggle('show-mobile');
+            let backdrop = document.getElementById('admSidebarBackdrop');
+            if (!backdrop) {
+                backdrop = document.createElement('div');
+                backdrop.id = 'admSidebarBackdrop';
+                backdrop.className = 'adm-sidebar-backdrop';
+                backdrop.onclick = () => window.Adm.toggleSidebar(false);
+                document.body.appendChild(backdrop);
+            }
+            if (typeof forceState === 'boolean') {
+                if (forceState) {
+                    if (sidebar) sidebar.classList.add('show-mobile');
+                    backdrop.classList.add('show');
+                } else {
+                    if (sidebar) sidebar.classList.remove('show-mobile');
+                    backdrop.classList.remove('show');
+                }
+            } else {
+                if (sidebar) {
+                    const isOpen = sidebar.classList.toggle('show-mobile');
+                    backdrop.classList.toggle('show', isOpen);
+                }
+            }
+        },
+
+        saveNewExpense: async function (event) {
+            if (event) event.preventDefault();
+            const category = document.getElementById('expCategoryInput')?.value;
+            const amount = parseFloat(document.getElementById('expAmountInput')?.value || 0);
+            const paymentMode = document.getElementById('expPaymentModeInput')?.value;
+            const expenseDate = document.getElementById('expDateInput')?.value;
+            const isRecurring = document.getElementById('expRecurringInput')?.checked || false;
+            const description = document.getElementById('expDescInput')?.value?.trim();
+
+            if (!amount || amount <= 0) {
+                showToast('Please enter a valid expense amount greater than zero.', 'warning');
+                return;
+            }
+
+            try {
+                const fetchFn = window.apiFetch || fetch;
+                const res = await fetchFn('/api/admin/expenses/add', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        category: category,
+                        amount: amount,
+                        payment_mode: paymentMode,
+                        expense_date: expenseDate,
+                        is_recurring: isRecurring,
+                        description: description
+                    })
+                });
+                const data = await res.json();
+                if (res.ok && data.success) {
+                    showToast(`Expense of ₹${amount} recorded under ${category}!`, 'success');
+                    const modalEl = document.getElementById('recordExpenseModal');
+                    if (modalEl && typeof bootstrap !== 'undefined') {
+                        const modalInstance = bootstrap.Modal.getInstance(modalEl);
+                        if (modalInstance) modalInstance.hide();
+                    }
+                    loadExpensesData();
+                    loadDashboardData();
+                } else {
+                    showToast(data.message || 'Failed to record expense.', 'danger');
+                }
+            } catch (err) {
+                console.error('Save expense error:', err);
+                showToast('Server error while saving expense.', 'danger');
+            }
+        },
+
+        deleteExpense: async function (expenseId) {
+            if (!confirm('Are you sure you want to delete this expense record?')) return;
+            try {
+                const fetchFn = window.apiFetch || fetch;
+                const res = await fetchFn(`/api/admin/expenses/${expenseId}`, {
+                    method: 'DELETE'
+                });
+                const data = await res.json();
+                if (res.ok && data.success) {
+                    showToast('Expense deleted successfully.', 'info');
+                    loadExpensesData();
+                    loadDashboardData();
+                } else {
+                    showToast(data.message || 'Failed to delete expense.', 'danger');
+                }
+            } catch (err) {
+                console.error('Delete expense error:', err);
+                showToast('Error deleting expense.', 'danger');
+            }
         }
     };
 

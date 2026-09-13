@@ -7,18 +7,27 @@ from backend.routes.decorators import admin_required
 from . import admin_bp
 
 
+from sqlalchemy import func
+from database.models.product import Category, Product
+
 @admin_bp.route('/categories')
 @admin_required
 def categories():
     """Category management — returns JSON list."""
     all_categories = db.session.query(Category).order_by(Category.name).all()
+    counts_map = dict(
+        db.session.query(Product.category_id, func.count(Product.id))
+        .filter(Product.is_active == True)
+        .group_by(Product.category_id)
+        .all()
+    )
     return jsonify({
         'categories': [
             {
                 'id': c.id,
                 'name': c.name,
                 'description': c.description or '',
-                'product_count': len(c.products) if hasattr(c, 'products') else 0,
+                'product_count': counts_map.get(c.id, 0),
             }
             for c in all_categories
         ]

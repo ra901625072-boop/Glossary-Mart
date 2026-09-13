@@ -289,7 +289,7 @@ def checkout():
             shipping_address = (request.form.get('shipping_address') or '').strip()
             payment_method = (request.form.get('payment_method') or 'COD').strip().upper()
 
-        valid_methods = {'COD', 'UPI', 'CARD', 'UDHAR'}
+        valid_methods = {'COD', 'UPI', 'CARD', 'UDHAR', 'NETBANKING'}
         if payment_method not in valid_methods:
             msg = 'Invalid payment method selected.'
             if request.is_json:
@@ -326,7 +326,7 @@ def checkout():
                 return jsonify({'success': True, 'order_id': order.id, 'message': 'Order placed on Store Credit!', 'redirect': url_for('customer.order_confirmation', order_id=order.id)})
             flash(f'Order placed successfully on Store Credit!', 'success')
             return redirect(url_for('customer.order_confirmation', order_id=order.id))
-        elif payment_method in ['UPI', 'CARD']:
+        elif payment_method in ['UPI', 'CARD', 'NETBANKING']:
             if request.is_json:
                 return jsonify({'success': True, 'order_id': order.id, 'redirect': url_for('customer.process_payment', order_id=order.id)})
             return redirect(url_for('customer.process_payment', order_id=order.id))

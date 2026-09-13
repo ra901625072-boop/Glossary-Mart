@@ -1,0 +1,404 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+    <title>Operating Expenses &amp; Cash Flow &bull; e Grossary ERP</title>
+    
+    <!-- Meta SEO -->
+    <meta name="description" content="Shop operating overhead expenses, cash flow velocity, and expense-to-revenue intelligence.">
+    <meta name="theme-color" content="#059669">
+
+    <!-- Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=Outfit:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+
+    <!-- Bootstrap 5.3.3 & Bootstrap Icons -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
+
+    <!-- Favicon -->
+    <link rel="icon" type="image/png" href="../static/images/favicon.png">
+    <link rel="shortcut icon" href="../static/images/favicon.ico">
+
+    <!-- Stylesheet -->
+    <link rel="stylesheet" href="../static/css/core/variables.css">
+    <link rel="stylesheet" href="../static/css/admin.css">
+
+    <!-- Immediate Admin ERP Authentication Guard -->
+    <script>
+        (function() {
+            try {
+                var user = JSON.parse(localStorage.getItem('jg_auth_user') || 'null');
+                if (!user || !user.id || user.role !== 'admin') {
+                    document.documentElement.style.display = 'none';
+                    window.location.replace('../auth/login.html?redirect=admin/expenses.html');
+                }
+            } catch (e) {
+                document.documentElement.style.display = 'none';
+                window.location.replace('../auth/login.html');
+            }
+        })();
+    </script>
+</head>
+<body class="admin-body" data-admin-page="expenses">
+
+    <!-- Admin Topbar Header -->
+    <header class="admin-topbar justify-content-between">
+        <div class="d-flex align-items-center gap-3">
+            <button class="btn btn-sm btn-outline-secondary d-lg-none" type="button" onclick="window.Adm.toggleSidebar()" aria-label="Toggle Sidebar Navigation">
+                <i class="bi bi-list fs-5"></i>
+            </button>
+            <div class="d-flex align-items-center gap-2">
+                <div class="brand-logo-admin">
+                    <img src="../static/images/logo-icon.png" alt="e Grossary logo" style="width: 100%; height: 100%; object-fit: contain;">
+                </div>
+                <div>
+                    <h5 class="mb-0 fw-bold brand-font text-dark d-none d-sm-block">e Grossary <span class="badge bg-success-subtle text-success fs-6 fw-semibold ms-1">ERP Console</span></h5>
+                    <span class="smallest text-muted d-none d-md-block">Multi-Store Operations (Pali &amp; Unjha)</span>
+                </div>
+            </div>
+        </div>
+
+        <div class="d-flex align-items-center gap-2 gap-sm-3">
+            <a href="../customer/shop.html" class="btn btn-sm btn-outline-success rounded-2 px-3 d-none d-sm-inline-flex align-items-center">
+                <i class="bi bi-shop me-1"></i> Customer Store
+            </a>
+
+            <button class="btn btn-sm btn-light rounded-2 p-2 border" type="button" onclick="window.Adm.toggleTheme()" title="Toggle Dark/Light Mode">
+                <i class="bi bi-moon-stars text-secondary fs-6"></i>
+            </button>
+
+            <div class="dropdown">
+                <button class="btn btn-sm btn-light border rounded-2 d-flex align-items-center gap-2 px-3 py-1" type="button" data-bs-toggle="dropdown" aria-expanded="false">
+                    <span class="bg-success text-white rounded-circle d-inline-flex align-items-center justify-content-center fw-bold" style="width: 26px; height: 26px; font-size: 0.75rem;">AD</span>
+                    <span class="fw-bold small d-none d-md-inline text-dark">Administrator</span>
+                    <i class="bi bi-chevron-down text-muted smallest"></i>
+                </button>
+                <ul class="dropdown-menu dropdown-menu-end shadow border-0 py-2 rounded-3" style="min-width: 200px;">
+                    <li class="px-3 py-2 border-bottom">
+                        <div class="fw-bold text-dark small">Administrator</div>
+                        <div class="smallest text-muted admin-user-email">ERP Console</div>
+                    </li>
+                    <li><a class="dropdown-item py-2 small" href="security.html"><i class="bi bi-shield-check me-2 text-success"></i>Security &amp; 2FA</a></li>
+                    <li><a class="dropdown-item py-2 small" href="activity.html"><i class="bi bi-clock-history me-2 text-primary"></i>Audit Log</a></li>
+                    <li><hr class="dropdown-divider my-1"></li>
+                    <li><a class="dropdown-item py-2 small text-danger" href="javascript:void(0)" onclick="handleLogout(); return false;"><i class="bi bi-box-arrow-right me-2"></i>Sign Out</a></li>
+                </ul>
+            </div>
+        </div>
+    </header>
+
+    <!-- Master Layout Wrapper -->
+    <div class="admin-layout-wrapper">
+        <!-- Sidebar Navigation -->
+        <aside class="admin-sidebar" id="adminSidebar">
+            <div class="sidebar-brand-card">
+                <div class="brand-logo-admin">
+                    <img src="../static/images/logo-icon.png" alt="e Grossary logo" style="width: 100%; height: 100%; object-fit: contain;">
+                </div>
+                <div>
+                    <div class="brand-title">e Grossary</div>
+                    <div class="brand-subtitle">ERP Console</div>
+                </div>
+            </div>
+
+            <div class="sidebar-menu-scroll">
+                <!-- Tier 1: Overview -->
+                <div class="sidebar-category-header">Overview</div>
+                <a href="index.html" class="admin-nav-item" data-admin-route="dashboard">
+                    <i class="bi bi-grid-1x2"></i>
+                    <span>Executive Dashboard</span>
+                </a>
+
+                <!-- Tier 2: Commerce -->
+                <div class="sidebar-category-header mt-3">Commerce</div>
+                <a href="pos.html" class="admin-nav-item" data-admin-route="pos">
+                    <i class="bi bi-calculator"></i>
+                    <span>POS Counter</span>
+                </a>
+                <a href="products.html" class="admin-nav-item" data-admin-route="products">
+                    <i class="bi bi-box-seam"></i>
+                    <span>Inventory &amp; Stock</span>
+                </a>
+                <a href="orders.html" class="admin-nav-item" data-admin-route="orders">
+                    <i class="bi bi-truck"></i>
+                    <span>Orders &amp; Dispatch</span>
+                </a>
+                <a href="purchases.html" class="admin-nav-item" data-admin-route="purchases">
+                    <i class="bi bi-cart-check"></i>
+                    <span>Stock In (Purchases)</span>
+                </a>
+
+                <!-- Tier 3: Management -->
+                <div class="sidebar-category-header mt-3">Management</div>
+                <a href="customers.html" class="admin-nav-item" data-admin-route="customers">
+                    <i class="bi bi-people"></i>
+                    <span>Customers &amp; Udhar</span>
+                </a>
+                <a href="categories.html" class="admin-nav-item" data-admin-route="categories">
+                    <i class="bi bi-folder2-open"></i>
+                    <span>Categories</span>
+                </a>
+                <a href="suppliers.html" class="admin-nav-item" data-admin-route="suppliers">
+                    <i class="bi bi-building"></i>
+                    <span>Suppliers Directory</span>
+                </a>
+                <a href="coupons.html" class="admin-nav-item" data-admin-route="coupons">
+                    <i class="bi bi-ticket-perforated"></i>
+                    <span>Promo Coupons</span>
+                </a>
+
+                <!-- Tier 4: Analytics -->
+                <div class="sidebar-category-header mt-3">Analytics</div>
+                <a href="expenses.html" class="admin-nav-item active" data-admin-route="expenses">
+                    <i class="bi bi-wallet2"></i>
+                    <span>Cash Flow &amp; Expenses</span>
+                </a>
+                <a href="sales.html" class="admin-nav-item" data-admin-route="sales">
+                    <i class="bi bi-receipt-cutoff"></i>
+                    <span>Sales Ledger</span>
+                </a>
+
+                <!-- Tier 5: System -->
+                <div class="sidebar-category-header mt-3">System</div>
+                <a href="activity.html" class="admin-nav-item" data-admin-route="activity">
+                    <i class="bi bi-clock-history"></i>
+                    <span>Audit Trail Log</span>
+                </a>
+                <a href="security.html" class="admin-nav-item" data-admin-route="security">
+                    <i class="bi bi-shield-lock"></i>
+                    <span>2FA &amp; Security</span>
+                </a>
+            </div>
+
+            <!-- Sidebar Bottom System Health Indicator -->
+            <div class="p-3 border-top border-secondary border-opacity-10">
+                <div class="p-2 rounded-2 bg-dark bg-opacity-40 text-white smallest d-flex align-items-center justify-content-between">
+                    <div class="d-flex align-items-center gap-2">
+                        <span class="beacon-pulse"></span>
+                        <span class="fw-semibold">System Online</span>
+                    </div>
+                    <span class="badge bg-secondary font-monospace" style="font-size: 0.65rem;">Pali Node</span>
+                </div>
+            </div>
+        </aside>
+
+        <!-- Main Workspace Stage -->
+        <main class="admin-main-stage">
+            <section id="adm-view-expenses" class="adm-view active-view">
+                <!-- Symmetrical Page Header -->
+                <div class="adm-page-header">
+                    <div class="adm-page-header-left">
+                        <div class="adm-breadcrumb">Admin ERP / Financials</div>
+                        <h1 class="adm-page-title">Operating Expenses &amp; Cash Flow</h1>
+                        <div class="adm-eyebrow">OVERHEAD TRACKING &bull; WORKING CAPITAL &bull; CASH VELOCITY</div>
+                    </div>
+                    <div class="adm-action-group">
+                        <a href="pos.html" class="adm-btn-secondary">
+                            <i class="bi bi-calculator me-1"></i> POS Register
+                        </a>
+                        <button class="adm-btn-primary" data-bs-toggle="modal" data-bs-target="#recordExpenseModal">
+                            <i class="bi bi-plus-lg me-1"></i> Record Expense
+                        </button>
+                    </div>
+                </div>
+
+                <!-- KPI Metric Cards Grid -->
+                <div class="row g-3 mb-4">
+                    <div class="col-sm-6 col-xl-3">
+                        <div class="kpi-card p-3">
+                            <span class="text-muted smallest fw-bold text-uppercase">Monthly Overhead</span>
+                            <h3 class="fw-bold text-danger mt-1 mb-0 tabular-nums" id="expKpiMonthly">₹0</h3>
+                            <span class="smallest text-muted">Rent, Power, Salaries</span>
+                        </div>
+                    </div>
+                    <div class="col-sm-6 col-xl-3">
+                        <div class="kpi-card p-3">
+                            <span class="text-muted smallest fw-bold text-uppercase">Expense-to-Revenue</span>
+                            <h3 class="fw-bold text-dark mt-1 mb-0 tabular-nums" id="expKpiRatio">0%</h3>
+                            <span class="smallest text-muted">Target: &lt; 20% of sales</span>
+                        </div>
+                    </div>
+                    <div class="col-sm-6 col-xl-3">
+                        <div class="kpi-card p-3">
+                            <span class="text-muted smallest fw-bold text-uppercase">Net Cash Flow (Today)</span>
+                            <h3 class="fw-bold text-success mt-1 mb-0 tabular-nums" id="expKpiNetCash">₹0</h3>
+                            <span class="smallest text-muted" id="expKpiNetCashSub">Inflow vs Outflow</span>
+                        </div>
+                    </div>
+                    <div class="col-sm-6 col-xl-3">
+                        <div class="kpi-card p-3">
+                            <span class="text-muted smallest fw-bold text-uppercase">Pending Receivables</span>
+                            <h3 class="fw-bold text-warning mt-1 mb-0 tabular-nums" id="expKpiReceivables">₹0</h3>
+                            <span class="smallest text-muted">Customer Udhar + COD</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Expense Categories Distribution & Disparity Alert -->
+                <div class="row g-4 mb-4">
+                    <div class="col-lg-7">
+                        <div class="kpi-card p-4">
+                            <div class="d-flex justify-content-between align-items-center mb-3">
+                                <div>
+                                    <h5 class="fw-bold brand-font text-dark mb-0">Expense Category Distribution</h5>
+                                    <span class="smallest text-muted">Current month operational expenditure breakdown</span>
+                                </div>
+                            </div>
+                            <div id="expenseCategoryBars" class="d-flex flex-column gap-3 py-2">
+                                <div class="text-center text-muted small py-3">Loading category breakdown...</div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="col-lg-5">
+                        <div class="kpi-card p-4 h-100">
+                            <h5 class="fw-bold brand-font text-dark mb-2">Cash Flow Health Rule</h5>
+                            <p class="text-muted small mb-3">
+                                Keep operating overhead below <strong>18%</strong> of gross retail sales to maintain healthy net profit margins above 15%.
+                            </p>
+                            <div class="p-3 bg-light rounded-3 border mb-3">
+                                <div class="d-flex justify-content-between small fw-bold mb-1">
+                                    <span>Money In (Today)</span>
+                                    <span class="text-success tabular-nums" id="cfBoxIn">₹0</span>
+                                </div>
+                                <div class="d-flex justify-content-between small fw-bold mb-1">
+                                    <span>Money Out (Today)</span>
+                                    <span class="text-danger tabular-nums" id="cfBoxOut">₹0</span>
+                                </div>
+                                <hr class="my-2">
+                                <div class="d-flex justify-content-between fw-bold text-dark">
+                                    <span>Net Working Balance</span>
+                                    <span class="tabular-nums" id="cfBoxNet">₹0</span>
+                                </div>
+                            </div>
+                            <div class="smallest text-muted">
+                                <i class="bi bi-info-circle me-1 text-primary"></i> Money Out automatically includes recorded operating expenses and stock restocking supplier purchases.
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 42px Toolbar -->
+                <div class="adm-toolbar mb-4">
+                    <div class="adm-search-wrap flex-grow-1" style="max-width: 360px;">
+                        <i class="bi bi-search adm-search-icon"></i>
+                        <input type="text" id="expenseSearchInput" class="adm-search-input" placeholder="Search expense category, notes..." oninput="const q = this.value.toLowerCase(); document.querySelectorAll('#expensesTableTbody tr').forEach(r => { r.style.display = r.textContent.toLowerCase().includes(q) ? '' : 'none'; });">
+                    </div>
+                    <div class="d-flex align-items-center gap-2">
+                        <span class="badge bg-light text-secondary border px-3 py-2 rounded-pill font-monospace small">
+                            <i class="bi bi-bank me-1 text-primary"></i> Operating Ledger
+                        </span>
+                    </div>
+                </div>
+
+                <!-- Operating Expense Ledger Table -->
+                <div class="kpi-card p-4">
+                    <div class="d-flex justify-content-between align-items-center mb-3">
+                        <div>
+                            <h5 class="fw-bold brand-font text-dark mb-0">Operational Expense Ledger</h5>
+                            <span class="smallest text-muted">Audited overhead transactions and recurring bills</span>
+                        </div>
+                    </div>
+                    <div class="adm-table-wrap">
+                        <table class="table adm-table table-hover align-middle mb-0">
+                            <thead>
+                                <tr>
+                                    <th>#</th>
+                                    <th>Date</th>
+                                    <th>Category</th>
+                                    <th>Description</th>
+                                    <th>Payment Mode</th>
+                                    <th>Amount</th>
+                                    <th>Nature</th>
+                                    <th>Action</th>
+                                </tr>
+                            </thead>
+                            <tbody id="expensesTableTbody">
+                                <tr><td colspan="8" class="text-center text-muted py-4 small">Loading expenses...</td></tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </section>
+        </main>
+    </div>
+
+    <!-- Record Expense Modal -->
+    <div class="modal fade" id="recordExpenseModal" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content border-0 shadow-lg rounded-3">
+                <div class="modal-header border-bottom pb-3">
+                    <h5 class="modal-title fw-bold brand-font text-dark">Record Operating Expense</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <form onsubmit="window.Adm.saveNewExpense(event)">
+                    <div class="modal-body p-4">
+                        <div class="mb-3">
+                            <label class="form-label small fw-bold text-dark">Expense Category *</label>
+                            <select id="expCategoryInput" class="form-select rounded-2" required>
+                                <option value="Rent">Shop Rent (Premises)</option>
+                                <option value="Electricity">Electricity &amp; Power Bills</option>
+                                <option value="Staff">Staff Salaries &amp; Wages</option>
+                                <option value="Transport">Logistics &amp; Transport</option>
+                                <option value="Packaging">Packaging Bags &amp; Materials</option>
+                                <option value="Maintenance">Equipment / Store Maintenance</option>
+                                <option value="Tea & Snacks">Tea &amp; Staff Refreshments</option>
+                                <option value="Other" selected>Miscellaneous Overhead</option>
+                            </select>
+                        </div>
+
+                        <div class="row g-2 mb-3">
+                            <div class="col-6">
+                                <label class="form-label small fw-bold text-dark">Amount (₹) *</label>
+                                <input type="number" id="expAmountInput" class="form-control rounded-2" required min="1" step="0.5" placeholder="1500">
+                            </div>
+                            <div class="col-6">
+                                <label class="form-label small fw-bold text-dark">Payment Mode *</label>
+                                <select id="expPaymentModeInput" class="form-select rounded-2" required>
+                                    <option value="Cash" selected>Cash Register</option>
+                                    <option value="UPI">Store UPI / QR</option>
+                                    <option value="Bank Transfer">Bank Transfer (NEFT/IMPS)</option>
+                                    <option value="Cheque">Bank Cheque</option>
+                                </select>
+                            </div>
+                        </div>
+
+                        <div class="row g-2 mb-3">
+                            <div class="col-6">
+                                <label class="form-label small fw-bold text-dark">Expense Date</label>
+                                <input type="date" id="expDateInput" class="form-control rounded-2">
+                            </div>
+                            <div class="col-6 d-flex align-items-center pt-3">
+                                <div class="form-check form-switch">
+                                    <input class="form-check-input" type="checkbox" id="expRecurringInput">
+                                    <label class="form-check-label small fw-bold text-dark ms-1" for="expRecurringInput">Recurring Monthly</label>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="mb-3">
+                            <label class="form-label small fw-bold text-dark">Notes / Description (Optional)</label>
+                            <textarea id="expDescInput" class="form-control rounded-2" rows="2" placeholder="e.g. September electricity bill for Pali store counter"></textarea>
+                        </div>
+                    </div>
+                    <div class="modal-footer border-top pt-3">
+                        <button type="button" class="btn btn-secondary rounded-2 px-3" data-bs-dismiss="modal">Cancel</button>
+                        <button type="submit" class="btn btn-primary rounded-2 px-4 fw-semibold">Save Expense</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- Bootstrap 5.3.3 JS Bundle -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+    <!-- Admin ERP Logic -->
+    <script src="../static/js/api-config.js"></script>
+    <script src="../static/js/core/utils.js"></script>
+    <script src="../static/js/services/auth.service.js"></script>
+    <script src="../static/js/admin.js"></script>
+</body>
+</html>

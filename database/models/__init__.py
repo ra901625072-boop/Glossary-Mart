@@ -8,6 +8,7 @@ from .product import Product, Category, Review, Sale
 from .order import Order, OrderItem, Cart, Wishlist
 from .inventory import Supplier, Purchase
 from .promotion import Coupon, Notification
+from .expense import Expense
 
 __all__ = [
     'db',
@@ -15,5 +16,6 @@ __all__ = [
     'Product', 'Category', 'Review', 'Sale',
     'Order', 'OrderItem', 'Cart', 'Wishlist',
     'Supplier', 'Purchase',
-    'Coupon', 'Notification'
+    'Coupon', 'Notification',
+    'Expense'
 ]

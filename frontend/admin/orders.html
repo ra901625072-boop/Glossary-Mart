@@ -62,21 +62,21 @@
         </div>
 
         <div class="d-flex align-items-center gap-2 gap-sm-3">
-            <a href="../customer/shop.html" class="btn btn-sm btn-outline-success rounded-pill px-3 d-none d-sm-inline-flex align-items-center">
+            <a href="../customer/shop.html" class="btn btn-sm btn-outline-success rounded-2 px-3 d-none d-sm-inline-flex align-items-center">
                 <i class="bi bi-shop me-1"></i> Customer Store
             </a>
 
-            <button class="btn btn-sm btn-light rounded-circle p-2 border" type="button" onclick="window.Adm.toggleTheme()" title="Toggle Dark/Light Mode">
+            <button class="btn btn-sm btn-light rounded-2 p-2 border" type="button" onclick="window.Adm.toggleTheme()" title="Toggle Dark/Light Mode">
                 <i class="bi bi-moon-stars text-secondary fs-6"></i>
             </button>
 
             <div class="dropdown">
-                <button class="btn btn-sm btn-light border rounded-pill d-flex align-items-center gap-2 px-3 py-1" type="button" data-bs-toggle="dropdown" aria-expanded="false">
+                <button class="btn btn-sm btn-light border rounded-2 d-flex align-items-center gap-2 px-3 py-1" type="button" data-bs-toggle="dropdown" aria-expanded="false">
                     <span class="bg-success text-white rounded-circle d-inline-flex align-items-center justify-content-center fw-bold" style="width: 26px; height: 26px; font-size: 0.75rem;">AD</span>
                     <span class="fw-bold small d-none d-md-inline text-dark">Administrator</span>
                     <i class="bi bi-chevron-down text-muted smallest"></i>
                 </button>
-                <ul class="dropdown-menu dropdown-menu-end shadow border-0 py-2" style="border-radius: 12px; min-width: 200px;">
+                <ul class="dropdown-menu dropdown-menu-end shadow border-0 py-2 rounded-3" style="min-width: 200px;">
                     <li class="px-3 py-2 border-bottom">
                         <div class="fw-bold text-dark small">Administrator</div>
                         <div class="smallest text-muted admin-user-email">ERP Console</div>
@@ -99,17 +99,21 @@
                     <img src="../static/images/logo-icon.png" alt="e Grossary logo" style="width: 100%; height: 100%; object-fit: contain;">
                 </div>
                 <div>
-                    <div class="fw-bold text-white small">e Grossary ERP</div>
-                    <div class="smallest text-secondary">Operations Cluster</div>
+                    <div class="brand-title">e Grossary</div>
+                    <div class="brand-subtitle">ERP Console</div>
                 </div>
             </div>
 
             <div class="sidebar-menu-scroll">
-                <div class="sidebar-category-header">Core Operations</div>
+                <!-- Tier 1: Overview -->
+                <div class="sidebar-category-header">Overview</div>
                 <a href="index.html" class="admin-nav-item" data-admin-route="dashboard">
-                    <i class="bi bi-speedometer2"></i>
-                    <span>Dashboard</span>
+                    <i class="bi bi-grid-1x2"></i>
+                    <span>Executive Dashboard</span>
                 </a>
+
+                <!-- Tier 2: Commerce -->
+                <div class="sidebar-category-header mt-3">Commerce</div>
                 <a href="pos.html" class="admin-nav-item" data-admin-route="pos">
                     <i class="bi bi-calculator"></i>
                     <span>POS Counter</span>
@@ -118,57 +122,65 @@
                     <i class="bi bi-box-seam"></i>
                     <span>Inventory &amp; Stock</span>
                 </a>
-                <a href="categories.html" class="admin-nav-item" data-admin-route="categories">
-                    <i class="bi bi-grid-fill"></i>
-                    <span>Categories</span>
-                </a>
-
-                <div class="sidebar-category-header mt-3">Sales &amp; Customers</div>
                 <a href="orders.html" class="admin-nav-item active" data-admin-route="orders">
                     <i class="bi bi-truck"></i>
                     <span>Orders &amp; Dispatch</span>
                 </a>
-                <a href="customers.html" class="admin-nav-item" data-admin-route="customers">
-                    <i class="bi bi-people-fill"></i>
-                    <span>Customers CRM</span>
-                </a>
-                <a href="sales.html" class="admin-nav-item" data-admin-route="sales">
-                    <i class="bi bi-receipt-cutoff"></i>
-                    <span>Sales Ledger</span>
+                <a href="purchases.html" class="admin-nav-item" data-admin-route="purchases">
+                    <i class="bi bi-cart-check"></i>
+                    <span>Stock In (Purchases)</span>
                 </a>
 
-                <div class="sidebar-category-header mt-3">Suppliers &amp; Promos</div>
-                <a href="purchases.html" class="admin-nav-item" data-admin-route="purchases">
-                    <i class="bi bi-cart-check-fill"></i>
-                    <span>Stock In (Purchases)</span>
+                <!-- Tier 3: Management -->
+                <div class="sidebar-category-header mt-3">Management</div>
+                <a href="customers.html" class="admin-nav-item" data-admin-route="customers">
+                    <i class="bi bi-people"></i>
+                    <span>Customers &amp; Udhar</span>
+                </a>
+                <a href="categories.html" class="admin-nav-item" data-admin-route="categories">
+                    <i class="bi bi-folder2-open"></i>
+                    <span>Categories</span>
                 </a>
                 <a href="suppliers.html" class="admin-nav-item" data-admin-route="suppliers">
                     <i class="bi bi-building"></i>
                     <span>Suppliers Directory</span>
                 </a>
                 <a href="coupons.html" class="admin-nav-item" data-admin-route="coupons">
-                    <i class="bi bi-ticket-perforated-fill"></i>
+                    <i class="bi bi-ticket-perforated"></i>
                     <span>Promo Coupons</span>
                 </a>
 
-                <div class="sidebar-category-header mt-3">Governance &amp; Logs</div>
+                <!-- Tier 4: Analytics -->
+                <div class="sidebar-category-header mt-3">Analytics</div>
+                <a href="expenses.html" class="admin-nav-item" data-admin-route="expenses">
+                    <i class="bi bi-wallet2"></i>
+                    <span>Cash Flow &amp; Expenses</span>
+                </a>
+                <a href="sales.html" class="admin-nav-item" data-admin-route="sales">
+                    <i class="bi bi-receipt-cutoff"></i>
+                    <span>Sales Ledger</span>
+                </a>
+
+                <!-- Tier 5: System -->
+                <div class="sidebar-category-header mt-3">System</div>
                 <a href="activity.html" class="admin-nav-item" data-admin-route="activity">
                     <i class="bi bi-clock-history"></i>
                     <span>Audit Trail Log</span>
                 </a>
                 <a href="security.html" class="admin-nav-item" data-admin-route="security">
-                    <i class="bi bi-shield-lock-fill"></i>
+                    <i class="bi bi-shield-lock"></i>
                     <span>2FA &amp; Security</span>
                 </a>
             </div>
 
-            <!-- Sidebar Bottom Quick Action -->
-            <div class="p-3 border-top border-secondary border-opacity-25">
-                <div class="p-2 rounded-3 bg-dark bg-opacity-50 text-white smallest d-flex align-items-center justify-content-between">
-                    <div>
-                        <i class="bi bi-circle-fill text-success smallest me-1"></i> System Online
+            <!-- Sidebar Bottom System Health Indicator -->
+            <div class="p-3 border-top border-secondary border-opacity-10">
+                <div class="p-2 rounded-2 bg-dark bg-opacity-40 text-white smallest d-flex align-items-center justify-content-between">
+                    <div class="d-flex align-items-center gap-2">
+                        <span class="beacon-pulse"></span>
+                        <span class="fw-semibold">System Online</span>
                     </div>
-                    <span class="badge bg-secondary font-monospace">Pali Node</span>
+                    <span class="badge bg-secondary font-monospace" style="font-size: 0.65rem;">Pali Node</span>
                 </div>
             </div>
         </aside>
@@ -177,23 +189,55 @@
         <main class="admin-main-stage">
             <!-- VIEW: ORDERS & DISPATCH -->
             <section id="adm-view-orders" class="adm-view active-view">
-                <div class="d-flex flex-wrap align-items-center justify-content-between gap-3 mb-4">
-                    <div>
-                        <h2 class="fw-bold brand-font text-dark mb-1">Master Orders &amp; Fulfillment Queue</h2>
-                        <p class="text-muted small mb-0">Live delivery dispatch, status tracking stepper synchronization, and invoice audits.</p>
+                <!-- Symmetrical Page Header -->
+                <div class="adm-page-header">
+                    <div class="header-left">
+                        <nav class="adm-breadcrumb">
+                            <a href="index.html">Admin ERP</a>
+                            <i class="bi bi-chevron-right"></i>
+                            <span>Orders Pipeline</span>
+                        </nav>
+                        <h2 class="fw-bold brand-font text-dark mb-0">Master Orders &amp; Fulfillment Queue</h2>
+                        <span class="adm-eyebrow">LIVE DISPATCH PIPELINE &bull; STEPPER SYNCHRONIZATION</span>
+                    </div>
+                    <div class="header-right">
+                        <button class="btn btn-success rounded-2 px-4 py-2 fw-semibold d-inline-flex align-items-center gap-2" onclick="window.location.reload()">
+                            <i class="bi bi-arrow-clockwise"></i>
+                            <span>Refresh Pipeline</span>
+                        </button>
+                        <a href="pos.html" class="btn btn-outline-secondary rounded-2 px-3 py-2 fw-semibold d-inline-flex align-items-center gap-2">
+                            <i class="bi bi-calculator"></i>
+                            <span>POS Terminal</span>
+                        </a>
                     </div>
                 </div>
 
-                <div class="kpi-card p-4">
+                <!-- Uniform 42px Search & Filter Toolbar -->
+                <div class="adm-toolbar justify-content-between">
+                    <div class="d-flex align-items-center gap-2 flex-grow-1" style="max-width: 500px;">
+                        <div class="input-group flex-grow-1">
+                            <span class="input-group-text bg-white border-end-0"><i class="bi bi-search text-muted"></i></span>
+                            <input type="text" id="ordersSearchInput" class="form-control border-start-0 ps-0" placeholder="Filter by order #, customer, or phone..." oninput="(function(e){ const val = e.target.value.toLowerCase().trim(); document.querySelectorAll('#ordersTableTbody tr').forEach(tr => { tr.style.display = tr.textContent.toLowerCase().includes(val) ? '' : 'none'; }); })(event)">
+                        </div>
+                    </div>
+                    <div class="d-flex align-items-center gap-2">
+                        <span class="badge bg-success-subtle text-success px-3 py-2 rounded-2 fw-semibold d-inline-flex align-items-center gap-1">
+                            <span class="beacon-pulse me-1"></span> Real-Time Dispatch
+                        </span>
+                    </div>
+                </div>
+
+                <!-- Orders Table Card -->
+                <div class="adm-table-wrap">
                     <div class="table-responsive">
-                        <table class="table table-hover align-middle mb-0">
-                            <thead class="table-light">
+                        <table class="table adm-table table-hover align-middle mb-0">
+                            <thead>
                                 <tr>
                                     <th>Order #</th>
                                     <th>Customer &amp; Phone</th>
                                     <th>Date</th>
                                     <th class="text-center">Items</th>
-                                    <th>Total</th>
+                                    <th class="num-cell">Total</th>
                                     <th>Payment</th>
                                     <th>Status Control</th>
                                     <th>Action</th>
@@ -207,11 +251,11 @@
         </main>
     </div>
 
-    <!-- Modal: Order Detail Modal -->
+    <!-- Modal: View Order Detail Modal -->
     <div class="modal fade" id="orderDetailModal" tabindex="-1" aria-hidden="true">
         <div class="modal-dialog modal-dialog-centered modal-lg">
-            <div class="modal-content border-0 shadow-lg rounded-4">
-                <div class="modal-header border-0 pb-0">
+            <div class="modal-content border-0 shadow-lg rounded-3">
+                <div class="modal-header border-bottom pb-3">
                     <div>
                         <h5 class="modal-title fw-bold brand-font text-dark mb-0">Order Information: <span id="orderDetailModalId">#JG-000000</span></h5>
                         <span class="smallest text-muted" id="orderDetailModalDate">-</span>
@@ -256,11 +300,11 @@
 
                     <div class="d-flex justify-content-end align-items-center gap-3 mt-3 pt-3 border-top">
                         <span class="fs-6 text-muted">Net Invoice Total:</span>
-                        <span class="fs-4 fw-bold text-success" id="orderDetailModalTotal">₹0</span>
+                        <span class="fs-4 fw-bold text-success tabular-nums" id="orderDetailModalTotal">₹0</span>
                     </div>
                 </div>
-                <div class="modal-footer border-0 pt-0">
-                    <button type="button" class="btn btn-secondary rounded-pill px-4" data-bs-dismiss="modal">Close</button>
+                <div class="modal-footer border-top pt-3">
+                    <button type="button" class="btn btn-secondary rounded-2 px-4" data-bs-dismiss="modal">Close</button>
                 </div>
             </div>
         </div>

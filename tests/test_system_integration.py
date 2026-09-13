@@ -55,6 +55,12 @@ def test_admin_dashboard_and_analytics(client, admin_user, test_product, session
     assert dash_resp.status_code == 200
     dash_json = dash_resp.get_json()
     assert 'chart_data' in dash_json or 'stats_1_day' in dash_json
+    assert 'financials' in dash_json
+    assert 'total_revenue' in dash_json['financials']
+    assert 'total_sales_count' in dash_json['financials']
+    assert 'net_profit' in dash_json['financials']
+    assert 'total_expenses' in dash_json['financials']
+    assert 'inventory_valuation' in dash_json['financials']
 
     # 3. View Coupons list (tests Coupon.created_at field)
     coupon = Coupon(

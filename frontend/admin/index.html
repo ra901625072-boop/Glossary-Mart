@@ -63,23 +63,23 @@
 
         <div class="d-flex align-items-center gap-2 gap-sm-3">
             <!-- Link to Customer Storefront -->
-            <a href="../customer/shop.html" class="btn btn-sm btn-outline-success rounded-pill px-3 d-none d-sm-inline-flex align-items-center">
+            <a href="../customer/shop.html" class="btn btn-sm btn-outline-success rounded-2 px-3 d-none d-sm-inline-flex align-items-center">
                 <i class="bi bi-shop me-1"></i> Customer Store
             </a>
 
             <!-- Dark / Light Theme Toggle -->
-            <button class="btn btn-sm btn-light rounded-circle p-2 border" type="button" onclick="window.Adm.toggleTheme()" title="Toggle Dark/Light Mode">
+            <button class="btn btn-sm btn-light rounded-2 p-2 border" type="button" onclick="window.Adm.toggleTheme()" title="Toggle Dark/Light Mode">
                 <i class="bi bi-moon-stars text-secondary fs-6"></i>
             </button>
 
             <!-- Admin Profile Indicator -->
             <div class="dropdown">
-                <button class="btn btn-sm btn-light border rounded-pill d-flex align-items-center gap-2 px-3 py-1" type="button" data-bs-toggle="dropdown" aria-expanded="false">
+                <button class="btn btn-sm btn-light border rounded-2 d-flex align-items-center gap-2 px-3 py-1" type="button" data-bs-toggle="dropdown" aria-expanded="false">
                     <span class="bg-success text-white rounded-circle d-inline-flex align-items-center justify-content-center fw-bold" style="width: 26px; height: 26px; font-size: 0.75rem;">AD</span>
                     <span class="fw-bold small d-none d-md-inline text-dark">Administrator</span>
                     <i class="bi bi-chevron-down text-muted smallest"></i>
                 </button>
-                <ul class="dropdown-menu dropdown-menu-end shadow border-0 py-2" style="border-radius: 12px; min-width: 200px;">
+                <ul class="dropdown-menu dropdown-menu-end shadow border-0 py-2 rounded-3" style="min-width: 200px;">
                     <li class="px-3 py-2 border-bottom">
                         <div class="fw-bold text-dark small">Administrator</div>
                         <div class="smallest text-muted admin-user-email">ERP Console</div>
@@ -102,17 +102,21 @@
                     <img src="../static/images/logo-icon.png" alt="e Grossary logo" style="width: 100%; height: 100%; object-fit: contain;">
                 </div>
                 <div>
-                    <div class="fw-bold text-white small">e Grossary ERP</div>
-                    <div class="smallest text-secondary">Operations Cluster</div>
+                    <div class="brand-title">e Grossary</div>
+                    <div class="brand-subtitle">ERP Console</div>
                 </div>
             </div>
 
             <div class="sidebar-menu-scroll">
-                <div class="sidebar-category-header">Core Operations</div>
+                <!-- Tier 1: Overview -->
+                <div class="sidebar-category-header">Overview</div>
                 <a href="index.html" class="admin-nav-item active" data-admin-route="dashboard">
-                    <i class="bi bi-speedometer2"></i>
-                    <span>Dashboard</span>
+                    <i class="bi bi-grid-1x2"></i>
+                    <span>Executive Dashboard</span>
                 </a>
+
+                <!-- Tier 2: Commerce -->
+                <div class="sidebar-category-header mt-3">Commerce</div>
                 <a href="pos.html" class="admin-nav-item" data-admin-route="pos">
                     <i class="bi bi-calculator"></i>
                     <span>POS Counter</span>
@@ -121,57 +125,65 @@
                     <i class="bi bi-box-seam"></i>
                     <span>Inventory &amp; Stock</span>
                 </a>
-                <a href="categories.html" class="admin-nav-item" data-admin-route="categories">
-                    <i class="bi bi-grid-fill"></i>
-                    <span>Categories</span>
-                </a>
-
-                <div class="sidebar-category-header mt-3">Sales &amp; Customers</div>
                 <a href="orders.html" class="admin-nav-item" data-admin-route="orders">
                     <i class="bi bi-truck"></i>
                     <span>Orders &amp; Dispatch</span>
                 </a>
-                <a href="customers.html" class="admin-nav-item" data-admin-route="customers">
-                    <i class="bi bi-people-fill"></i>
-                    <span>Customers CRM</span>
-                </a>
-                <a href="sales.html" class="admin-nav-item" data-admin-route="sales">
-                    <i class="bi bi-receipt-cutoff"></i>
-                    <span>Sales Ledger</span>
+                <a href="purchases.html" class="admin-nav-item" data-admin-route="purchases">
+                    <i class="bi bi-cart-check"></i>
+                    <span>Stock In (Purchases)</span>
                 </a>
 
-                <div class="sidebar-category-header mt-3">Suppliers &amp; Promos</div>
-                <a href="purchases.html" class="admin-nav-item" data-admin-route="purchases">
-                    <i class="bi bi-cart-check-fill"></i>
-                    <span>Stock In (Purchases)</span>
+                <!-- Tier 3: Management -->
+                <div class="sidebar-category-header mt-3">Management</div>
+                <a href="customers.html" class="admin-nav-item" data-admin-route="customers">
+                    <i class="bi bi-people"></i>
+                    <span>Customers &amp; Udhar</span>
+                </a>
+                <a href="categories.html" class="admin-nav-item" data-admin-route="categories">
+                    <i class="bi bi-folder2-open"></i>
+                    <span>Categories</span>
                 </a>
                 <a href="suppliers.html" class="admin-nav-item" data-admin-route="suppliers">
                     <i class="bi bi-building"></i>
                     <span>Suppliers Directory</span>
                 </a>
                 <a href="coupons.html" class="admin-nav-item" data-admin-route="coupons">
-                    <i class="bi bi-ticket-perforated-fill"></i>
+                    <i class="bi bi-ticket-perforated"></i>
                     <span>Promo Coupons</span>
                 </a>
 
-                <div class="sidebar-category-header mt-3">Governance &amp; Logs</div>
+                <!-- Tier 4: Analytics -->
+                <div class="sidebar-category-header mt-3">Analytics</div>
+                <a href="expenses.html" class="admin-nav-item" data-admin-route="expenses">
+                    <i class="bi bi-wallet2"></i>
+                    <span>Cash Flow &amp; Expenses</span>
+                </a>
+                <a href="sales.html" class="admin-nav-item" data-admin-route="sales">
+                    <i class="bi bi-receipt-cutoff"></i>
+                    <span>Sales Ledger</span>
+                </a>
+
+                <!-- Tier 5: System -->
+                <div class="sidebar-category-header mt-3">System</div>
                 <a href="activity.html" class="admin-nav-item" data-admin-route="activity">
                     <i class="bi bi-clock-history"></i>
                     <span>Audit Trail Log</span>
                 </a>
                 <a href="security.html" class="admin-nav-item" data-admin-route="security">
-                    <i class="bi bi-shield-lock-fill"></i>
+                    <i class="bi bi-shield-lock"></i>
                     <span>2FA &amp; Security</span>
                 </a>
             </div>
 
-            <!-- Sidebar Bottom Quick Action -->
-            <div class="p-3 border-top border-secondary border-opacity-25">
-                <div class="p-2 rounded-3 bg-dark bg-opacity-50 text-white smallest d-flex align-items-center justify-content-between">
-                    <div>
-                        <i class="bi bi-circle-fill text-success smallest me-1"></i> System Online
+            <!-- Sidebar Bottom System Health Indicator -->
+            <div class="p-3 border-top border-secondary border-opacity-10">
+                <div class="p-2 rounded-2 bg-dark bg-opacity-40 text-white smallest d-flex align-items-center justify-content-between">
+                    <div class="d-flex align-items-center gap-2">
+                        <span class="beacon-pulse"></span>
+                        <span class="fw-semibold">System Online</span>
                     </div>
-                    <span class="badge bg-secondary font-monospace">Pali Node</span>
+                    <span class="badge bg-secondary font-monospace" style="font-size: 0.65rem;">Pali Node</span>
                 </div>
             </div>
         </aside>
@@ -181,7 +193,7 @@
             <!-- VIEW: DASHBOARD -->
             <section id="adm-view-dashboard" class="adm-view active-view">
                 <!-- Low Stock Alert Banner -->
-                <div id="dashLowStockBanner" class="alert alert-warning border-0 rounded-4 shadow-sm mb-4 d-flex align-items-center justify-content-between py-3 px-4" style="display: none;">
+                <div id="dashLowStockBanner" class="alert alert-warning border-0 rounded-3 shadow-sm mb-4 d-flex align-items-center justify-content-between py-3 px-4" style="display: none;">
                     <div class="d-flex align-items-center gap-3">
                         <i class="bi bi-exclamation-triangle-fill fs-3 text-warning"></i>
                         <div>
@@ -189,67 +201,126 @@
                             <span class="small text-muted">Replenish products immediately from the Purchases or Inventory tab.</span>
                         </div>
                     </div>
-                    <a href="products.html" class="btn btn-sm btn-dark rounded-pill px-3">Manage Stock</a>
+                    <a href="products.html" class="btn btn-sm btn-dark rounded-2 px-3">Manage Stock</a>
                 </div>
 
-                <div class="d-flex flex-wrap align-items-center justify-content-between gap-3 mb-4">
-                    <div>
-                        <h2 class="fw-bold brand-font text-dark mb-1">Executive ERP Dashboard</h2>
-                        <p class="text-muted small mb-0">Real-time revenue metrics, order velocity, and warehouse status.</p>
+                <!-- Symmetrical Page Header -->
+                <div class="adm-page-header">
+                    <div class="header-left">
+                        <nav class="adm-breadcrumb">
+                            <a href="index.html">Admin ERP</a>
+                            <i class="bi bi-chevron-right"></i>
+                            <span>Executive Dashboard</span>
+                        </nav>
+                        <h2 class="fw-bold brand-font text-dark mb-0">Shop Owner Executive Dashboard</h2>
+                        <span class="adm-eyebrow">REAL-TIME DECISION INTELLIGENCE &bull; MULTI-STORE TELEMETRY</span>
                     </div>
-                    <div class="d-flex gap-2">
-                        <a href="pos.html" class="btn btn-success rounded-pill px-3 py-2 fw-semibold">
-                            <i class="bi bi-calculator me-1"></i> Open POS Terminal
+                    <div class="header-right">
+                        <a href="pos.html" class="btn btn-success rounded-2 px-3 py-2 fw-semibold d-inline-flex align-items-center gap-2">
+                            <i class="bi bi-calculator"></i>
+                            <span>Open POS</span>
                         </a>
-                        <button class="btn btn-outline-secondary rounded-pill px-3 py-2 fw-semibold" data-bs-toggle="modal" data-bs-target="#addProductModal">
-                            <i class="bi bi-plus-lg me-1"></i> Add Product
+                        <a href="expenses.html" class="btn btn-outline-danger rounded-2 px-3 py-2 fw-semibold d-inline-flex align-items-center gap-2">
+                            <i class="bi bi-wallet2"></i>
+                            <span>Expenses</span>
+                        </a>
+                        <button class="btn btn-outline-secondary rounded-2 px-3 py-2 fw-semibold d-inline-flex align-items-center gap-2" data-bs-toggle="modal" data-bs-target="#addProductModal">
+                            <i class="bi bi-plus-lg"></i>
+                            <span>Add Product</span>
                         </button>
                     </div>
                 </div>
 
-                <!-- KPI Metric Cards Grid -->
-                <div class="row g-3 mb-4">
+                <!-- 1. Executive Financial Performance (Top Row - Most Important) -->
+                <div class="row g-3 mb-3">
+                    <!-- Total Revenue -->
                     <div class="col-sm-6 col-xl-3">
-                        <div class="kpi-card d-flex align-items-center justify-content-between">
+                        <div class="kpi-card p-3 d-flex align-items-center justify-content-between h-100">
                             <div>
-                                <span class="text-muted smallest fw-bold text-uppercase">Gross Revenue</span>
+                                <span class="text-muted smallest fw-bold text-uppercase">Total Revenue</span>
                                 <h3 class="fw-bold text-dark mt-1 mb-0" id="dashKpiRevenue">₹0</h3>
-                                <span class="smallest text-success fw-semibold"><i class="bi bi-arrow-up-right"></i> +14.2% this week</span>
+                                <span class="smallest text-success fw-semibold" id="dashKpiRevSplit"><i class="bi bi-arrow-up-right"></i> Online &bull; POS</span>
                             </div>
                             <div class="kpi-icon-box bg-success-subtle text-success">
                                 <i class="bi bi-currency-rupee"></i>
                             </div>
                         </div>
                     </div>
+
+                    <!-- Total Sales (Sell) -->
                     <div class="col-sm-6 col-xl-3">
-                        <div class="kpi-card d-flex align-items-center justify-content-between">
+                        <div class="kpi-card p-3 d-flex align-items-center justify-content-between h-100">
                             <div>
-                                <span class="text-muted smallest fw-bold text-uppercase">Total Orders</span>
-                                <h3 class="fw-bold text-dark mt-1 mb-0" id="dashKpiOrders">0</h3>
-                                <span class="smallest text-primary fw-semibold"><i class="bi bi-box-seam"></i> Live queue</span>
+                                <span class="text-muted smallest fw-bold text-uppercase">Total Sales (Sell)</span>
+                                <h3 class="fw-bold text-dark mt-1 mb-0" id="dashKpiSalesCount">0</h3>
+                                <span class="smallest text-primary fw-semibold" id="dashKpiUnitsSold"><i class="bi bi-cart-check"></i> 0 items sold</span>
                             </div>
                             <div class="kpi-icon-box bg-primary-subtle text-primary">
                                 <i class="bi bi-bag-check"></i>
                             </div>
                         </div>
                     </div>
+
+                    <!-- Net Profit & Margin -->
                     <div class="col-sm-6 col-xl-3">
-                        <div class="kpi-card d-flex align-items-center justify-content-between">
+                        <div class="kpi-card p-3 d-flex align-items-center justify-content-between h-100">
                             <div>
-                                <span class="text-muted smallest fw-bold text-uppercase">Active Catalog</span>
-                                <h3 class="fw-bold text-dark mt-1 mb-0" id="dashKpiProducts">0</h3>
-                                <span class="smallest text-info fw-semibold"><i class="bi bi-grid"></i> 7 Categories</span>
+                                <span class="text-muted smallest fw-bold text-uppercase">Net Profit</span>
+                                <h3 class="fw-bold text-dark mt-1 mb-0" id="dashKpiProfit">₹0</h3>
+                                <span class="smallest text-success fw-semibold" id="dashKpiMargin"><i class="bi bi-graph-up-arrow"></i> 0% Margin</span>
                             </div>
                             <div class="kpi-icon-box bg-info-subtle text-info">
-                                <i class="bi bi-boxes"></i>
+                                <i class="bi bi-wallet2"></i>
                             </div>
                         </div>
                     </div>
+
+                    <!-- Total Expenses -->
                     <div class="col-sm-6 col-xl-3">
-                        <div class="kpi-card d-flex align-items-center justify-content-between">
+                        <div class="kpi-card p-3 d-flex align-items-center justify-content-between h-100">
                             <div>
-                                <span class="text-muted smallest fw-bold text-uppercase">Low Stock Alert</span>
-                                <h3 class="fw-bold text-danger mt-1 mb-0" id="dashKpiLowStock">0</h3>
+                                <span class="text-muted smallest fw-bold text-uppercase">Total Expenses</span>
+                                <h3 class="fw-bold text-dark mt-1 mb-0" id="dashKpiExpenses">₹0</h3>
+                                <span class="smallest text-danger fw-semibold" id="dashKpiExpenseMonth"><i class="bi bi-receipt"></i> Store Overhead</span>
+                            </div>
+                            <div class="kpi-icon-box bg-danger-subtle text-danger">
+                                <i class="bi bi-cash-coin"></i>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 2. Operational Health & Asset Status (Row 2) -->
+                <div class="row g-3 mb-4">
+                    <div class="col-6 col-md-3">
+                        <div class="kpi-card p-3 d-flex align-items-center justify-content-between h-100">
+                            <div>
+                                <span class="text-muted smallest fw-bold text-uppercase">Total Orders</span>
+                                <h4 class="fw-bold text-dark mt-1 mb-0" id="dashKpiOrders">0</h4>
+                                <span class="smallest text-primary fw-semibold" id="dashKpiPendingBadge"><i class="bi bi-clock-history"></i> <span id="dashKpiPendingOrders">0</span> Pending</span>
+                            </div>
+                            <div class="kpi-icon-box bg-primary-subtle text-primary">
+                                <i class="bi bi-box-seam"></i>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-6 col-md-3">
+                        <div class="kpi-card p-3 d-flex align-items-center justify-content-between h-100">
+                            <div>
+                                <span class="text-muted smallest fw-bold text-uppercase">Inventory Valuation</span>
+                                <h4 class="fw-bold text-dark mt-1 mb-0" id="dashKpiInvVal">₹0</h4>
+                                <span class="smallest text-info fw-semibold"><i class="bi bi-boxes"></i> <span id="dashKpiProducts">0</span> Products</span>
+                            </div>
+                            <div class="kpi-icon-box bg-info-subtle text-info">
+                                <i class="bi bi-stack"></i>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-6 col-md-3">
+                        <div class="kpi-card p-3 d-flex align-items-center justify-content-between h-100">
+                            <div>
+                                <span class="text-muted smallest fw-bold text-uppercase">Critical Low Stock</span>
+                                <h4 class="fw-bold text-danger mt-1 mb-0" id="dashKpiLowStock">0</h4>
                                 <span class="smallest text-danger fw-semibold"><i class="bi bi-exclamation-circle"></i> Needs Reorder</span>
                             </div>
                             <div class="kpi-icon-box bg-danger-subtle text-danger">
@@ -257,60 +328,372 @@
                             </div>
                         </div>
                     </div>
+                    <div class="col-6 col-md-3">
+                        <div class="kpi-card p-3 d-flex align-items-center justify-content-between h-100">
+                            <div>
+                                <span class="text-muted smallest fw-bold text-uppercase">Customer Udhar</span>
+                                <h4 class="fw-bold text-warning text-dark mt-1 mb-0" id="dashKpiUdhar">₹0</h4>
+                                <span class="smallest text-muted fw-semibold"><i class="bi bi-person-check"></i> To Collect</span>
+                            </div>
+                            <div class="kpi-icon-box bg-warning-subtle text-warning text-dark">
+                                <i class="bi bi-credit-card-2-back"></i>
+                            </div>
+                        </div>
+                    </div>
                 </div>
 
-                <!-- Charts Row -->
+                <!-- 3. Financial Performance Trend & Real-Time Cash Flow -->
                 <div class="row g-4 mb-4">
-                    <div class="col-lg-8">
-                        <div class="kpi-card p-4">
+                    <div class="col-lg-7">
+                        <div class="kpi-card p-4 h-100">
                             <div class="d-flex justify-content-between align-items-center mb-3">
                                 <div>
-                                    <h5 class="fw-bold brand-font text-dark mb-0">Sales Revenue Trend (Last 7 Days)</h5>
-                                    <span class="smallest text-muted">Daily store sales aggregated across online &amp; POS counters</span>
+                                    <h5 class="fw-bold brand-font text-dark mb-0">Sales Revenue Trend</h5>
+                                    <span class="smallest text-muted">Daily store sales aggregated across online storefront &amp; POS counter</span>
                                 </div>
-                                <span class="badge bg-success-subtle text-success px-3 py-1 rounded-pill fw-semibold">Live Feed</span>
+                                <span class="badge bg-success-subtle text-success px-3 py-1 rounded-pill fw-semibold d-inline-flex align-items-center gap-1"><span class="beacon-pulse me-1"></span> Live Feed</span>
                             </div>
-                            <canvas id="dashSalesChart" height="110"></canvas>
+                            <div style="height: 280px; position: relative;">
+                                <canvas id="dashSalesChart"></canvas>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-lg-5">
+                        <div class="kpi-card p-4 h-100 d-flex flex-column justify-content-between">
+                            <div>
+                                <div class="d-flex justify-content-between align-items-center mb-3">
+                                    <h5 class="fw-bold brand-font text-dark mb-0">Today's Cash Flow</h5>
+                                    <span class="badge bg-light text-dark border px-2 py-1 smallest" id="cfTodayStatusBadge">Balanced</span>
+                                </div>
+
+                                <div class="p-3 bg-light rounded-3 border mb-3">
+                                    <div class="d-flex justify-content-between small mb-1">
+                                        <span class="text-muted">Money In (POS + Paid Orders):</span>
+                                        <span class="fw-bold text-success" id="cfTodayIn">₹0</span>
+                                    </div>
+                                    <div class="d-flex justify-content-between small mb-1">
+                                        <span class="text-muted">Money Out (Stock + Expenses):</span>
+                                        <span class="fw-bold text-danger" id="cfTodayOut">₹0</span>
+                                    </div>
+                                    <hr class="my-2">
+                                    <div class="d-flex justify-content-between fw-bold text-dark fs-6">
+                                        <span>Net Cash Realized:</span>
+                                        <span class="text-dark fw-bold" id="cfTodayNet">₹0</span>
+                                    </div>
+                                </div>
+
+                                <!-- Sales Forecast Callout -->
+                                <div class="p-3 rounded-3 border bg-success-subtle bg-opacity-25 mb-2">
+                                    <div class="d-flex justify-content-between align-items-center mb-1">
+                                        <span class="smallest fw-bold text-success text-uppercase">🔮 Predictive Demand Forecast</span>
+                                        <span class="badge bg-success text-white smallest" id="forecastConfidenceBadge">85% Confidence</span>
+                                    </div>
+                                    <div class="fw-bold text-dark small" id="forecastSummaryText">
+                                        Expected Tomorrow: <strong class="text-success" id="forecastTomorrowVal">₹0</strong> &bull; Monthly: <strong class="text-dark" id="forecastMonthlyVal">₹0</strong>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="pt-2 d-flex justify-content-between align-items-center border-top">
+                                <span class="smallest text-muted">Customer Udhar: <strong id="cfUdharVal">₹0</strong></span>
+                                <a href="expenses.html" class="btn btn-sm btn-link text-success fw-bold p-0 text-decoration-none">Full Cash Flow &rarr;</a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 4. Live Fulfillment & Recent Orders Inflows -->
+                <div class="row g-4 mb-4">
+                    <div class="col-lg-8">
+                        <div class="kpi-card p-4 h-100">
+                            <div class="d-flex justify-content-between align-items-center mb-3">
+                                <div>
+                                    <h5 class="fw-bold brand-font text-dark mb-0">Recent Order Inflows</h5>
+                                    <span class="smallest text-muted">Latest deliveries and counter sales</span>
+                                </div>
+                                <a href="orders.html" class="btn btn-sm btn-link text-success fw-bold text-decoration-none">View All Orders &rarr;</a>
+                            </div>
+                            <div class="adm-table-wrap">
+                                <div class="table-responsive">
+                                    <table class="table adm-table table-hover align-middle mb-0">
+                                        <thead>
+                                            <tr>
+                                                <th>Order ID</th>
+                                                <th>Customer</th>
+                                                <th>Date</th>
+                                                <th class="text-end">Total</th>
+                                                <th>Payment</th>
+                                                <th>Status</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody id="dashRecentOrdersTbody"></tbody>
+                                    </table>
+                                </div>
+                            </div>
                         </div>
                     </div>
                     <div class="col-lg-4">
-                        <div class="kpi-card p-4">
+                        <div class="kpi-card p-4 h-100">
                             <div class="d-flex justify-content-between align-items-center mb-3">
                                 <div>
                                     <h5 class="fw-bold brand-font text-dark mb-0">Order Status Distribution</h5>
                                     <span class="smallest text-muted">Fulfillment breakdown</span>
                                 </div>
                             </div>
-                            <div style="max-height: 250px; display:flex; align-items:center; justify-content:center;">
+                            <div style="height: 280px; display: flex; align-items: center; justify-content: center; position: relative;">
                                 <canvas id="dashOrderStatusChart"></canvas>
                             </div>
                         </div>
                     </div>
                 </div>
 
-                <!-- Recent Orders Table -->
-                <div class="kpi-card p-4">
+                <!-- 5. Operational Attention & Store Health Score -->
+                <div class="row g-4 mb-4">
+                    <div class="col-lg-6">
+                        <div class="kpi-card p-4 h-100">
+                            <div class="d-flex justify-content-between align-items-start mb-3">
+                                <div>
+                                    <span class="smallest text-muted text-uppercase fw-bold">Comprehensive Store Assessment</span>
+                                    <div class="d-flex align-items-center gap-3 mt-1">
+                                        <h2 class="display-6 fw-bold text-dark mb-0"><span id="healthScoreNum">--</span><span class="fs-5 text-muted">/100</span></h2>
+                                        <span id="healthStatusBadge" class="badge bg-success-subtle text-success fs-6 fw-bold px-3 py-2 rounded-pill">Evaluating...</span>
+                                    </div>
+                                </div>
+                                <span class="badge bg-light text-secondary border px-3 py-2 rounded-pill smallest d-inline-flex align-items-center gap-1"><span class="beacon-pulse me-1"></span> Live Engine</span>
+                            </div>
+                            <p class="small text-muted mb-4" id="healthSummaryText">Analyzing inventory balance, sales velocity, margins, and customer credit risk...</p>
+
+                            <!-- Sub-Metrics Progress Bars -->
+                            <div class="d-flex flex-column gap-3" id="healthSubmetricsContainer">
+                                <div>
+                                    <div class="d-flex justify-content-between smallest fw-bold mb-1">
+                                        <span>Sales Growth</span>
+                                        <span id="healthValSales">--%</span>
+                                    </div>
+                                    <div class="progress" style="height: 6px;">
+                                        <div class="progress-bar bg-success" id="healthBarSales" role="progressbar" style="width: 0%"></div>
+                                    </div>
+                                </div>
+                                <div>
+                                    <div class="d-flex justify-content-between smallest fw-bold mb-1">
+                                        <span>Inventory Health</span>
+                                        <span id="healthValInventory">--%</span>
+                                    </div>
+                                    <div class="progress" style="height: 6px;">
+                                        <div class="progress-bar bg-primary" id="healthBarInventory" role="progressbar" style="width: 0%"></div>
+                                    </div>
+                                </div>
+                                <div>
+                                    <div class="d-flex justify-content-between smallest fw-bold mb-1">
+                                        <span>Profitability &amp; Margins</span>
+                                        <span id="healthValProfit">--%</span>
+                                    </div>
+                                    <div class="progress" style="height: 6px;">
+                                        <div class="progress-bar bg-info" id="healthBarProfit" role="progressbar" style="width: 0%"></div>
+                                    </div>
+                                </div>
+                                <div>
+                                    <div class="d-flex justify-content-between smallest fw-bold mb-1">
+                                        <span>Customer Retention</span>
+                                        <span id="healthValCustomers">--%</span>
+                                    </div>
+                                    <div class="progress" style="height: 6px;">
+                                        <div class="progress-bar bg-warning" id="healthBarCustomers" role="progressbar" style="width: 0%"></div>
+                                    </div>
+                                </div>
+                                <div>
+                                    <div class="d-flex justify-content-between smallest fw-bold mb-1">
+                                        <span>Credit &amp; Cash Risk</span>
+                                        <span id="healthValCredit">--%</span>
+                                    </div>
+                                    <div class="progress" style="height: 6px;">
+                                        <div class="progress-bar bg-danger" id="healthBarCredit" role="progressbar" style="width: 0%"></div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="col-lg-6">
+                        <div class="kpi-card p-4 h-100">
+                            <div class="d-flex justify-content-between align-items-center mb-3">
+                                <div>
+                                    <h5 class="fw-bold brand-font text-dark mb-0">🚨 Today's Attention &amp; Action Center</h5>
+                                    <span class="smallest text-muted">Prioritized operational items requiring attention</span>
+                                </div>
+                                <div class="d-flex gap-1" id="actionCenterBadges">
+                                    <span class="badge bg-danger-subtle text-danger rounded-pill px-2 py-1 smallest"><span id="actCountCrit">0</span> Critical</span>
+                                    <span class="badge bg-warning-subtle text-warning text-dark rounded-pill px-2 py-1 smallest"><span id="actCountWarn">0</span> Warnings</span>
+                                    <span class="badge bg-success-subtle text-success rounded-pill px-2 py-1 smallest"><span id="actCountOpp">0</span> Opportunities</span>
+                                </div>
+                            </div>
+
+                            <div class="row g-2">
+                                <div class="col-md-4">
+                                    <div class="p-2 bg-danger-subtle bg-opacity-25 rounded-3 border border-danger border-opacity-25 h-100">
+                                        <div class="fw-bold text-danger smallest mb-2 d-flex align-items-center gap-1">
+                                            <i class="bi bi-exclamation-octagon-fill"></i> Critical Priority
+                                        </div>
+                                        <div id="actionColCritical" class="d-flex flex-column gap-2">
+                                            <div class="smallest text-muted">No urgent critical items.</div>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="col-md-4">
+                                    <div class="p-2 bg-warning-subtle bg-opacity-25 rounded-3 border border-warning border-opacity-25 h-100">
+                                        <div class="fw-bold text-warning text-dark smallest mb-2 d-flex align-items-center gap-1">
+                                            <i class="bi bi-exclamation-triangle-fill"></i> Warnings &amp; Reorders
+                                        </div>
+                                        <div id="actionColWarnings" class="d-flex flex-column gap-2">
+                                            <div class="smallest text-muted">Stock balanced.</div>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="col-md-4">
+                                    <div class="p-2 bg-success-subtle bg-opacity-25 rounded-3 border border-success border-opacity-25 h-100">
+                                        <div class="fw-bold text-success smallest mb-2 d-flex align-items-center gap-1">
+                                            <i class="bi bi-lightbulb-fill"></i> Growth Prompts
+                                        </div>
+                                        <div id="actionColOpportunities" class="d-flex flex-column gap-2">
+                                            <div class="smallest text-muted">No active prompts.</div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 6. Strategic Deep Intelligence & Working Capital (At Bottom) -->
+                <!-- Locked Working Capital Banner -->
+                <div class="alert alert-info border-0 rounded-4 shadow-sm mb-4 p-4" id="lockedCapitalBanner">
+                    <div class="d-flex flex-wrap align-items-center justify-content-between gap-3">
+                        <div class="d-flex align-items-center gap-3">
+                            <div class="p-3 bg-white rounded-circle text-info shadow-sm">
+                                <i class="bi bi-cash-stack fs-3"></i>
+                            </div>
+                            <div>
+                                <h5 class="mb-1 fw-bold text-dark">
+                                    <span id="lockedCapitalVal">₹0</span> locked in slow-moving inventory
+                                </h5>
+                                <span class="small text-muted" id="lockedCapitalSub">
+                                    Total Warehouse Valuation: <strong id="invTotalVal">₹0</strong> &bull; Annualized Turnover: <strong id="invTurnoverVal">0.0x</strong>
+                                </span>
+                            </div>
+                        </div>
+                        <div class="d-flex gap-2">
+                            <a href="purchases.html" class="btn btn-sm btn-dark rounded-2 px-3">Review Stock Aging</a>
+                            <a href="coupons.html" class="btn btn-sm btn-outline-dark rounded-2 px-3">Clearance Promo</a>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Product Profitability Matrix (BCG 4-Quadrant) -->
+                <div class="kpi-card p-4 mb-4" id="matrix">
+                    <div class="d-flex flex-wrap justify-content-between align-items-center gap-2 mb-3">
+                        <div>
+                            <h5 class="fw-bold brand-font text-dark mb-0">🏷️ Product Profitability Matrix</h5>
+                            <span class="smallest text-muted">4-Quadrant BCG classification: What to stock more of vs what to clearance</span>
+                        </div>
+                        <ul class="nav nav-pills nav-fill bg-light p-1 rounded-2" id="matrixTabs" role="tablist">
+                            <li class="nav-item">
+                                <button class="nav-link active rounded-2 py-1 px-3 small fw-bold text-success" data-bs-toggle="tab" data-bs-target="#tabStars">
+                                    🟢 Stars (<span id="countStars">0</span>)
+                                </button>
+                            </li>
+                            <li class="nav-item">
+                                <button class="nav-link rounded-2 py-1 px-3 small fw-bold text-primary" data-bs-toggle="tab" data-bs-target="#tabCashCows">
+                                    🔵 Cash Cows (<span id="countCashCows">0</span>)
+                                </button>
+                            </li>
+                            <li class="nav-item">
+                                <button class="nav-link rounded-2 py-1 px-3 small fw-bold text-warning text-dark" data-bs-toggle="tab" data-bs-target="#tabPromote">
+                                    🟡 Promote (<span id="countPromote">0</span>)
+                                </button>
+                            </li>
+                            <li class="nav-item">
+                                <button class="nav-link rounded-2 py-1 px-3 small fw-bold text-danger" data-bs-toggle="tab" data-bs-target="#tabDeadStock">
+                                    🔴 Dead Stock (<span id="countDeadStock">0</span>)
+                                </button>
+                            </li>
+                        </ul>
+                    </div>
+
+                    <div class="tab-content">
+                        <!-- Stars -->
+                        <div class="tab-pane fade show active" id="tabStars">
+                            <div class="p-2 mb-2 rounded bg-success-subtle bg-opacity-25 small text-success fw-semibold">
+                                <i class="bi bi-star-fill me-1"></i> High Sales &amp; High Margin: Highest commercial value. Keep inventory well-stocked and feature prominently.
+                            </div>
+                            <div class="table-responsive">
+                                <table class="table table-sm table-hover align-middle mb-0">
+                                    <thead class="table-light">
+                                        <tr><th>Product</th><th>Category</th><th>Sold (30d)</th><th>Margin %</th><th>Stock</th><th>Action</th></tr>
+                                    </thead>
+                                    <tbody id="matrixStarsTbody"></tbody>
+                                </table>
+                            </div>
+                        </div>
+
+                        <!-- Cash Cows -->
+                        <div class="tab-pane fade" id="tabCashCows">
+                            <div class="p-2 mb-2 rounded bg-primary-subtle bg-opacity-25 small text-primary fw-semibold">
+                                <i class="bi bi-coin me-1"></i> High Sales &amp; Low Margin: Volume drivers. Optimize supplier procurement costs to increase margin.
+                            </div>
+                            <div class="table-responsive">
+                                <table class="table table-sm table-hover align-middle mb-0">
+                                    <thead class="table-light">
+                                        <tr><th>Product</th><th>Category</th><th>Sold (30d)</th><th>Margin %</th><th>Stock</th><th>Action</th></tr>
+                                    </thead>
+                                    <tbody id="matrixCashCowsTbody"></tbody>
+                                </table>
+                            </div>
+                        </div>
+
+                        <!-- Promote -->
+                        <div class="tab-pane fade" id="tabPromote">
+                            <div class="p-2 mb-2 rounded bg-primary-subtle bg-opacity-25 small text-primary fw-semibold">
+                                <i class="bi bi-megaphone-fill me-1"></i> Low Sales &amp; High Margin: High profit potential. Increase visibility on store homepage banners and customer recommendations.
+                            </div>
+                            <div class="table-responsive">
+                                <table class="table table-sm table-hover align-middle mb-0">
+                                    <thead class="table-light">
+                                        <tr><th>Product</th><th>Category</th><th>Sold (30d)</th><th>Margin %</th><th>Stock</th><th>Action</th></tr>
+                                    </thead>
+                                    <tbody id="matrixPromoteTbody"></tbody>
+                                </table>
+                            </div>
+                        </div>
+
+                        <!-- Dead Stock -->
+                        <div class="tab-pane fade" id="tabDeadStock">
+                            <div class="p-2 mb-2 rounded bg-danger-subtle bg-opacity-25 small text-danger fw-semibold">
+                                <i class="bi bi-archive-fill me-1"></i> Low Sales &amp; Low Margin: Locking capital and shelf space. Clearance discount and do not restock.
+                            </div>
+                            <div class="table-responsive">
+                                <table class="table table-sm table-hover align-middle mb-0">
+                                    <thead class="table-light">
+                                        <tr><th>Product</th><th>Category</th><th>Sold (30d)</th><th>Margin %</th><th>Stock</th><th>Action</th></tr>
+                                    </thead>
+                                    <tbody id="matrixDeadStockTbody"></tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- AI Business Insights & Recommendations -->
+                <div class="kpi-card p-4 mb-4">
                     <div class="d-flex justify-content-between align-items-center mb-3">
                         <div>
-                            <h5 class="fw-bold brand-font text-dark mb-0">Recent Order Inflows</h5>
-                            <span class="smallest text-muted">Latest deliveries and counter sales</span>
+                            <h5 class="fw-bold brand-font text-dark mb-0">🧠 AI Business Insights &amp; Recommendations</h5>
+                            <span class="smallest text-muted">Automated causal explanations and prescribed management actions</span>
                         </div>
-                        <a href="orders.html" class="btn btn-sm btn-link text-success fw-bold text-decoration-none">View All Orders &rarr;</a>
+                        <span class="badge bg-primary-subtle text-primary rounded-pill px-3 py-1 fw-semibold">Continuous Audit</span>
                     </div>
-                    <div class="table-responsive">
-                        <table class="table table-hover align-middle mb-0">
-                            <thead class="table-light">
-                                <tr>
-                                    <th>Order ID</th>
-                                    <th>Customer</th>
-                                    <th>Date</th>
-                                    <th>Total</th>
-                                    <th>Fulfillment</th>
-                                    <th>Action</th>
-                                </tr>
-                            </thead>
-                            <tbody id="dashRecentOrdersTbody"></tbody>
-                        </table>
+
+                    <div class="row g-3" id="aiInsightsGrid">
+                        <div class="col-12 text-center text-muted small py-3">Generating prescriptive store insights...</div>
                     </div>
                 </div>
             </section>
@@ -320,8 +703,8 @@
     <!-- Add Product Modal -->
     <div class="modal fade" id="addProductModal" tabindex="-1" aria-hidden="true">
         <div class="modal-dialog modal-dialog-centered">
-            <div class="modal-content border-0 shadow-lg rounded-4">
-                <div class="modal-header border-0 pb-0">
+            <div class="modal-content border-0 shadow-lg rounded-3">
+                <div class="modal-header border-bottom pb-3">
                     <h5 class="modal-title fw-bold brand-font text-dark">Add New Inventory Product</h5>
                     <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                 </div>
@@ -329,16 +712,16 @@
                     <div class="modal-body p-4">
                         <div class="mb-3">
                             <label class="form-label small fw-bold text-dark">Product Name *</label>
-                            <input type="text" id="newProdName" class="form-control rounded-pill" required placeholder="e.g. Fresh Red Carrots 500g">
+                            <input type="text" id="newProdName" class="form-control rounded-2" required placeholder="e.g. Fresh Red Carrots 500g">
                         </div>
                         <div class="row g-2 mb-3">
                             <div class="col-6">
                                 <label class="form-label small fw-bold text-dark">SKU Code</label>
-                                <input type="text" id="newProdSku" class="form-control rounded-pill font-monospace" placeholder="Auto-generated if empty">
+                                <input type="text" id="newProdSku" class="form-control rounded-2 font-monospace" placeholder="Auto-generated if empty">
                             </div>
                             <div class="col-6">
                                 <label class="form-label small fw-bold text-dark">Category *</label>
-                                <select id="newProdCategory" class="form-select rounded-pill" required>
+                                <select id="newProdCategory" class="form-select rounded-2" required>
                                     <option value="Vegetables">Vegetables</option>
                                     <option value="Dairy">Dairy</option>
                                     <option value="Staples">Staples</option>
@@ -352,25 +735,25 @@
                         <div class="row g-2 mb-3">
                             <div class="col-4">
                                 <label class="form-label small fw-bold text-dark">Cost Price (₹) *</label>
-                                <input type="number" id="newProdCost" class="form-control rounded-pill" required min="0" placeholder="25">
+                                <input type="number" id="newProdCost" class="form-control rounded-2" required min="0" placeholder="25">
                             </div>
                             <div class="col-4">
                                 <label class="form-label small fw-bold text-dark">Selling Price (₹) *</label>
-                                <input type="number" id="newProdPrice" class="form-control rounded-pill" required min="1" placeholder="35">
+                                <input type="number" id="newProdPrice" class="form-control rounded-2" required min="1" placeholder="35">
                             </div>
                             <div class="col-4">
                                 <label class="form-label small fw-bold text-dark">Opening Stock *</label>
-                                <input type="number" id="newProdStock" class="form-control rounded-pill" required min="1" value="20">
+                                <input type="number" id="newProdStock" class="form-control rounded-2" required min="1" value="20">
                             </div>
                         </div>
                         <div>
                             <label class="form-label small fw-bold text-dark">Image URL (Optional)</label>
-                            <input type="url" id="newProdImg" class="form-control rounded-pill" placeholder="https://images.unsplash.com/...">
+                            <input type="url" id="newProdImg" class="form-control rounded-2" placeholder="https://images.unsplash.com/...">
                         </div>
                     </div>
-                    <div class="modal-footer border-0 pt-0">
-                        <button type="button" class="btn btn-secondary rounded-pill px-3" data-bs-dismiss="modal">Cancel</button>
-                        <button type="submit" class="btn btn-success rounded-pill px-4 fw-bold">Save Product</button>
+                    <div class="modal-footer border-top pt-3">
+                        <button type="button" class="btn btn-secondary rounded-2 px-3" data-bs-dismiss="modal">Cancel</button>
+                        <button type="submit" class="btn btn-primary rounded-2 px-4 fw-semibold">Save Product</button>
                     </div>
                 </form>
             </div>

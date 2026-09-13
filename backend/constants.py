@@ -31,10 +31,11 @@ class PaymentStatus(str, enum.Enum):
 
 class PaymentMethod(str, enum.Enum):
     """Supported payment methods."""
-    COD = "COD"        # Cash on Delivery
-    UPI = "UPI"        # Unified Payments Interface
-    CARD = "CARD"      # Credit / Debit card (Stripe)
-    UDHAR = "UDHAR"    # Store credit (Udhar / credit tab)
+    COD = "COD"                # Cash on Delivery
+    UPI = "UPI"                # Unified Payments Interface
+    CARD = "CARD"              # Credit / Debit card (Stripe)
+    UDHAR = "UDHAR"            # Store credit (Udhar / credit tab)
+    NETBANKING = "NETBANKING"  # Net Banking
 
 
 # ---------------------------------------------------------------------------
@@ -42,10 +43,10 @@ class PaymentMethod(str, enum.Enum):
 # ---------------------------------------------------------------------------
 
 ORDER_STATUS_TRANSITIONS: dict[str, set[str]] = {
-    OrderStatus.PENDING:          {OrderStatus.PROCESSING, OrderStatus.CANCELLED},
-    OrderStatus.PROCESSING:       {OrderStatus.PACKED, OrderStatus.CANCELLED},
-    OrderStatus.PACKED:           {OrderStatus.OUT_FOR_DELIVERY, OrderStatus.CANCELLED},
-    OrderStatus.OUT_FOR_DELIVERY: {OrderStatus.DELIVERED, OrderStatus.RETURNED},
+    OrderStatus.PENDING:          {OrderStatus.PROCESSING, OrderStatus.PACKED, OrderStatus.CANCELLED},
+    OrderStatus.PROCESSING:       {OrderStatus.PACKED, OrderStatus.OUT_FOR_DELIVERY, OrderStatus.CANCELLED},
+    OrderStatus.PACKED:           {OrderStatus.OUT_FOR_DELIVERY, OrderStatus.DELIVERED, OrderStatus.CANCELLED},
+    OrderStatus.OUT_FOR_DELIVERY: {OrderStatus.DELIVERED, OrderStatus.RETURNED, OrderStatus.CANCELLED},
     OrderStatus.DELIVERED:        {OrderStatus.RETURNED},
     OrderStatus.CANCELLED:        set(),   # Terminal state
     OrderStatus.RETURNED:         set(),   # Terminal state

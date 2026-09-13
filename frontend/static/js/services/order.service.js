@@ -18,6 +18,7 @@
          */
         getOrderStep(status) {
             const clean = String(status || '').toLowerCase();
+            if (clean === 'cancelled' || clean === 'returned') return 0;
             if (clean === 'delivered') return 4;
             if (clean === 'shipped' || clean.includes('out for delivery') || clean === 'dispatched') return 3;
             if (clean === 'processing' || clean === 'packed') return 2;

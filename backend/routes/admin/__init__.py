@@ -21,4 +21,6 @@ from . import (  # noqa: F401, E402
     coupons,
     notifications,
     activity,
+    expenses,
+    intelligence,
 )

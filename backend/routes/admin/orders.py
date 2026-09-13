@@ -1,6 +1,7 @@
 """Admin order management routes (list, detail, status update)."""
 from flask import current_app, jsonify, request
 from sqlalchemy import func
+from sqlalchemy.orm import joinedload
 
 from database.models import db
 from database.models.order import Order
@@ -14,10 +15,15 @@ from . import admin_bp
 @admin_bp.route('/orders')
 @admin_required
 def admin_orders():
-    """Order list — returns JSON."""
+    """Order list — returns JSON with customer profile details."""
     page = request.args.get('page', 1, type=int)
-    per_page = 20
-    pagination = db.session.query(Order).order_by(Order.created_at.desc()).paginate(page=page, per_page=per_page, error_out=False)
+    per_page = min(max(request.args.get('per_page', 20, type=int), 1), 100)
+    pagination = (
+        db.session.query(Order)
+        .options(joinedload(Order.user))
+        .order_by(Order.created_at.desc())
+        .paginate(page=page, per_page=per_page, error_out=False)
+    )
 
     agg = db.session.query(
         func.count(Order.id).label('total'),
@@ -32,6 +38,9 @@ def admin_orders():
             {
                 'id': o.id,
                 'user_id': o.user_id,
+                'customer_name': (o.user.full_name or o.user.username) if o.user else f'Customer #{o.user_id}',
+                'customer_phone': o.user.phone if o.user else '',
+                'customer_email': o.user.email if o.user else '',
                 'total_amount': float(o.total_amount),
                 'order_status': o.order_status,
                 'payment_status': o.payment_status,
@@ -59,8 +68,8 @@ def admin_orders():
 @admin_bp.route('/orders/<int:order_id>')
 @admin_required
 def admin_order_detail(order_id):
-    """Admin view of a single order's details — returns JSON."""
-    order = db.session.get(Order, order_id)
+    """Admin view of a single order's details — returns JSON with customer info."""
+    order = db.session.query(Order).options(joinedload(Order.user)).filter(Order.id == order_id).first()
     if not order:
         return jsonify({'error': 'Order not found.'}), 404
 
@@ -78,6 +87,9 @@ def admin_order_detail(order_id):
     return jsonify({
         'id': order.id,
         'user_id': order.user_id,
+        'customer_name': (order.user.full_name or order.user.username) if order.user else f'Customer #{order.user_id}',
+        'customer_phone': order.user.phone if order.user else '',
+        'customer_email': order.user.email if order.user else '',
         'total_amount': float(order.total_amount),
         'order_status': order.order_status,
         'payment_status': order.payment_status,
@@ -92,7 +104,7 @@ def admin_order_detail(order_id):
 @admin_bp.route('/orders/<int:order_id>/status', methods=['POST', 'PUT'])
 @admin_required
 def update_order_status(order_id):
-    """Update order and/or payment status with state-machine validation."""
+    """Update order and/or payment status with state-machine validation and alias normalization."""
     order = db.session.get(Order, order_id)
     if not order:
         return jsonify({'error': 'Order not found.'}), 404
@@ -103,6 +115,23 @@ def update_order_status(order_id):
     else:
         new_status = request.form.get('order_status')
         payment_status = request.form.get('payment_status')
+
+    # Normalize status aliases
+    status_aliases = {
+        'CONFIRMED': OrderStatus.PROCESSING.value,
+        'ORDER PLACED': OrderStatus.PROCESSING.value,
+        'SHIPPED': OrderStatus.OUT_FOR_DELIVERY.value,
+        'DISPATCHED': OrderStatus.OUT_FOR_DELIVERY.value,
+    }
+    if new_status:
+        clean_upper = str(new_status).strip().upper()
+        if clean_upper in status_aliases:
+            new_status = status_aliases[clean_upper]
+        else:
+            for s in OrderStatus:
+                if s.value.lower() == str(new_status).strip().lower():
+                    new_status = s.value
+                    break
 
     # Validate values against enum members
     valid_order_statuses = {s.value for s in OrderStatus}
