@@ -25,19 +25,46 @@
     <!-- Stylesheet -->
     <link rel="stylesheet" href="../static/css/core/variables.css">
     <link rel="stylesheet" href="../static/css/admin.css">
-    <!-- Immediate Admin ERP Authentication Guard -->
+    <base href="/admin/">
+
+    <!-- Immediate Admin ERP Legacy Hash Router & Auth Guard -->
     <script>
         (function() {
+            // 1. Resolve legacy hash-based URLs (e.g. /admin#pos -> pos.html)
+            var rawHash = (window.location.hash || '').replace('#', '').split('?')[0].trim().toLowerCase();
+            if (rawHash && rawHash !== 'dashboard' && rawHash !== 'index') {
+                var routeMap = {
+                    'expenses': 'expenses.html',
+                    'pos': 'pos.html',
+                    'products': 'products.html',
+                    'categories': 'categories.html',
+                    'orders': 'orders.html',
+                    'customers': 'customers.html',
+                    'sales': 'sales.html',
+                    'purchases': 'purchases.html',
+                    'suppliers': 'suppliers.html',
+                    'coupons': 'coupons.html',
+                    'activity': 'activity.html',
+                    'security': 'security.html'
+                };
+                if (routeMap[rawHash]) {
+                    window.location.replace(routeMap[rawHash] + (window.location.search || ''));
+                    return;
+                }
+            }
+
+            // 2. Strict Authentication Guard
             try {
                 var user = JSON.parse(localStorage.getItem('jg_auth_user') || 'null');
                 if (!user || !user.id || user.role !== 'admin') {
                     document.documentElement.style.display = 'none';
-                    var page = window.location.pathname.split('/').pop() || 'index.html';
-                    window.location.replace('../auth/login.html?redirect=admin/' + page);
+                    var page = window.location.pathname.split('/').filter(Boolean).pop() || 'index.html';
+                    if (page === 'admin') page = 'index.html';
+                    window.location.replace('/auth/login.html?redirect=admin/' + encodeURIComponent(page));
                 }
             } catch (e) {
                 document.documentElement.style.display = 'none';
-                window.location.replace('../auth/login.html');
+                window.location.replace('/auth/login.html');
             }
         })();
     </script>

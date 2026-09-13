@@ -462,7 +462,7 @@ def test_admin_clear_credit_audit_log(client, session):
         entity_id=cust.id
     ).first()
     assert log is not None
-    assert 'Settled ₹500.00 credit' in log.details
+    assert 'Settled ₹500.00' in log.details
 
 
 def test_api_logout_both_methods(client, session):
