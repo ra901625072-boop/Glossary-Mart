@@ -134,6 +134,9 @@ class PosBill(db.Model):
 
     sales = db.relationship('Sale', backref='bill_rel', lazy=True, cascade='all, delete-orphan')
 
+    def __init__(self, **kwargs):
+        super().__init__(**kwargs)
+
     def to_dict(self):
         return {
             'id': self.id,
