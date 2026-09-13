@@ -1,0 +1,23 @@
+Hi {{ (user.full_name or user.username) if user else 'Valued Customer' }},
+
+We have received your payment for order #EGM-{{ order.id }}.
+
+Payment Receipt Details
+──────────────────────────────────────────────────────────
+Order ID:            #EGM-{{ order.id }}
+Amount Paid:         ₹{{ "%.2f"|format(pricing.total) }}
+Payment Method:      {{ order.payment_method }}
+Transaction Ref:     {{ transaction_id or ('TXN-EGM-' ~ order.id) }}
+Date & Time:         {{ order_date }}
+Payment Status:      Paid (Verified)
+──────────────────────────────────────────────────────────
+
+What happens next?
+Our fulfillment team is packing your groceries at the nearest dark store.
+We'll notify you as soon as the rider is dispatched!
+
+View your order & receipt:
+{{ urls.order_url }}
+
+Thank you for shopping with eGrossary Mart.
+Support: {{ urls.support_email }}

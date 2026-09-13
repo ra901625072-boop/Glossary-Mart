@@ -6,7 +6,7 @@
     <title>Express Checkout &bull; e Grossary</title>
     
     <!-- Meta SEO -->
-    <meta name="description" content="Complete your grocery checkout with instant address, delivery slot selection, and secure payment.">
+    <meta name="description" content="Complete your grocery checkout with instant address, delivery slot selection, transparent bill breakdown, and secure payment.">
     <meta name="theme-color" content="#059669">
 
     <!-- Fonts & Icons -->
@@ -45,191 +45,620 @@
     <!-- Unified Master Customer Header -->
     <div data-component="customer-header"></div>
 
-
     <!-- Main Container -->
     <main class="container my-3 my-md-4">
         <!-- VIEW: MULTI-STEP CHECKOUT -->
         <section id="view-checkout" class="app-view active-view">
-            <div class="d-flex align-items-center gap-2 mb-4">
-                <a href="cart.html" class="btn btn-sm btn-outline-secondary rounded-circle" title="Back to Cart">
-                    <i class="bi bi-arrow-left"></i>
-                </a>
-                <h1 class="h3 fw-bold mb-0 brand-font">Express Checkout</h1>
+            <!-- Header with Back to Cart -->
+            <div class="d-flex flex-wrap justify-content-between align-items-center gap-3 mb-4">
+                <div class="d-flex align-items-center gap-3">
+                    <a href="cart.html" class="btn btn-outline-secondary rounded-circle shadow-sm" title="Back to Shopping Bag" style="width: 42px; height: 42px; display: inline-flex; align-items: center; justify-content: center;">
+                        <i class="bi bi-arrow-left fs-5"></i>
+                    </a>
+                    <div>
+                        <h1 class="h3 fw-bold mb-0 brand-font">Express Checkout</h1>
+                        <span class="small text-muted">
+                            <i class="bi bi-bag-check text-success me-1"></i> <span id="checkoutBagCountLabel">0 items</span> in your grocery bag
+                        </span>
+                    </div>
+                </div>
+
+                <!-- Dark Store Live Dispatch Indicator -->
+                <div class="badge bg-success-subtle text-success border border-success-subtle rounded-pill py-2 px-3 d-inline-flex align-items-center gap-2">
+                    <span class="slot-pulse-dot"></span>
+                    <span class="small fw-bold"><i class="bi bi-lightning-charge-fill text-warning me-1"></i>Pali Central Dark Store: 10-15 Min Hub Active</span>
+                </div>
             </div>
 
-            <!-- Steps Header -->
+            <!-- Steps Progress Header -->
             <div class="checkout-steps-bar mb-4">
-                <div class="checkout-step-item active">
-                    <div class="step-circle">1</div>
-                    <div class="step-label">Address</div>
+                <div class="checkout-step-item active completed">
+                    <div class="step-circle"><i class="bi bi-check-lg"></i></div>
+                    <div class="step-label">1. Address</div>
                 </div>
                 <div class="checkout-step-item active">
                     <div class="step-circle">2</div>
-                    <div class="step-label">Slot</div>
+                    <div class="step-label">2. Slot</div>
                 </div>
                 <div class="checkout-step-item active">
                     <div class="step-circle">3</div>
-                    <div class="step-label">Payment</div>
+                    <div class="step-label">3. Payment</div>
                 </div>
-                <div class="checkout-step-item active">
+                <div class="checkout-step-item">
                     <div class="step-circle">4</div>
-                    <div class="step-label">Confirm</div>
+                    <div class="step-label">4. Confirm</div>
                 </div>
             </div>
 
             <div class="row g-4">
-                <!-- Left: Options -->
+                <!-- Left: Checkout Options -->
                 <div class="col-lg-8">
-                    <!-- Step 1: Address -->
+
+                    <!-- SECTION 1: DELIVERY ADDRESS & INSTRUCTIONS -->
                     <div class="ss-surface-card mb-4">
-                        <div class="d-flex justify-content-between align-items-center mb-3">
-                            <h5 class="fw-bold mb-0"><i class="bi bi-geo-alt-fill text-success me-2"></i>1. Select Delivery Address</h5>
-                            <button class="btn btn-sm btn-outline-success rounded-pill" data-bs-toggle="modal" data-bs-target="#locationModal">
-                                + Add New
+                        <div class="d-flex flex-wrap justify-content-between align-items-center gap-2 mb-3">
+                            <div>
+                                <h5 class="fw-bold mb-0">
+                                    <i class="bi bi-geo-alt-fill text-success me-2"></i>1. Delivery Address
+                                </h5>
+                                <div class="smallest text-muted mt-1">Select your delivery location or add/remove addresses</div>
+                            </div>
+                            <button type="button" class="btn btn-sm btn-outline-success rounded-pill fw-bold px-3" onclick="window.JG.openAddressModal()">
+                                <i class="bi bi-plus-lg me-1"></i> Add New Address
                             </button>
                         </div>
 
-                        <div class="row g-3">
-                            <div class="col-md-6">
-                                <div class="option-select-card checkout-addr-card selected" data-addr="home" onclick="window.JG.selectCheckoutAddress('home')">
-                                    <div class="d-flex align-items-center justify-content-between mb-2">
-                                        <span class="badge bg-success-subtle text-success fw-bold"><i class="bi bi-house-door me-1"></i>HOME (Primary)</span>
-                                        <i class="bi bi-check-circle-fill text-success fs-5"></i>
-                                    </div>
-                                    <div class="fw-bold text-dark mb-1 checkout-addr-name">Delivery Address</div>
-                                    <div class="small text-muted" id="checkoutSelectedAddressText">Default Delivery Address</div>
-                                    <div class="smallest text-muted mt-1 checkout-addr-phone"><i class="bi bi-telephone me-1"></i>Registered Phone</div>
-                                </div>
+                        <!-- Saved Address Cards (Rendered Dynamically - No Hardcoded Mocks) -->
+                        <div class="row g-3 mb-3" id="checkoutAddressCardsRow">
+                            <div class="col-12 text-center py-3 text-muted small">
+                                <span class="spinner-border spinner-border-sm me-1"></span> Loading saved addresses...
                             </div>
+                        </div>
 
-                            <div class="col-md-6">
-                                <div class="option-select-card checkout-addr-card" data-addr="work" onclick="window.JG.selectCheckoutAddress('work')">
-                                    <div class="d-flex align-items-center justify-content-between mb-2">
-                                        <span class="badge bg-secondary-subtle text-secondary fw-bold"><i class="bi bi-briefcase me-1"></i>WORK / OFFICE</span>
-                                    </div>
-                                    <div class="fw-bold text-dark mb-1">Work Address</div>
-                                    <div class="small text-muted">Office / Commercial Complex Delivery</div>
-                                    <div class="smallest text-muted mt-1"><i class="bi bi-telephone me-1"></i>Office Contact</div>
-                                </div>
+                        <!-- Real-Life Delivery Instructions Tags (Blinkit / Instamart style) -->
+                        <div class="border-top pt-3">
+                            <label class="form-label small fw-bold text-dark mb-2">
+                                <i class="bi bi-chat-left-dots text-success me-1"></i> Delivery Instructions for Rider
+                            </label>
+                            <div class="d-flex flex-wrap gap-2 mb-2" id="deliveryInstructionsGroup">
+                                <span class="instruction-pill active" onclick="window.JG.toggleInstruction(this, 'Leave at door')">
+                                    <i class="bi bi-door-closed"></i> Leave at door <i class="bi bi-check-lg pill-check"></i>
+                                </span>
+                                <span class="instruction-pill" onclick="window.JG.toggleInstruction(this, 'Ring doorbell')">
+                                    <i class="bi bi-bell"></i> Ring doorbell <i class="bi bi-check-lg pill-check"></i>
+                                </span>
+                                <span class="instruction-pill" onclick="window.JG.toggleInstruction(this, 'Avoid calling')">
+                                    <i class="bi bi-telephone-x"></i> Avoid calling <i class="bi bi-check-lg pill-check"></i>
+                                </span>
+                                <span class="instruction-pill" onclick="window.JG.toggleInstruction(this, 'Leave with security')">
+                                    <i class="bi bi-shield-check"></i> Leave with guard <i class="bi bi-check-lg pill-check"></i>
+                                </span>
                             </div>
+                            <input type="text" id="customDeliveryNote" class="form-control form-control-sm rounded-3" placeholder="Optional notes: e.g. Gate code #402, buzzer on left side">
                         </div>
                     </div>
 
-                    <!-- Step 2: Delivery Slot -->
+                    <!-- SECTION 2: DELIVERY SPEED & SLOTS -->
                     <div class="ss-surface-card mb-4">
-                        <h5 class="fw-bold mb-3"><i class="bi bi-clock-history text-success me-2"></i>2. Choose Delivery Slot</h5>
+                        <div class="d-flex justify-content-between align-items-center mb-3">
+                            <h5 class="fw-bold mb-0">
+                                <i class="bi bi-clock-history text-success me-2"></i>2. Choose Delivery Slot
+                            </h5>
+                            <span class="badge bg-warning-subtle text-warning-emphasis fw-bold rounded-pill px-3 py-1">
+                                <i class="bi bi-lightning-fill text-warning me-1"></i> Live ETA Active
+                            </span>
+                        </div>
+
                         <div class="row g-3">
+                            <!-- Instant Express -->
                             <div class="col-md-4">
                                 <div class="option-select-card checkout-slot-card selected" data-slot="express" onclick="window.JG.selectCheckoutSlot('express')">
-                                    <span class="badge bg-warning text-dark fw-bold mb-2">⚡ 15 MINS</span>
-                                    <div class="fw-bold text-dark">Instant Express</div>
-                                    <div class="smallest text-muted">Immediate dispatch from nearest e Grossary Hub</div>
+                                    <div class="d-flex justify-content-between align-items-center mb-2">
+                                        <span class="slot-speed-badge bg-warning text-dark">
+                                            <span class="slot-pulse-dot"></span> ⚡ 15 MINS
+                                        </span>
+                                        <span class="badge bg-success-subtle text-success fw-bold">FREE</span>
+                                    </div>
+                                    <div class="fw-bold text-dark mb-1">Instant Express</div>
+                                    <div class="smallest text-muted">Immediate dispatch from nearest e Grossary dark store</div>
                                 </div>
                             </div>
+
+                            <!-- Scheduled Evening -->
                             <div class="col-md-4">
                                 <div class="option-select-card checkout-slot-card" data-slot="evening" onclick="window.JG.selectCheckoutSlot('evening')">
-                                    <span class="badge bg-light text-dark border fw-bold mb-2">🌆 TODAY</span>
-                                    <div class="fw-bold text-dark">Evening 6 - 8 PM</div>
-                                    <div class="smallest text-muted">Scheduled fresh delivery</div>
+                                    <div class="d-flex justify-content-between align-items-center mb-2">
+                                        <span class="slot-speed-badge bg-light text-dark border">
+                                            <i class="bi bi-sunset text-warning me-1"></i> TODAY
+                                        </span>
+                                    </div>
+                                    <div class="fw-bold text-dark mb-1">Evening 6 - 8 PM</div>
+                                    <div class="smallest text-muted">Scheduled fresh dinner vegetables &amp; pantry items</div>
                                 </div>
                             </div>
+
+                            <!-- Scheduled Tomorrow Morning -->
                             <div class="col-md-4">
                                 <div class="option-select-card checkout-slot-card" data-slot="tomorrow" onclick="window.JG.selectCheckoutSlot('tomorrow')">
-                                    <span class="badge bg-light text-dark border fw-bold mb-2">🌅 TOMORROW</span>
-                                    <div class="fw-bold text-dark">Morning 7 - 9 AM</div>
-                                    <div class="smallest text-muted">Early morning milk &amp; greens</div>
+                                    <div class="d-flex justify-content-between align-items-center mb-2">
+                                        <span class="slot-speed-badge bg-light text-dark border">
+                                            <i class="bi bi-sunrise text-primary me-1"></i> TOMORROW
+                                        </span>
+                                    </div>
+                                    <div class="fw-bold text-dark mb-1">Morning 7 - 9 AM</div>
+                                    <div class="smallest text-muted">Farm fresh milk, bakery breads &amp; morning greens</div>
                                 </div>
                             </div>
                         </div>
                     </div>
 
-                    <!-- Step 3: Payment Option -->
+                    <!-- SECTION 3: INTERACTIVE PAYMENT METHOD (TABBED / ACCORDION) -->
                     <div class="ss-surface-card mb-4">
-                        <h5 class="fw-bold mb-3"><i class="bi bi-credit-card-2-front text-success me-2"></i>3. Select Payment Method</h5>
-                        <div class="row g-3">
-                            <div class="col-md-6">
-                                <div class="option-select-card checkout-pay-card selected" data-pay="UPI" onclick="window.JG.selectPaymentMethod('UPI')">
-                                    <div class="d-flex align-items-center justify-content-between mb-2">
-                                        <span class="badge bg-success text-white fw-bold">INSTANT</span>
-                                        <i class="bi bi-qr-code text-success fs-4"></i>
+                        <div class="d-flex justify-content-between align-items-center mb-3">
+                            <h5 class="fw-bold mb-0">
+                                <i class="bi bi-credit-card-2-front text-success me-2"></i>3. Select Payment Method
+                            </h5>
+                            <span class="smallest text-muted">
+                                <i class="bi bi-shield-lock-fill text-success me-1"></i> 100% RBI &amp; PCI-DSS Compliant
+                            </span>
+                        </div>
+
+                        <!-- Modern Payment Method Tabs -->
+                        <div class="payment-selector-nav">
+                            <button type="button" class="payment-tab-btn active" data-target="panel-upi" onclick="window.JG.switchPaymentTab('UPI')">
+                                <i class="bi bi-qr-code text-success fs-5"></i> UPI / QR
+                            </button>
+                            <button type="button" class="payment-tab-btn" data-target="panel-card" onclick="window.JG.switchPaymentTab('CARD')">
+                                <i class="bi bi-credit-card text-primary fs-5"></i> Debit / Credit Cards
+                            </button>
+                            <button type="button" class="payment-tab-btn" data-target="panel-netbanking" onclick="window.JG.switchPaymentTab('NETBANKING')">
+                                <i class="bi bi-bank text-dark fs-5"></i> Net Banking
+                            </button>
+                            <button type="button" class="payment-tab-btn" data-target="panel-cod" onclick="window.JG.switchPaymentTab('COD')">
+                                <i class="bi bi-cash-stack text-success fs-5"></i> Cash on Delivery
+                            </button>
+                        </div>
+
+                        <!-- PANEL 1: UPI & QR -->
+                        <div id="panel-upi" class="payment-panel active">
+                            <div class="mb-3">
+                                <label class="form-label small fw-bold text-dark">Fast 1-Tap UPI Apps</label>
+                                <div class="row g-2">
+                                    <div class="col-3 col-md-3">
+                                        <div class="upi-app-btn selected" onclick="window.JG.selectUpiApp('Google Pay')">
+                                            <div class="upi-app-logo bg-light text-primary"><i class="bi bi-google"></i></div>
+                                            <span>GPay</span>
+                                        </div>
                                     </div>
-                                    <div class="fw-bold text-dark">UPI / QR Code</div>
-                                    <div class="smallest text-muted">Google Pay, PhonePe, Paytm, BHIM</div>
+                                    <div class="col-3 col-md-3">
+                                        <div class="upi-app-btn" onclick="window.JG.selectUpiApp('PhonePe')">
+                                            <div class="upi-app-logo bg-primary-subtle text-primary"><i class="bi bi-phone"></i></div>
+                                            <span>PhonePe</span>
+                                        </div>
+                                    </div>
+                                    <div class="col-3 col-md-3">
+                                        <div class="upi-app-btn" onclick="window.JG.selectUpiApp('Paytm UPI')">
+                                            <div class="upi-app-logo bg-info-subtle text-info"><i class="bi bi-wallet2"></i></div>
+                                            <span>Paytm</span>
+                                        </div>
+                                    </div>
+                                    <div class="col-3 col-md-3">
+                                        <div class="upi-app-btn" onclick="window.JG.selectUpiApp('CRED UPI')">
+                                            <div class="upi-app-logo bg-dark-subtle text-dark"><i class="bi bi-gem"></i></div>
+                                            <span>CRED</span>
+                                        </div>
+                                    </div>
                                 </div>
                             </div>
 
-                            <div class="col-md-6">
-                                <div class="option-select-card checkout-pay-card" data-pay="COD" onclick="window.JG.selectPaymentMethod('COD')">
-                                    <div class="d-flex align-items-center justify-content-between mb-2">
-                                        <span class="badge bg-info text-white fw-bold">CASH</span>
-                                        <i class="bi bi-cash-stack text-success fs-4"></i>
-                                    </div>
-                                    <div class="fw-bold text-dark">Cash on Delivery</div>
-                                    <div class="smallest text-muted">Pay cash or scan QR at doorstep</div>
+                            <div class="mb-3">
+                                <label class="form-label small fw-bold text-dark" for="upiVpaInput">Or Enter UPI ID / VPA</label>
+                                <div class="input-group">
+                                    <input type="text" id="upiVpaInput" class="form-control" placeholder="username@okhdfcbank" autocomplete="off">
+                                    <button type="button" class="btn btn-outline-success fw-bold px-3" onclick="window.JG.verifyUpiVpa()">Verify VPA</button>
+                                </div>
+                                <div id="upiVpaFeedback" class="smallest text-muted mt-1">
+                                    Popular handles: 
+                                    <span class="upi-handle-chip" onclick="window.JG.appendUpiHandle('@okhdfcbank')">@okhdfcbank</span>
+                                    <span class="upi-handle-chip" onclick="window.JG.appendUpiHandle('@okaxis')">@okaxis</span>
+                                    <span class="upi-handle-chip" onclick="window.JG.appendUpiHandle('@paytm')">@paytm</span>
+                                    <span class="upi-handle-chip" onclick="window.JG.appendUpiHandle('@ybl')">@ybl</span>
                                 </div>
                             </div>
 
-                            <div class="col-md-6">
-                                <div class="option-select-card checkout-pay-card" data-pay="CARD" onclick="window.JG.selectPaymentMethod('CARD')">
-                                    <div class="d-flex align-items-center justify-content-between mb-2">
-                                        <span class="badge bg-light text-dark border fw-bold">CARD</span>
-                                        <i class="bi bi-credit-card text-primary fs-4"></i>
-                                    </div>
-                                    <div class="fw-bold text-dark">Credit / Debit Card</div>
-                                    <div class="smallest text-muted">Visa, MasterCard, RuPay</div>
-                                </div>
+                            <!-- Toggle Desktop QR Code -->
+                            <div class="form-check form-switch pt-2">
+                                <input class="form-check-input" type="checkbox" role="switch" id="showQrSwitch" onchange="window.JG.toggleUpiQr(this.checked)">
+                                <label class="form-check-label small fw-bold text-dark" for="showQrSwitch">Show Dynamic UPI QR Code for Desktop Scanner</label>
                             </div>
 
-                            <div class="col-md-6">
-                                <div class="option-select-card checkout-pay-card" data-pay="NETBANKING" onclick="window.JG.selectPaymentMethod('NETBANKING')">
-                                    <div class="d-flex align-items-center justify-content-between mb-2">
-                                        <span class="badge bg-light text-dark border fw-bold">NET</span>
-                                        <i class="bi bi-bank text-dark fs-4"></i>
-                                    </div>
-                                    <div class="fw-bold text-dark">Net Banking</div>
-                                    <div class="smallest text-muted">SBI, HDFC, ICICI, Axis &amp; all banks</div>
+                            <div id="desktopQrBox" class="text-center mt-3 p-3 bg-light rounded-4 border" style="display: none;">
+                                <div class="small fw-bold text-muted mb-2">Scan with any UPI app (GPay, PhonePe, Paytm, BHIM)</div>
+                                <div class="bg-white p-3 rounded-3 d-inline-block shadow-sm">
+                                    <i class="bi bi-qr-code display-1 text-dark"></i>
+                                </div>
+                                <div class="smallest text-success fw-bold mt-2">
+                                    <i class="bi bi-check-circle-fill me-1"></i> Auto-verifies instantly after payment
                                 </div>
                             </div>
                         </div>
+
+                        <!-- PANEL 2: DEBIT / CREDIT CARDS -->
+                        <div id="panel-card" class="payment-panel">
+                            <!-- Live Digital Card Preview -->
+                            <div class="digital-card-preview mb-4">
+                                <div class="d-flex justify-content-between align-items-center mb-3">
+                                    <span class="card-emv-chip"></span>
+                                    <span class="card-brand-badge" id="cardBrandPreview">VISA</span>
+                                </div>
+                                <div class="card-digits-mock" id="cardNumberPreview">•••• •••• •••• 4242</div>
+                                <div class="d-flex justify-content-between align-items-end">
+                                    <div>
+                                        <div class="smallest text-uppercase opacity-75" style="font-size: 0.65rem;">Card Holder</div>
+                                        <div class="fw-bold" id="cardHolderPreview" style="font-size: 0.95rem;">REGISTERED CUSTOMER</div>
+                                    </div>
+                                    <div>
+                                        <div class="smallest text-uppercase opacity-75" style="font-size: 0.65rem;">Expires</div>
+                                        <div class="fw-bold" id="cardExpiryPreview" style="font-size: 0.95rem;">12/28</div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Card Inputs Form -->
+                            <div class="row g-3">
+                                <div class="col-12">
+                                    <label class="form-label small fw-bold text-dark" for="cardInputNumber">Card Number</label>
+                                    <div class="input-group">
+                                        <span class="input-group-text bg-white"><i class="bi bi-credit-card text-muted"></i></span>
+                                        <input type="text" id="cardInputNumber" class="form-control" placeholder="4111 2222 3333 4444" 
+                                               autocomplete="cc-number" inputmode="numeric" maxlength="19" oninput="window.JG.handleCardNumberInput(this)">
+                                        <span class="input-group-text bg-white" id="cardBrandIcon"><i class="bi bi-shield-check text-success"></i></span>
+                                    </div>
+                                </div>
+                                <div class="col-12">
+                                    <label class="form-label small fw-bold text-dark" for="cardInputName">Name on Card</label>
+                                    <input type="text" id="cardInputName" class="form-control" placeholder="Cardholder's full name" 
+                                           autocomplete="cc-name" oninput="window.JG.handleCardNameInput(this)">
+                                </div>
+                                <div class="col-6">
+                                    <label class="form-label small fw-bold text-dark" for="cardInputExpiry">Expiry Date</label>
+                                    <input type="text" id="cardInputExpiry" class="form-control" placeholder="MM/YY" 
+                                           autocomplete="cc-exp" inputmode="numeric" maxlength="5" oninput="window.JG.handleCardExpiryInput(this)">
+                                </div>
+                                <div class="col-6">
+                                    <label class="form-label small fw-bold text-dark" for="cardInputCvv">CVV / Security</label>
+                                    <div class="input-group">
+                                        <input type="password" id="cardInputCvv" class="form-control" placeholder="123" 
+                                               autocomplete="cc-csc" inputmode="numeric" maxlength="4">
+                                        <span class="input-group-text bg-white" title="3-digit security number on back of card"><i class="bi bi-question-circle text-muted"></i></span>
+                                    </div>
+                                </div>
+                                <div class="col-12">
+                                    <div class="form-check">
+                                        <input class="form-check-input" type="checkbox" id="saveCardCheck" checked>
+                                        <label class="form-check-label smallest text-muted" for="saveCardCheck">
+                                            Save card securely as per RBI Tokenization directives for faster checkout.
+                                        </label>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- PANEL 3: NET BANKING -->
+                        <div id="panel-netbanking" class="payment-panel">
+                            <label class="form-label small fw-bold text-dark mb-2">Popular Indian Banks</label>
+                            <div class="row g-2 mb-3">
+                                <div class="col-4 col-md-4">
+                                    <div class="bank-pill selected" onclick="window.JG.selectBank('HDFC')">
+                                        <div class="bank-icon-box bg-primary text-white">HDFC</div>
+                                        <span>HDFC Bank</span>
+                                    </div>
+                                </div>
+                                <div class="col-4 col-md-4">
+                                    <div class="bank-pill" onclick="window.JG.selectBank('SBI')">
+                                        <div class="bank-icon-box bg-info text-white">SBI</div>
+                                        <span>State Bank</span>
+                                    </div>
+                                </div>
+                                <div class="col-4 col-md-4">
+                                    <div class="bank-pill" onclick="window.JG.selectBank('ICICI')">
+                                        <div class="bank-icon-box bg-warning text-dark">ICICI</div>
+                                        <span>ICICI Bank</span>
+                                    </div>
+                                </div>
+                                <div class="col-4 col-md-4">
+                                    <div class="bank-pill" onclick="window.JG.selectBank('AXIS')">
+                                        <div class="bank-icon-box bg-danger text-white">AXIS</div>
+                                        <span>Axis Bank</span>
+                                    </div>
+                                </div>
+                                <div class="col-4 col-md-4">
+                                    <div class="bank-pill" onclick="window.JG.selectBank('KOTAK')">
+                                        <div class="bank-icon-box bg-danger-subtle text-danger">KMBL</div>
+                                        <span>Kotak Bank</span>
+                                    </div>
+                                </div>
+                                <div class="col-4 col-md-4">
+                                    <div class="bank-pill" onclick="window.JG.selectBank('PNB')">
+                                        <div class="bank-icon-box bg-primary-subtle text-primary">PNB</div>
+                                        <span>Punjab Nat.</span>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="mb-2">
+                                <label class="form-label small fw-bold text-dark" for="allBanksSelector">All Other Banks</label>
+                                <select class="form-select" id="allBanksSelector" onchange="window.JG.selectBank(this.value)">
+                                    <option value="">-- Choose from 40+ Indian Scheduled Banks --</option>
+                                    <option value="BOB">Bank of Baroda</option>
+                                    <option value="CANARA">Canara Bank</option>
+                                    <option value="UNION">Union Bank of India</option>
+                                    <option value="INDUSIND">IndusInd Bank</option>
+                                    <option value="YES">Yes Bank</option>
+                                    <option value="IDFC">IDFC FIRST Bank</option>
+                                    <option value="FEDERAL">Federal Bank</option>
+                                    <option value="AU">AU Small Finance Bank</option>
+                                </select>
+                            </div>
+                        </div>
+
+                        <!-- PANEL 4: CASH ON DELIVERY -->
+                        <div id="panel-cod" class="payment-panel">
+                            <div class="p-3 bg-success-subtle border border-success-subtle rounded-4 mb-3">
+                                <div class="d-flex align-items-center gap-3">
+                                    <div class="fs-1 text-success"><i class="bi bi-cash-stack"></i></div>
+                                    <div>
+                                        <div class="fw-bold text-dark">Cash / UPI on Delivery (Doorstep)</div>
+                                        <div class="small text-muted">
+                                            Pay via Cash or scan delivery partner's QR code using any UPI app (GPay/PhonePe/Paytm) at your doorstep.
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="smallest text-muted">
+                                <i class="bi bi-info-circle me-1"></i> Delivery partner carries change for ₹500 notes. Contactless doorstep delivery supported.
+                            </div>
+                        </div>
                     </div>
+
+                    <!-- SECTION 4: DELIVERY PARTNER APPRECIATION (TIP) -->
+                    <div class="ss-surface-card mb-4">
+                        <div class="d-flex justify-content-between align-items-center mb-2">
+                            <div class="d-flex align-items-center gap-2">
+                                <h6 class="fw-bold mb-0 text-dark">
+                                    <i class="bi bi-heart-fill text-danger me-1"></i> Tip Your Delivery Partner
+                                </h6>
+                                <span class="badge bg-success-subtle text-success small">100% goes to rider</span>
+                            </div>
+                        </div>
+                        <p class="smallest text-muted mb-3">
+                            Show appreciation for the delivery hero braving traffic and weather to bring your groceries fresh in 15 minutes.
+                        </p>
+                        <div class="d-flex flex-wrap gap-2">
+                            <button type="button" class="tip-pill" data-tip="10" onclick="window.JG.selectTip(10, this)">
+                                <span>₹10</span>
+                            </button>
+                            <button type="button" class="tip-pill active" data-tip="20" onclick="window.JG.selectTip(20, this)">
+                                <span>₹20 (Popular)</span>
+                            </button>
+                            <button type="button" class="tip-pill" data-tip="30" onclick="window.JG.selectTip(30, this)">
+                                <span>₹30</span>
+                            </button>
+                            <button type="button" class="tip-pill" data-tip="50" onclick="window.JG.selectTip(50, this)">
+                                <span>₹50</span>
+                            </button>
+                            <button type="button" class="tip-pill" data-tip="0" onclick="window.JG.selectTip(0, this)">
+                                <span>None</span>
+                            </button>
+                        </div>
+                    </div>
+
                 </div>
 
-                <!-- Right: Final Order Review -->
+                <!-- Right: Final Order Review & Sticky Sidebar -->
                 <div class="col-lg-4">
-                    <div class="ss-surface-card sticky-top" style="top: 80px;">
-                        <h6 class="fw-bold mb-3 border-bottom pb-2">Final Review</h6>
-                        <div class="d-flex justify-content-between mb-2 small text-muted">
-                            <span>Order Total</span>
-                            <span class="fw-bold text-dark checkout-pay-total">₹0</span>
-                        </div>
-                        <div class="d-flex justify-content-between mb-2 small text-muted">
-                            <span>Delivery Time</span>
-                            <span class="fw-bold text-success">Within 15 Mins</span>
-                        </div>
-                        <div class="d-flex justify-content-between mb-3 small text-muted">
-                            <span>Contact</span>
-                            <span class="fw-bold text-dark" id="checkoutContactPhone">+91 98765 43210</span>
+                    <div class="ss-surface-card sticky-top" style="top: 84px;">
+                        <!-- Bag Overview Header -->
+                        <div class="d-flex justify-content-between align-items-center pb-2 border-bottom mb-3">
+                            <h6 class="fw-bold mb-0 text-dark">
+                                <i class="bi bi-bag-check-fill text-success me-1"></i> Order Items
+                            </h6>
+                            <a href="cart.html" class="small fw-bold text-success text-decoration-none">
+                                Edit Bag <i class="bi bi-chevron-right"></i>
+                            </a>
                         </div>
 
-                        <div class="border-top pt-3 mb-4">
-                            <div class="small text-muted mb-1">Delivery Instructions (Optional):</div>
-                            <input type="text" class="form-control form-control-sm" placeholder="e.g. Ring bell and leave at door">
+                        <!-- Itemized Bag Mini Preview -->
+                        <div class="checkout-items-preview mb-3" id="checkoutItemsContainer">
+                            <!-- Populated dynamically via customer.js -->
+                            <div class="text-center py-3 text-muted small">Loading items...</div>
                         </div>
 
-                        <button class="btn btn-success w-100 py-3 rounded-pill fw-bold shadow-sm d-flex justify-content-between align-items-center px-4" 
+                        <!-- Promo Voucher Box in Checkout -->
+                        <div class="mb-3 pt-2 border-top">
+                            <label class="form-label small fw-bold text-dark d-flex justify-content-between" for="checkoutCouponInput">
+                                <span>Have a Promo Voucher?</span>
+                            </label>
+                            <div class="input-group input-group-sm">
+                                <input type="text" id="checkoutCouponInput" class="form-control text-uppercase font-monospace" placeholder="e.g. FRESH15">
+                                <button type="button" class="btn btn-dark fw-bold px-3" onclick="window.JG.applyCheckoutCoupon()">Apply</button>
+                            </div>
+                            <div id="checkoutCouponFeedback"></div>
+
+                            <!-- Applied Coupon Pill -->
+                            <div id="checkoutAppliedCouponChip" class="badge bg-success-subtle text-success border border-success p-2 mt-2 align-items-center gap-2" style="display: none;">
+                                <i class="bi bi-tag-fill"></i>
+                                <span>Code: <strong id="checkoutCouponCodeTxt">FRESH15</strong> applied!</span>
+                                <button type="button" class="btn btn-sm btn-link text-danger p-0 ms-2" onclick="window.JG.removeCheckoutCoupon()"><i class="bi bi-x-circle-fill"></i></button>
+                            </div>
+
+                            <div class="smallest text-muted mt-2">
+                                <span class="badge bg-light text-dark border cursor-pointer" onclick="window.JG.fillCoupon('FRESH15')">FRESH15</span> 15% OFF | 
+                                <span class="badge bg-light text-dark border cursor-pointer" onclick="window.JG.fillCoupon('JAYGOGA100')">JAYGOGA100</span> Flat ₹100 OFF
+                            </div>
+                        </div>
+
+                        <!-- Detailed Transparent Bill Breakdown -->
+                        <div class="price-breakdown-table border-top pt-3 mb-3">
+                            <h6 class="fw-bold mb-3 text-dark">Bill Details</h6>
+
+                            <div class="price-breakdown-row">
+                                <span>Items Total (MRP)</span>
+                                <span class="fw-bold text-dark" id="checkoutMrpTotalVal">₹0</span>
+                            </div>
+
+                            <div class="price-breakdown-row highlight-saving" id="checkoutDiscountRow">
+                                <span>Product Savings</span>
+                                <span id="checkoutDiscountVal">-₹0</span>
+                            </div>
+
+                            <div class="price-breakdown-row highlight-saving" id="checkoutCouponDiscountRow" style="display: none;">
+                                <span>Voucher Coupon Discount</span>
+                                <span id="checkoutCouponDiscountVal">-₹0</span>
+                            </div>
+
+                            <div class="price-breakdown-row">
+                                <span>15-Min Express Delivery</span>
+                                <span class="fw-bold text-success" id="checkoutDeliveryVal">FREE</span>
+                            </div>
+
+                            <div class="price-breakdown-row">
+                                <span>Packaging &amp; Handling</span>
+                                <span class="fw-bold text-dark" id="checkoutHandlingVal">₹5</span>
+                            </div>
+
+                            <div class="price-breakdown-row" id="checkoutTipRow">
+                                <span>Delivery Partner Tip</span>
+                                <span class="fw-bold text-dark" id="checkoutTipVal">₹20</span>
+                            </div>
+
+                            <div class="d-flex justify-content-between align-items-center border-top pt-3 mt-2">
+                                <div>
+                                    <span class="h6 fw-bold mb-0 text-dark d-block">Grand Total</span>
+                                    <span class="smallest text-muted">Inclusive of all taxes</span>
+                                </div>
+                                <span class="h4 fw-bold text-success mb-0 checkout-pay-total">₹0</span>
+                            </div>
+                        </div>
+
+                        <!-- Savings Celebration Banner -->
+                        <div class="savings-ribbon-card mb-3" id="checkoutSavingsBanner">
+                            🎉 Total Savings on this order: <strong id="checkoutTotalSavingsBadge">₹0</strong>
+                        </div>
+
+                        <!-- Primary Place Order CTA Button -->
+                        <button type="button" id="btnPlaceOrder" class="btn btn-success w-100 py-3 rounded-pill fw-bold shadow-sm d-flex justify-content-between align-items-center px-4" 
                                 onclick="window.JG.processCheckout()">
-                            <span>Place Order &amp; Pay</span>
-                            <span class="checkout-pay-total">₹0</span>
+                            <span class="d-flex align-items-center gap-2">
+                                <span class="spinner-border spinner-border-sm d-none" id="checkoutSpinner"></span>
+                                <span>Place Order &amp; Pay</span>
+                            </span>
+                            <span class="d-flex align-items-center gap-2">
+                                <strong class="checkout-pay-total">₹0</strong>
+                                <i class="bi bi-arrow-right fs-5"></i>
+                            </span>
                         </button>
 
-                        <div class="smallest text-muted text-center mt-3">
-                            <i class="bi bi-shield-check text-success me-1"></i> 100% Safe &amp; Encrypted Payments
+                        <!-- Trust & Security Signals -->
+                        <div class="smallest text-muted text-center mt-3 d-flex flex-column gap-1">
+                            <div><i class="bi bi-shield-check text-success me-1"></i> 256-Bit SSL Encrypted &amp; 100% Safe Payments</div>
+                            <div><i class="bi bi-patch-check-fill text-primary me-1"></i> 100% Genuine Quality Guarantee or Instant Refund</div>
                         </div>
                     </div>
                 </div>
             </div>
         </section>
     </main>
+
+    <!-- Interactive Edit / Add Address Modal -->
+    <div class="modal fade" id="checkoutAddressModal" tabindex="-1" aria-labelledby="checkoutAddressModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered modal-lg">
+            <div class="modal-content rounded-4 border-0 shadow-lg">
+                <div class="modal-header border-0 pb-0">
+                    <h5 class="fw-bold modal-title" id="checkoutAddressModalLabel">
+                        <i class="bi bi-geo-alt-fill text-success me-2"></i><span id="addrModalTitleText">Delivery Address</span>
+                    </h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body p-4">
+                    <form id="checkoutAddressForm" onsubmit="window.JG.saveCustomAddress(event)">
+                        <input type="hidden" id="addrEditingId" value="">
+                        <div class="row g-3">
+                            <div class="col-md-6">
+                                <label class="form-label small fw-bold text-dark" for="addrFullName">Recipient Full Name *</label>
+                                <input type="text" class="form-control" id="addrFullName" required autocomplete="shipping name" placeholder="e.g. Rahul Sharma">
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label small fw-bold text-dark" for="addrPhone">Contact Mobile Number *</label>
+                                <div class="input-group">
+                                    <span class="input-group-text bg-light">+91</span>
+                                    <input type="tel" class="form-control" id="addrPhone" required autocomplete="tel" inputmode="tel" placeholder="9876543210" pattern="[0-9]{10}">
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label small fw-bold text-dark" for="addrFlat">Flat / House No. / Building / Floor *</label>
+                                <input type="text" class="form-control" id="addrFlat" required autocomplete="shipping address-line1" placeholder="e.g. Flat 302, 3rd Floor, Gokul Heights">
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label small fw-bold text-dark" for="addrStreet">Street / Sector / Area / Colony *</label>
+                                <input type="text" class="form-control" id="addrStreet" required autocomplete="shipping address-line2" placeholder="e.g. Sector 4, Opposite Krishi Mandi">
+                            </div>
+                            <div class="col-md-4">
+                                <label class="form-label small fw-bold text-dark" for="addrLandmark">Nearby Landmark</label>
+                                <input type="text" class="form-control" id="addrLandmark" autocomplete="address-level3" placeholder="e.g. Near Shiv Mandir">
+                            </div>
+                            <div class="col-md-4">
+                                <label class="form-label small fw-bold text-dark" for="addrCity">City / Town *</label>
+                                <input type="text" class="form-control" id="addrCity" required autocomplete="shipping address-level2" value="Pali">
+                            </div>
+                            <div class="col-md-4">
+                                <label class="form-label small fw-bold text-dark" for="addrPincode">PIN Code *</label>
+                                <input type="text" class="form-control" id="addrPincode" required autocomplete="shipping postal-code" inputmode="numeric" pattern="[0-9]{6}" maxlength="6" value="306401">
+                            </div>
+                            <div class="col-12">
+                                <label class="form-label small fw-bold text-dark d-block">Save Address Tag As</label>
+                                <div class="btn-group" role="group">
+                                    <input type="radio" class="btn-check" name="addrTagRadio" id="tagHome" value="Home" checked>
+                                    <label class="btn btn-outline-success btn-sm px-3" for="tagHome"><i class="bi bi-house-door me-1"></i>Home</label>
+
+                                    <input type="radio" class="btn-check" name="addrTagRadio" id="tagWork" value="Work">
+                                    <label class="btn btn-outline-success btn-sm px-3" for="tagWork"><i class="bi bi-briefcase me-1"></i>Work</label>
+
+                                    <input type="radio" class="btn-check" name="addrTagRadio" id="tagOther" value="Other">
+                                    <label class="btn btn-outline-success btn-sm px-3" for="tagOther"><i class="bi bi-geo-alt me-1"></i>Other</label>
+                                </div>
+                            </div>
+                            <div class="col-12">
+                                <div class="form-check">
+                                    <input class="form-check-input" type="checkbox" id="addrSetDefault" checked>
+                                    <label class="form-check-label small fw-bold text-dark" for="addrSetDefault">
+                                        Set as my default delivery address
+                                    </label>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="d-flex justify-content-end gap-2 mt-4">
+                            <button type="button" class="btn btn-light rounded-pill px-4" data-bs-dismiss="modal">Cancel</button>
+                            <button type="submit" class="btn btn-success rounded-pill fw-bold px-4">
+                                <i class="bi bi-check-circle me-1"></i> Save Address
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Mobile Sticky Bottom Touch Bar -->
+    <div class="mobile-checkout-bar shadow-lg">
+        <div>
+            <div class="smallest text-muted">To Pay <span class="badge bg-success-subtle text-success small" id="mobileSavingsBadge">Save ₹0</span></div>
+            <div class="h5 fw-bold text-success mb-0 checkout-pay-total">₹0</div>
+        </div>
+        <button type="button" class="btn btn-success rounded-pill fw-bold px-4 py-2" onclick="window.JG.processCheckout()">
+            <span>Place Order</span> <i class="bi bi-arrow-right ms-1"></i>
+        </button>
+    </div>
 
     <!-- Slide-over Offcanvas Cart Drawer -->
     <div data-component="cart-drawer"></div>

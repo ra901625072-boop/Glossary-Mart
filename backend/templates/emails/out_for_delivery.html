@@ -1,0 +1,108 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Out for Delivery #EGM-{{ order.id }} | eGrossary</title>
+</head>
+<body style="margin: 0; padding: 0; background-color: #f1f5f9; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; color: #1e293b; line-height: 1.6;">
+    <table role="presentation" width="100%" cellspacing="0" cellpadding="0" style="background-color: #f1f5f9; padding: 30px 12px;">
+        <tr>
+            <td align="center">
+                <table role="presentation" width="100%" style="max-width: 600px; background-color: #ffffff; border-radius: 16px; border: 1px solid #e2e8f0; overflow: hidden; box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.05);">
+                    <!-- Brand Header -->
+                    <tr>
+                        <td style="padding: 28px 32px 20px; text-align: center; background: linear-gradient(135deg, #fffbeb 0%, #ffffff 100%); border-bottom: 1px solid #e2e8f0;">
+                            <div style="font-size: 26px; font-weight: 800; letter-spacing: -0.5px; color: #0f172a;">
+                                e<span style="color: #d97706;">Grossary</span>
+                            </div>
+                            <div style="font-size: 13px; color: #64748b; margin-top: 4px; font-weight: 500;">
+                                Express 15-Minute Doorstep Grocery Delivery
+                            </div>
+                        </td>
+                    </tr>
+
+                    <!-- Main Content -->
+                    <tr>
+                        <td style="padding: 32px 28px;">
+                            <!-- Stage Badge -->
+                            <div style="margin-bottom: 16px;">
+                                <span style="display: inline-block; background-color: #fef3c7; color: #92400e; font-size: 12px; font-weight: 800; padding: 6px 14px; border-radius: 9999px; text-transform: uppercase; letter-spacing: 0.5px;">
+                                    🚚 &nbsp;Out For Delivery
+                                </span>
+                            </div>
+
+                            <h1 style="font-size: 24px; font-weight: 800; color: #0f172a; margin: 0 0 8px;">
+                                Your Groceries are on the Way!
+                            </h1>
+                            <p style="font-size: 15px; color: #475569; margin: 0 0 24px;">
+                                Hi <strong>{{ (user.full_name or user.username) if user else 'Valued Customer' }}</strong>, our delivery partner has picked up your order <strong>#EGM-{{ order.id }}</strong> and is heading to your address right now.
+                            </p>
+
+                            <!-- Express Transit Card -->
+                            <div style="background-color: #fffbeb; border: 1px solid #fde68a; border-radius: 12px; padding: 20px; margin-bottom: 24px;">
+                                <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 12px;">
+                                    <span style="font-size: 13px; font-weight: 700; color: #92400e; text-transform: uppercase;">
+                                        ⚡ Estimated Arrival
+                                    </span>
+                                    <span style="font-size: 18px; font-weight: 800; color: #b45309;">
+                                        ~15 Minutes
+                                    </span>
+                                </div>
+                                <div style="font-size: 13px; color: #78350f; line-height: 1.5;">
+                                    Please ensure someone is available at the door or balcony to receive your delivery.
+                                </div>
+                            </div>
+
+                            <!-- Delivery & Payment Card -->
+                            <table role="presentation" width="100%" style="border-collapse: collapse; background-color: #f8fafc; border-radius: 12px; border: 1px solid #e2e8f0; margin-bottom: 24px;">
+                                <tr>
+                                    <td style="padding: 12px 18px; border-bottom: 1px solid #e2e8f0; font-size: 13px; color: #64748b;">Order Number</td>
+                                    <td style="padding: 12px 18px; border-bottom: 1px solid #e2e8f0; font-size: 14px; font-weight: 700; color: #0f172a; text-align: right;">#EGM-{{ order.id }}</td>
+                                </tr>
+                                <tr>
+                                    <td style="padding: 12px 18px; border-bottom: 1px solid #e2e8f0; font-size: 13px; color: #64748b;">Deliver To</td>
+                                    <td style="padding: 12px 18px; border-bottom: 1px solid #e2e8f0; font-size: 13px; font-weight: 600; color: #1e293b; text-align: right;">{{ order.shipping_address or 'Customer Doorstep' }}</td>
+                                </tr>
+                                <tr>
+                                    <td style="padding: 12px 18px; font-size: 13px; color: #64748b;">Payment at Door</td>
+                                    <td style="padding: 12px 18px; font-size: 14px; font-weight: 800; text-align: right; color: {% if order.payment_status == 'Paid' %}#059669{% else %}#b45309{% endif %};">
+                                        {% if order.payment_status == 'Paid' %}
+                                        ₹0.00 (Already Paid Online)
+                                        {% else %}
+                                        ₹{{ "%.2f"|format(pricing.total) }} ({{ order.payment_method }})
+                                        {% endif %}
+                                    </td>
+                                </tr>
+                            </table>
+
+                            <!-- Action CTA -->
+                            <div style="text-align: center; margin-bottom: 24px;">
+                                <a href="{{ urls.order_url }}" style="display: inline-block; background-color: #d97706; color: #ffffff; text-decoration: none; font-size: 15px; font-weight: 700; padding: 13px 32px; border-radius: 10px; box-shadow: 0 4px 6px -1px rgba(217, 119, 6, 0.3);">
+                                    Track Live Delivery
+                                </a>
+                            </div>
+
+                            <p style="font-size: 13px; color: #64748b; margin: 0; text-align: center;">
+                                Keep your phone nearby in case our rider needs help locating your building or gate.
+                            </p>
+                        </td>
+                    </tr>
+
+                    <!-- Footer -->
+                    <tr>
+                        <td style="padding: 24px 32px; background-color: #f8fafc; border-top: 1px solid #f1f5f9; text-align: center;">
+                            <p style="font-size: 12px; color: #94a3b8; margin: 0 0 6px;">
+                                Need to provide gate entry OTP or directions? Call rider directly via app or email <a href="mailto:{{ urls.support_email }}" style="color: #d97706; text-decoration: none;">{{ urls.support_email }}</a>
+                            </p>
+                            <p style="font-size: 12px; color: #94a3b8; margin: 0;">
+                                &copy; 2026 eGrossary Mart Pvt. Ltd. All rights reserved.
+                            </p>
+                        </td>
+                    </tr>
+                </table>
+            </td>
+        </tr>
+    </table>
+</body>
+</html>

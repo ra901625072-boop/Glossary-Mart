@@ -1,0 +1,37 @@
+Hi {{ (user.full_name or user.username) if user else 'Valued Customer' }},
+
+Thank you for your order!
+
+Order #EGM-{{ order.id }}
+Order Date: {{ order_date }}
+Payment: {{ order.payment_status }} ({{ order.payment_method }})
+
+Items
+──────────────────────────────────────────────────────────
+{% for item in pricing.order_items %}
+{{ "%-24s"|format(item.name[:24]) }} ₹{{ "%.2f"|format(item.price) }} × {{ item.quantity }} = ₹{{ "%.2f"|format(item.subtotal) }}
+{% else %}
+Fresh Groceries Package  ₹{{ "%.2f"|format(pricing.total) }} × 1 = ₹{{ "%.2f"|format(pricing.total) }}
+{% endfor %}
+──────────────────────────────────────────────────────────
+Subtotal            ₹{{ "%.2f"|format(pricing.subtotal) }}
+Delivery            {% if pricing.delivery_fee == 0 %}FREE{% else %}₹{{ "%.2f"|format(pricing.delivery_fee) }}{% endif %}
+{% if pricing.discount > 0 %}
+Discount            -₹{{ "%.2f"|format(pricing.discount) }}
+{% endif %}
+──────────────────────────────────────────────────────────
+Total               ₹{{ "%.2f"|format(pricing.total) }}
+
+Delivery Address
+{{ order.shipping_address or 'Store Pickup' }}
+
+Estimated Delivery
+Today, within 15–20 minutes (Express Dark Store Dispatch)
+
+Track your order:
+{{ urls.order_confirmation_url }}
+
+We'll notify you when your order is packed and dispatched.
+
+Thank you for shopping with eGrossary Mart.
+Support: {{ urls.support_email }}

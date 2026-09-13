@@ -1,0 +1,19 @@
+Hi {{ (user.full_name or user.username) if user else 'Valued Customer' }},
+
+Your groceries are out for delivery!
+
+Dispatch Summary
+──────────────────────────────────────────────────────────
+Order Reference:     #EGM-{{ order.id }}
+Estimated Arrival:   ~15 Minutes (Express Doorstep)
+Delivery Address:    {{ order.shipping_address or 'Customer Doorstep' }}
+Payment at Door:     {% if order.payment_status == 'Paid' %}₹0.00 (Already Paid Online){% else %}₹{{ "%.2f"|format(pricing.total) }} ({{ order.payment_method }}){% endif %}
+──────────────────────────────────────────────────────────
+
+Please keep your phone accessible in case the delivery rider requires gate directions or building access assistance.
+
+Track live delivery:
+{{ urls.order_url }}
+
+Thank you for choosing eGrossary Mart!
+Support: {{ urls.support_email }}

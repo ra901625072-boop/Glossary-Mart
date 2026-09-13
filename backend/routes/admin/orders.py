@@ -6,6 +6,7 @@ from sqlalchemy.orm import joinedload
 from database.models import db
 from database.models.order import Order
 from backend.services.inventory_service import InventoryService
+from backend.services.email_service import EmailService
 from backend.constants import OrderStatus, PaymentStatus, ORDER_STATUS_TRANSITIONS
 from backend.routes.decorators import admin_required
 from .helpers import _log_action
@@ -175,6 +176,31 @@ def update_order_status(order_id):
 
     try:
         db.session.commit()
+
+        # Trigger customer email sequence based on state machine transitions
+        try:
+            if new_status and new_status != prev_status:
+                if new_status == OrderStatus.PACKED.value:
+                    EmailService.send_order_packed_email(order)
+                elif new_status == OrderStatus.OUT_FOR_DELIVERY.value:
+                    EmailService.send_out_for_delivery_email(order)
+                elif new_status == OrderStatus.DELIVERED.value:
+                    EmailService.send_order_delivered_email(order, attach_invoice=True)
+                elif new_status == OrderStatus.CANCELLED.value:
+                    cancel_reason = (
+                        (request.json.get('reason') if request.is_json else request.form.get('reason'))
+                        or 'Cancelled by Store Administrator'
+                    )
+                    EmailService.send_order_cancelled_email(order, reason=cancel_reason)
+
+            if payment_status and payment_status != prev_payment:
+                if payment_status == PaymentStatus.REFUNDED.value:
+                    EmailService.send_refund_confirmation_email(order)
+                elif payment_status == PaymentStatus.PAID.value and prev_payment != PaymentStatus.PAID.value:
+                    EmailService.send_payment_confirmation_email(order)
+        except Exception as email_err:
+            current_app.logger.warning("Order status email dispatch error for order #%s: %s", order_id, email_err)
+
         return jsonify({
             'success': True,
             'message': f'Order #{order.id} updated: {order.order_status} / {order.payment_status}',

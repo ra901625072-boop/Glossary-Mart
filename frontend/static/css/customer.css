@@ -544,6 +544,7 @@ h1, h2, h3, h4, h5, h6, .brand-font {
     line-height: 1.35;
     display: -webkit-box;
     -webkit-line-clamp: 2;
+    line-clamp: 2;
     -webkit-box-orient: vertical;
     overflow: hidden;
     min-height: 2.45rem;
@@ -733,43 +734,60 @@ button:active:not(:disabled), .btn:active:not(:disabled) {
     transform: scale(0.98);
 }
 
-/* ── 12. Checkout Steps & Radio Cards ── */
+/* ── 12. Modern Real-Life Checkout Experience ── */
 .checkout-steps-bar {
     display: flex;
     justify-content: space-between;
     position: relative;
     margin-bottom: 2rem;
+    padding: 0 1rem;
+}
+
+.checkout-steps-bar::before {
+    content: '';
+    position: absolute;
+    top: 18px;
+    left: 10%;
+    right: 10%;
+    height: 3px;
+    background: #e2e8f0;
+    z-index: 1;
 }
 
 .checkout-step-item {
     text-align: center;
     flex: 1;
     position: relative;
+    z-index: 2;
 }
 
 .step-circle {
-    width: 36px;
-    height: 36px;
+    width: 38px;
+    height: 38px;
     border-radius: 50%;
-    background: #e2e8f0;
+    background: #ffffff;
+    border: 2px solid #cbd5e1;
     color: #64748b;
     display: inline-flex;
     align-items: center;
     justify-content: center;
     font-weight: 800;
-    font-size: 0.85rem;
-    margin-bottom: 0.35rem;
+    font-size: 0.88rem;
+    margin-bottom: 0.4rem;
     transition: all var(--duration-normal) var(--ease-out);
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.04);
 }
 
 .checkout-step-item.active .step-circle {
     background: var(--primary, #059669);
+    border-color: var(--primary, #059669);
     color: #ffffff;
-    box-shadow: 0 4px 12px rgba(5, 150, 105, 0.35);
+    box-shadow: 0 4px 14px rgba(5, 150, 105, 0.35);
 }
 
 .checkout-step-item.completed .step-circle {
     background: var(--success, #10b981);
+    border-color: var(--success, #10b981);
     color: #ffffff;
 }
 
@@ -777,31 +795,452 @@ button:active:not(:disabled), .btn:active:not(:disabled) {
     font-size: 0.78rem;
     font-weight: 700;
     color: #64748b;
+    letter-spacing: 0.02em;
 }
 
 .checkout-step-item.active .step-label {
     color: var(--primary, #059669);
 }
 
+/* Base Option Card */
 .option-select-card {
     border: 2px solid var(--border-light, #e2e8f0);
-    border-radius: var(--radius-md, 12px);
+    border-radius: var(--radius-md, 14px);
     padding: 1.15rem;
     cursor: pointer;
-    transition: all var(--duration-fast) var(--ease-out);
+    transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
     height: 100%;
     background: #ffffff;
+    position: relative;
 }
 
 .option-select-card:hover {
-    border-color: #cbd5e1;
+    border-color: #94a3b8;
     background: #f8fafc;
+    transform: translateY(-2px);
+    box-shadow: 0 6px 16px rgba(0, 0, 0, 0.05);
 }
 
 .option-select-card.selected {
     border-color: var(--primary, #059669);
-    background: var(--primary-soft, #ecfdf5);
-    box-shadow: 0 4px 14px rgba(5, 150, 105, 0.12);
+    background: #f0fdf4;
+    box-shadow: 0 6px 20px rgba(5, 150, 105, 0.14);
+}
+
+/* Delivery Address Modern Cards */
+.checkout-addr-card {
+    border-radius: 14px;
+    position: relative;
+    overflow: hidden;
+}
+
+.checkout-addr-card .addr-check-badge {
+    opacity: 0;
+    transition: opacity 0.2s ease, transform 0.2s ease;
+    transform: scale(0.6);
+}
+
+.checkout-addr-card.selected .addr-check-badge {
+    opacity: 1;
+    transform: scale(1);
+}
+
+.checkout-addr-card .addr-actions {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 0.4rem;
+    margin-top: 0.75rem;
+    padding-top: 0.65rem;
+    border-top: 1px dashed #e2e8f0;
+}
+
+.btn-xs {
+    font-size: 0.72rem;
+    padding: 0.22rem 0.65rem;
+    border-radius: 999px;
+    font-weight: 600;
+    line-height: 1.2;
+}
+
+/* Delivery Instruction Pills */
+.instruction-pill {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.55rem 1rem;
+    border-radius: 999px;
+    border: 1.5px solid #e2e8f0;
+    background: #ffffff;
+    font-size: 0.82rem;
+    font-weight: 600;
+    color: #475569;
+    cursor: pointer;
+    user-select: none;
+    transition: all 0.2s ease;
+}
+
+.instruction-pill:hover {
+    background: #f8fafc;
+    border-color: #cbd5e1;
+    color: #1e293b;
+}
+
+.instruction-pill.active {
+    background: #ecfdf5;
+    border-color: #059669;
+    color: #065f46;
+    box-shadow: 0 2px 8px rgba(5, 150, 105, 0.15);
+}
+
+.instruction-pill .pill-check {
+    display: none;
+}
+
+.instruction-pill.active .pill-check {
+    display: inline;
+}
+
+/* Delivery Slot Cards */
+.checkout-slot-card {
+    border-radius: 14px;
+    transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.slot-speed-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.35rem;
+    font-size: 0.72rem;
+    font-weight: 800;
+    padding: 0.3rem 0.65rem;
+    border-radius: 999px;
+    letter-spacing: 0.03em;
+}
+
+.slot-pulse-dot {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background: #10b981;
+    display: inline-block;
+    animation: slotPulse 1.6s infinite;
+}
+
+@keyframes slotPulse {
+    0%, 100% { opacity: 1; transform: scale(1); }
+    50% { opacity: 0.4; transform: scale(1.3); }
+}
+
+/* Payment Gateway Accordion & Tabs */
+.payment-selector-nav {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+    border-bottom: 2px solid #f1f5f9;
+    padding-bottom: 0.75rem;
+    margin-bottom: 1.5rem;
+}
+
+.payment-tab-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.75rem 1.25rem;
+    border-radius: 12px;
+    border: 1.5px solid #e2e8f0;
+    background: #ffffff;
+    font-weight: 700;
+    font-size: 0.88rem;
+    color: #475569;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.payment-tab-btn:hover {
+    background: #f8fafc;
+    color: #0f172a;
+    border-color: #cbd5e1;
+}
+
+.payment-tab-btn.active {
+    background: #059669;
+    border-color: #059669;
+    color: #ffffff;
+    box-shadow: 0 4px 12px rgba(5, 150, 105, 0.28);
+}
+
+.payment-tab-btn.active i {
+    color: #ffffff !important;
+}
+
+.payment-panel {
+    display: none;
+    animation: fadeInTab 0.3s ease-in-out;
+}
+
+.payment-panel.active {
+    display: block;
+}
+
+@keyframes fadeInTab {
+    from { opacity: 0; transform: translateY(6px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+/* Quick UPI Apps Grid */
+.upi-app-btn {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 0.85rem 0.5rem;
+    border: 2px solid #e2e8f0;
+    border-radius: 12px;
+    background: #ffffff;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    font-size: 0.78rem;
+    font-weight: 700;
+    color: #334155;
+    text-align: center;
+}
+
+.upi-app-btn:hover {
+    border-color: #059669;
+    background: #f0fdf4;
+    transform: translateY(-2px);
+}
+
+.upi-app-btn.selected {
+    border-color: #059669;
+    background: #ecfdf5;
+    box-shadow: 0 4px 12px rgba(5, 150, 105, 0.15);
+    color: #065f46;
+}
+
+.upi-app-logo {
+    width: 36px;
+    height: 36px;
+    border-radius: 8px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-bottom: 0.4rem;
+    font-size: 1.25rem;
+}
+
+.upi-handle-chip {
+    padding: 0.3rem 0.65rem;
+    border-radius: 8px;
+    background: #f1f5f9;
+    color: #475569;
+    font-size: 0.76rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.15s ease;
+}
+
+.upi-handle-chip:hover {
+    background: #e2e8f0;
+    color: #0f172a;
+}
+
+/* Interactive Digital Card Preview */
+.digital-card-preview {
+    background: linear-gradient(135deg, #064e3b 0%, #065f46 50%, #0f172a 100%);
+    border-radius: 18px;
+    padding: 1.5rem;
+    color: #ffffff;
+    box-shadow: 0 16px 32px rgba(6, 78, 59, 0.25);
+    position: relative;
+    overflow: hidden;
+    max-width: 380px;
+    margin: 0 auto 1.5rem auto;
+    font-family: 'Outfit', -apple-system, sans-serif;
+    border: 1px solid rgba(255, 255, 255, 0.15);
+}
+
+.digital-card-preview::after {
+    content: '';
+    position: absolute;
+    top: -50%;
+    right: -50%;
+    width: 200%;
+    height: 200%;
+    background: radial-gradient(circle, rgba(255, 255, 255, 0.1) 0%, transparent 60%);
+    pointer-events: none;
+}
+
+.card-emv-chip {
+    width: 42px;
+    height: 30px;
+    background: linear-gradient(135deg, #fcd34d 0%, #d97706 100%);
+    border-radius: 6px;
+    box-shadow: inset 0 1px 2px rgba(0, 0, 0, 0.2);
+    display: inline-block;
+}
+
+.card-digits-mock {
+    font-size: 1.25rem;
+    font-weight: 700;
+    letter-spacing: 0.15em;
+    font-family: 'Courier New', monospace;
+    text-shadow: 0 2px 4px rgba(0, 0, 0, 0.4);
+    margin: 1.25rem 0 1rem 0;
+}
+
+.card-brand-badge {
+    font-size: 1.15rem;
+    font-weight: 800;
+    letter-spacing: 0.05em;
+    text-transform: uppercase;
+}
+
+/* NetBanking Bank Pills */
+.bank-pill {
+    display: flex;
+    align-items: center;
+    gap: 0.65rem;
+    padding: 0.75rem 1rem;
+    border: 2px solid #e2e8f0;
+    border-radius: 12px;
+    background: #ffffff;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    font-weight: 600;
+    font-size: 0.85rem;
+    color: #334155;
+}
+
+.bank-pill:hover {
+    border-color: #059669;
+    background: #f0fdf4;
+}
+
+.bank-pill.selected {
+    border-color: #059669;
+    background: #ecfdf5;
+    color: #065f46;
+    box-shadow: 0 3px 10px rgba(5, 150, 105, 0.12);
+}
+
+.bank-icon-box {
+    width: 32px;
+    height: 32px;
+    border-radius: 8px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: 800;
+    font-size: 0.75rem;
+}
+
+/* Delivery Partner Tipping */
+.tip-pill {
+    padding: 0.55rem 1.15rem;
+    border-radius: 999px;
+    border: 1.5px solid #e2e8f0;
+    background: #ffffff;
+    font-weight: 700;
+    font-size: 0.85rem;
+    color: #475569;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.35rem;
+}
+
+.tip-pill:hover {
+    border-color: #cbd5e1;
+    background: #f8fafc;
+}
+
+.tip-pill.active {
+    background: #ecfdf5;
+    border-color: #059669;
+    color: #059669;
+    box-shadow: 0 2px 8px rgba(5, 150, 105, 0.15);
+}
+
+/* Checkout Items Mini List in Sidebar */
+.checkout-items-preview {
+    max-height: 240px;
+    overflow-y: auto;
+    scrollbar-width: thin;
+}
+
+.checkout-item-row {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    padding: 0.65rem 0;
+    border-bottom: 1px solid #f1f5f9;
+}
+
+.checkout-item-thumb {
+    width: 44px;
+    height: 44px;
+    border-radius: 8px;
+    object-fit: cover;
+    background: #f8fafc;
+    border: 1px solid #e2e8f0;
+    flex-shrink: 0;
+}
+
+/* Price Breakdown Table Rows */
+.price-breakdown-table {
+    font-size: 0.88rem;
+}
+
+.price-breakdown-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 0.65rem;
+    color: #475569;
+}
+
+.price-breakdown-row.highlight-saving {
+    color: #059669;
+    font-weight: 700;
+}
+
+.savings-ribbon-card {
+    background: linear-gradient(135deg, #ecfdf5 0%, #d1fae5 100%);
+    border: 1px dashed #059669;
+    border-radius: 12px;
+    padding: 0.75rem 1rem;
+    color: #065f46;
+    font-size: 0.84rem;
+    font-weight: 700;
+    text-align: center;
+}
+
+/* Sticky Mobile Bottom Checkout Bar */
+.mobile-checkout-bar {
+    display: none;
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    background: #ffffff;
+    padding: 0.75rem 1rem;
+    box-shadow: 0 -4px 20px rgba(0, 0, 0, 0.1);
+    z-index: 1040;
+    border-top: 1px solid #e2e8f0;
+}
+
+@media (max-width: 991px) {
+    .mobile-checkout-bar {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+    }
+    body[data-page="checkout"] {
+        padding-bottom: 80px;
+    }
 }
 
 /* ── 13. Payment Simulator & Order Confirmation ── */
@@ -1781,4 +2220,315 @@ button:active:not(:disabled), .btn:active:not(:disabled) {
         page-break-inside: avoid;
     }
 }
+
+/* ══════════════════════════════════════════════════════════════════
+   16. REAL-WORLD PRODUCT REVIEWS & INTERACTIVE RATING SYSTEM (UI DESIGN)
+   ══════════════════════════════════════════════════════════════════ */
+
+/* ── Star Rating Composer Widget ── */
+.star-rating-composer {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.4rem;
+    padding: 0.5rem 0.75rem;
+    background: #f8fafc;
+    border-radius: 999px;
+    border: 1px solid #e2e8f0;
+}
+
+.star-rating-composer .star-btn {
+    background: transparent;
+    border: none;
+    padding: 0.15rem 0.25rem;
+    font-size: 2rem;
+    line-height: 1;
+    color: #cbd5e1;
+    cursor: pointer;
+    transition: transform 0.18s cubic-bezier(0.34, 1.56, 0.64, 1), color 0.15s ease, filter 0.18s ease;
+    outline: none;
+}
+
+.star-rating-composer .star-btn:focus-visible {
+    transform: scale(1.25);
+    color: #f59e0b;
+}
+
+.star-rating-composer .star-btn.hovered,
+.star-rating-composer .star-btn.active {
+    color: #f59e0b;
+    filter: drop-shadow(0 2px 8px rgba(245, 158, 11, 0.45));
+}
+
+.star-rating-composer .star-btn:hover {
+    transform: scale(1.22);
+}
+
+.star-reaction-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.4rem;
+    padding: 0.35rem 0.85rem;
+    border-radius: 999px;
+    font-size: 0.85rem;
+    font-weight: 600;
+    transition: all 0.2s ease;
+    min-height: 32px;
+}
+
+.star-reaction-1 { background: #fef2f2; color: #dc2626; border: 1px solid #fecaca; }
+.star-reaction-2 { background: #fff7ed; color: #ea580c; border: 1px solid #fed7aa; }
+.star-reaction-3 { background: #fefce8; color: #ca8a04; border: 1px solid #fef08a; }
+.star-reaction-4 { background: #f0fdf4; color: #16a34a; border: 1px solid #bbf7d0; }
+.star-reaction-5 { background: #ecfdf5; color: #059669; border: 1px solid #a7f3d0; font-weight: 700; }
+
+/* ── Feedback Tag Chips ── */
+.review-tag-chips-wrap {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.45rem;
+}
+
+.review-tag-chip {
+    border: 1px solid #e2e8f0;
+    background: #ffffff;
+    color: #475569;
+    padding: 0.35rem 0.85rem;
+    border-radius: 999px;
+    font-size: 0.8rem;
+    font-weight: 500;
+    cursor: pointer;
+    user-select: none;
+    transition: all 0.15s ease;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.3rem;
+}
+
+.review-tag-chip:hover {
+    border-color: #cbd5e1;
+    background: #f8fafc;
+    color: #0f172a;
+}
+
+.review-tag-chip.active {
+    background: rgba(16, 185, 129, 0.1);
+    border-color: #10b981;
+    color: #059669;
+    font-weight: 600;
+}
+
+/* ── Rating Breakdown & Analytics Panel ── */
+.review-summary-box {
+    background: #f8fafc;
+    border: 1px solid #e2e8f0;
+    border-radius: 1.25rem;
+    padding: 1.75rem 1.25rem;
+    text-align: center;
+}
+
+.review-hero-score {
+    font-size: 3.5rem;
+    font-weight: 800;
+    line-height: 1;
+    letter-spacing: -0.03em;
+    color: #0f172a;
+    font-family: var(--font-heading, 'Outfit', sans-serif);
+}
+
+.review-hero-stars {
+    color: #f59e0b;
+    font-size: 1.25rem;
+    letter-spacing: 2px;
+}
+
+.rating-bar-row {
+    display: flex;
+    align-items: center;
+    gap: 0.6rem;
+    padding: 0.3rem 0.5rem;
+    border-radius: 0.5rem;
+    cursor: pointer;
+    transition: background 0.15s ease;
+    font-size: 0.85rem;
+}
+
+.rating-bar-row:hover,
+.rating-bar-row.active-filter {
+    background: rgba(16, 185, 129, 0.08);
+}
+
+.rating-bar-label {
+    width: 48px;
+    font-weight: 600;
+    color: #334155;
+    text-align: left;
+    white-space: nowrap;
+}
+
+.rating-bar-track {
+    flex-grow: 1;
+    height: 8px;
+    background: #e2e8f0;
+    border-radius: 999px;
+    overflow: hidden;
+}
+
+.rating-bar-fill {
+    height: 100%;
+    background: linear-gradient(90deg, #f59e0b 0%, #fbbf24 100%);
+    border-radius: 999px;
+    transition: width 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.rating-bar-count {
+    width: 38px;
+    text-align: right;
+    font-weight: 500;
+    color: #64748b;
+    font-size: 0.8rem;
+}
+
+/* ── Filter Pills Strip ── */
+.review-filter-btn {
+    border: 1px solid #e2e8f0;
+    background: #ffffff;
+    color: #475569;
+    padding: 0.35rem 0.85rem;
+    border-radius: 999px;
+    font-size: 0.82rem;
+    font-weight: 600;
+    transition: all 0.15s ease;
+    cursor: pointer;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.35rem;
+}
+
+.review-filter-btn:hover {
+    border-color: #cbd5e1;
+    background: #f8fafc;
+}
+
+.review-filter-btn.active {
+    background: #10b981;
+    border-color: #10b981;
+    color: #ffffff;
+    box-shadow: 0 2px 6px rgba(16, 185, 129, 0.3);
+}
+
+/* ── User's Pinned Review Card ── */
+.your-review-card {
+    border: 1.5px solid rgba(16, 185, 129, 0.35);
+    background: linear-gradient(135deg, rgba(16, 185, 129, 0.05) 0%, rgba(255, 255, 255, 0.98) 100%);
+    border-radius: 1.25rem;
+    padding: 1.5rem;
+    box-shadow: 0 4px 18px rgba(16, 185, 129, 0.08);
+    position: relative;
+    margin-bottom: 1.5rem;
+}
+
+.your-review-badge {
+    background: #10b981;
+    color: #ffffff;
+    font-size: 0.72rem;
+    font-weight: 700;
+    padding: 0.25rem 0.65rem;
+    border-radius: 999px;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.3rem;
+}
+
+/* ── Review Item Card ── */
+.review-card-item {
+    background: #ffffff;
+    border: 1px solid #f1f5f9;
+    border-radius: 1rem;
+    padding: 1.25rem;
+    margin-bottom: 1rem;
+    transition: transform 0.15s ease, box-shadow 0.15s ease;
+}
+
+.review-card-item:hover {
+    box-shadow: 0 4px 14px rgba(15, 23, 42, 0.05);
+}
+
+.reviewer-avatar-circle {
+    width: 42px;
+    height: 42px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+    color: #ffffff;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: 700;
+    font-size: 1rem;
+    flex-shrink: 0;
+    box-shadow: 0 2px 6px rgba(16, 185, 129, 0.25);
+}
+
+.verified-buyer-badge {
+    background: rgba(16, 185, 129, 0.12);
+    color: #059669;
+    font-size: 0.72rem;
+    font-weight: 600;
+    padding: 0.15rem 0.55rem;
+    border-radius: 999px;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.25rem;
+}
+
+.btn-helpful {
+    border: 1px solid #e2e8f0;
+    background: #ffffff;
+    color: #64748b;
+    border-radius: 999px;
+    padding: 0.25rem 0.7rem;
+    font-size: 0.78rem;
+    font-weight: 500;
+    transition: all 0.15s ease;
+    cursor: pointer;
+}
+
+.btn-helpful:hover,
+.btn-helpful.voted {
+    background: #f1f5f9;
+    color: #0f172a;
+    border-color: #cbd5e1;
+}
+
+/* ── Character Counter ── */
+.char-counter {
+    font-size: 0.75rem;
+    color: #94a3b8;
+    font-weight: 500;
+}
+
+/* ── Account My-Reviews Card ── */
+.my-review-card {
+    background: #ffffff;
+    border: 1px solid #e2e8f0;
+    border-radius: 1.25rem;
+    padding: 1.25rem;
+    margin-bottom: 1rem;
+    transition: all 0.2s ease;
+}
+
+.my-review-card:hover {
+    box-shadow: 0 6px 20px rgba(15, 23, 42, 0.06);
+    border-color: #cbd5e1;
+}
+
+.my-review-prod-img {
+    width: 64px;
+    height: 64px;
+    object-fit: cover;
+    border-radius: 0.75rem;
+    border: 1px solid #f1f5f9;
+}
+
 

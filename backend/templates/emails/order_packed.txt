@@ -1,0 +1,25 @@
+Hi {{ (user.full_name or user.username) if user else 'Valued Customer' }},
+
+Great news! Your grocery order #EGM-{{ order.id }} has been packed and sealed.
+
+Order Packing Summary
+──────────────────────────────────────────────────────────
+Order ID:          #EGM-{{ order.id }}
+Total Items:       {{ pricing.order_items|length if pricing.order_items else 1 }} item(s) packed
+Total Amount:      ₹{{ "%.2f"|format(pricing.total) }}
+Delivery Address:  {{ order.shipping_address or 'Store Pickup' }}
+Fulfillment Hub:   eGrossary APMC Express Dark Store
+Status:            Packed & Quality Inspected
+──────────────────────────────────────────────────────────
+
+Freshness Assurance:
+All produce and dairy items have been temperature-checked and packed in sealed, tamper-evident containers.
+
+Next Step:
+Our dispatch executive is handing your bag to a delivery partner for immediate doorstep transit.
+
+Track your order:
+{{ urls.order_url }}
+
+Thank you for choosing eGrossary Mart!
+Support: {{ urls.support_email }}

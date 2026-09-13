@@ -1,0 +1,26 @@
+Hi {{ (user.full_name or user.username) if user else 'Valued Customer' }},
+
+Your order #EGM-{{ order.id }} has been cancelled.
+
+Cancellation Details
+──────────────────────────────────────────────────────────
+Order ID:          #EGM-{{ order.id }}
+Order Total:       ₹{{ "%.2f"|format(pricing.total) }}
+Payment Method:    {{ order.payment_method }}
+Reason:            {{ reason or 'Requested by customer / Operational update' }}
+Status:            Cancelled (Items restored to inventory)
+──────────────────────────────────────────────────────────
+
+Refund Details:
+{% if order.payment_status == 'Paid' %}
+A full refund of ₹{{ "%.2f"|format(pricing.total) }} has been initiated to your source payment method ({{ order.payment_method }}).
+Expected timeline: 3 to 5 business days.
+{% else %}
+Since this order was Cash on Delivery, no payment was charged. Outstanding balance: ₹0.00.
+{% endif %}
+
+View your orders:
+{{ urls.order_url }}
+
+We apologize for any inconvenience caused.
+Support: {{ urls.support_email }}

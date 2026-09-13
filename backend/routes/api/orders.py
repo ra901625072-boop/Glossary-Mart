@@ -1,7 +1,8 @@
-from flask import jsonify, request
+from flask import current_app, jsonify, request
 from flask_login import current_user
 
 from backend.extensions import limiter
+from backend.services.email_service import EmailService
 from backend.services.order_service import OrderService
 from database.models import db
 from database.models.order import Order
@@ -116,6 +117,14 @@ def api_checkout():
 
     if not order:
         return jsonify({'success': False, 'message': message}), 400
+
+    # Dispatch customer order confirmation email sequence
+    try:
+        EmailService.send_order_confirmation_email(order, current_user)
+        if order.payment_status == 'Paid':
+            EmailService.send_payment_confirmation_email(order, current_user)
+    except Exception as email_err:
+        current_app.logger.warning("Order confirmation email skipped: %s", email_err)
 
     return jsonify({
         'success': True,

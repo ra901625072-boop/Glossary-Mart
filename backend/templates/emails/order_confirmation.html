@@ -3,56 +3,173 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Order Confirmation #{{ order.id }} | eGrossary</title>
+    <title>Order Confirmed #EGM-{{ order.id }} | eGrossary</title>
 </head>
-<body style="margin: 0; padding: 0; background-color: #f8fafc; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; color: #1e293b; line-height: 1.6;">
-    <table role="presentation" width="100%" cellspacing="0" cellpadding="0" style="background-color: #f8fafc; padding: 40px 15px;">
+<body style="margin: 0; padding: 0; background-color: #f1f5f9; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; color: #1e293b; line-height: 1.6;">
+    <table role="presentation" width="100%" cellspacing="0" cellpadding="0" style="background-color: #f1f5f9; padding: 30px 12px;">
         <tr>
             <td align="center">
-                <table role="presentation" width="100%" style="max-width: 560px; background-color: #ffffff; border-radius: 16px; border: 1px solid #e2e8f0; overflow: hidden; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05);">
+                <table role="presentation" width="100%" style="max-width: 600px; background-color: #ffffff; border-radius: 16px; border: 1px solid #e2e8f0; overflow: hidden; box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.05);">
                     <!-- Brand Header -->
                     <tr>
-                        <td style="padding: 32px 32px 24px; text-align: center; background: linear-gradient(180deg, #ecfdf5 0%, #ffffff 100%); border-bottom: 1px solid #f1f5f9;">
+                        <td style="padding: 28px 32px 20px; text-align: center; background: linear-gradient(135deg, #ecfdf5 0%, #ffffff 100%); border-bottom: 1px solid #e2e8f0;">
                             <div style="font-size: 26px; font-weight: 800; letter-spacing: -0.5px; color: #0f172a;">
                                 e<span style="color: #059669;">Grossary</span>
                             </div>
                             <div style="font-size: 13px; color: #64748b; margin-top: 4px; font-weight: 500;">
-                                Fresh Groceries Superstore
+                                Fresh Groceries Delivered in 15 Minutes
                             </div>
                         </td>
                     </tr>
 
-                    <!-- Body Content -->
+                    <!-- Main Content -->
                     <tr>
-                        <td style="padding: 36px 32px;">
-                            <div style="display: inline-block; background-color: #d1fae5; color: #065f46; font-size: 12px; font-weight: 700; padding: 4px 12px; border-radius: 9999px; margin-bottom: 16px; text-transform: uppercase; letter-spacing: 0.5px;">
-                                Order Confirmed
+                        <td style="padding: 32px 28px;">
+                            <!-- Stage Badge -->
+                            <div style="margin-bottom: 16px;">
+                                <span style="display: inline-block; background-color: #d1fae5; color: #065f46; font-size: 12px; font-weight: 800; padding: 6px 14px; border-radius: 9999px; text-transform: uppercase; letter-spacing: 0.5px;">
+                                    🛒 &nbsp;Order Confirmed
+                                </span>
                             </div>
-                            <h1 style="font-size: 22px; font-weight: 700; color: #0f172a; margin: 0 0 12px;">
+
+                            <h1 style="font-size: 24px; font-weight: 800; color: #0f172a; margin: 0 0 8px; letter-spacing: -0.3px;">
                                 Thank you for your order!
                             </h1>
-                            <p style="font-size: 15px; color: #475569; margin: 0 0 24px; line-height: 1.6;">
-                                Dear {{ user.full_name or user.username }}, we have received your order <strong>#{{ order.id }}</strong> and our team is preparing it for prompt delivery.
+                            <p style="font-size: 15px; color: #475569; margin: 0 0 24px;">
+                                Hi <strong>{{ (user.full_name or user.username) if user else 'Valued Customer' }}</strong>, we have received your grocery order and our fulfillment team at the APMC dark store is already picking the freshest batch.
                             </p>
 
-                            <!-- Order Details Card -->
-                            <table role="presentation" width="100%" style="border-collapse: collapse; background-color: #f8fafc; border-radius: 12px; border: 1px solid #e2e8f0; margin: 24px 0;">
+                            <!-- Order Meta Box -->
+                            <table role="presentation" width="100%" style="border-collapse: collapse; background-color: #f8fafc; border-radius: 12px; border: 1px solid #e2e8f0; margin-bottom: 24px;">
                                 <tr>
-                                    <td style="padding: 14px 20px; border-bottom: 1px solid #e2e8f0; font-size: 14px; color: #64748b;">Order Number</td>
-                                    <td style="padding: 14px 20px; border-bottom: 1px solid #e2e8f0; font-size: 14px; font-weight: 700; color: #0f172a; text-align: right;">#{{ order.id }}</td>
+                                    <td style="padding: 12px 18px; border-bottom: 1px solid #e2e8f0; font-size: 13px; color: #64748b;">Order Reference</td>
+                                    <td style="padding: 12px 18px; border-bottom: 1px solid #e2e8f0; font-size: 14px; font-weight: 700; color: #0f172a; text-align: right;">#EGM-{{ order.id }}</td>
                                 </tr>
                                 <tr>
-                                    <td style="padding: 14px 20px; border-bottom: 1px solid #e2e8f0; font-size: 14px; color: #64748b;">Total Amount</td>
-                                    <td style="padding: 14px 20px; border-bottom: 1px solid #e2e8f0; font-size: 16px; font-weight: 800; color: #059669; text-align: right;">₹{{ "%.2f"|format(order.total_amount) if order.total_amount is number else order.total_amount }}</td>
+                                    <td style="padding: 12px 18px; border-bottom: 1px solid #e2e8f0; font-size: 13px; color: #64748b;">Order Date</td>
+                                    <td style="padding: 12px 18px; border-bottom: 1px solid #e2e8f0; font-size: 13px; font-weight: 600; color: #334155; text-align: right;">{{ order_date }}</td>
                                 </tr>
                                 <tr>
-                                    <td style="padding: 14px 20px; font-size: 14px; color: #64748b;">Payment Method</td>
-                                    <td style="padding: 14px 20px; font-size: 14px; font-weight: 600; color: #0f172a; text-align: right;">{{ order.payment_method }}</td>
+                                    <td style="padding: 12px 18px; font-size: 13px; color: #64748b;">Payment Status</td>
+                                    <td style="padding: 12px 18px; font-size: 13px; font-weight: 700; color: {% if order.payment_status == 'Paid' %}#059669{% else %}#d97706{% endif %}; text-align: right;">
+                                        {{ order.payment_status }} ({{ order.payment_method }})
+                                    </td>
                                 </tr>
                             </table>
 
-                            <p style="font-size: 14px; color: #475569; margin: 16px 0 0; line-height: 1.6;">
-                                You can track your order status in real time by signing in to your account.
+                            <!-- Items Section -->
+                            <div style="font-size: 14px; font-weight: 700; color: #0f172a; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 12px;">
+                                Items in Your Order
+                            </div>
+                            <table role="presentation" width="100%" style="border-collapse: collapse; margin-bottom: 20px; font-size: 14px;">
+                                <thead>
+                                    <tr style="border-bottom: 2px solid #e2e8f0; color: #64748b; font-size: 12px; text-transform: uppercase;">
+                                        <th align="left" style="padding: 8px 4px;">Item</th>
+                                        <th align="center" style="padding: 8px 4px;">Qty</th>
+                                        <th align="right" style="padding: 8px 4px;">Price</th>
+                                        <th align="right" style="padding: 8px 4px;">Total</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {% for item in pricing.order_items %}
+                                    <tr style="border-bottom: 1px solid #f1f5f9;">
+                                        <td style="padding: 10px 4px; font-weight: 600; color: #1e293b;">
+                                            {{ item.name }}
+                                        </td>
+                                        <td align="center" style="padding: 10px 4px; color: #64748b;">
+                                            {{ item.quantity }}
+                                        </td>
+                                        <td align="right" style="padding: 10px 4px; color: #64748b;">
+                                            ₹{{ "%.2f"|format(item.price) }}
+                                        </td>
+                                        <td align="right" style="padding: 10px 4px; font-weight: 700; color: #0f172a;">
+                                            ₹{{ "%.2f"|format(item.subtotal) }}
+                                        </td>
+                                    </tr>
+                                    {% else %}
+                                    <tr style="border-bottom: 1px solid #f1f5f9;">
+                                        <td style="padding: 10px 4px; font-weight: 600; color: #1e293b;">
+                                            Fresh Groceries Package
+                                        </td>
+                                        <td align="center" style="padding: 10px 4px; color: #64748b;">
+                                            1
+                                        </td>
+                                        <td align="right" style="padding: 10px 4px; color: #64748b;">
+                                            ₹{{ "%.2f"|format(pricing.total) }}
+                                        </td>
+                                        <td align="right" style="padding: 10px 4px; font-weight: 700; color: #0f172a;">
+                                            ₹{{ "%.2f"|format(pricing.total) }}
+                                        </td>
+                                    </tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+
+                            <!-- Price Breakdown Box -->
+                            <table role="presentation" width="100%" style="border-collapse: collapse; margin-bottom: 24px; font-size: 14px;">
+                                <tr>
+                                    <td style="padding: 6px 4px; color: #64748b;">Subtotal</td>
+                                    <td align="right" style="padding: 6px 4px; font-weight: 600; color: #334155;">₹{{ "%.2f"|format(pricing.subtotal) }}</td>
+                                </tr>
+                                <tr>
+                                    <td style="padding: 6px 4px; color: #64748b;">Delivery Charges</td>
+                                    <td align="right" style="padding: 6px 4px; font-weight: 600; color: {% if pricing.delivery_fee == 0 %}#059669{% else %}#334155{% endif %};">
+                                        {% if pricing.delivery_fee == 0 %}
+                                        <span style="color: #059669; font-weight: 700;">FREE</span>
+                                        {% else %}
+                                        ₹{{ "%.2f"|format(pricing.delivery_fee) }}
+                                        {% endif %}
+                                    </td>
+                                </tr>
+                                {% if pricing.discount > 0 %}
+                                <tr>
+                                    <td style="padding: 6px 4px; color: #059669; font-weight: 600;">Savings / Discount</td>
+                                    <td align="right" style="padding: 6px 4px; font-weight: 700; color: #059669;">-₹{{ "%.2f"|format(pricing.discount) }}</td>
+                                </tr>
+                                {% endif %}
+                                <tr style="border-top: 2px solid #e2e8f0;">
+                                    <td style="padding: 12px 4px; font-size: 16px; font-weight: 800; color: #0f172a;">Total</td>
+                                    <td align="right" style="padding: 12px 4px; font-size: 18px; font-weight: 800; color: #059669;">₹{{ "%.2f"|format(pricing.total) }}</td>
+                                </tr>
+                            </table>
+
+                            <!-- Delivery Address & Slot -->
+                            <table role="presentation" width="100%" style="border-collapse: collapse; background-color: #f8fafc; border-radius: 12px; border: 1px solid #e2e8f0; margin-bottom: 28px;">
+                                <tr>
+                                    <td style="padding: 16px; vertical-align: top; width: 50%; border-right: 1px solid #e2e8f0;">
+                                        <div style="font-size: 12px; font-weight: 700; color: #64748b; text-transform: uppercase; margin-bottom: 6px;">
+                                            📍 Delivery Address
+                                        </div>
+                                        <div style="font-size: 13px; color: #1e293b; font-weight: 500; line-height: 1.5;">
+                                            {{ order.shipping_address or 'Store Pickup / Express Hub' }}
+                                        </div>
+                                    </td>
+                                    <td style="padding: 16px; vertical-align: top; width: 50%;">
+                                        <div style="font-size: 12px; font-weight: 700; color: #64748b; text-transform: uppercase; margin-bottom: 6px;">
+                                            ⚡ Estimated Delivery
+                                        </div>
+                                        <div style="font-size: 13px; color: #059669; font-weight: 700; line-height: 1.5;">
+                                            Today &bull; Within 15–20 minutes
+                                        </div>
+                                        <div style="font-size: 11px; color: #64748b; margin-top: 2px;">
+                                            Express Dark Store Dispatch
+                                        </div>
+                                    </td>
+                                </tr>
+                            </table>
+
+                            <!-- Action CTA -->
+                            <div style="text-align: center; margin-bottom: 28px;">
+                                <a href="{{ urls.order_confirmation_url }}" style="display: inline-block; background-color: #059669; color: #ffffff; text-decoration: none; font-size: 15px; font-weight: 700; padding: 14px 32px; border-radius: 10px; box-shadow: 0 4px 6px -1px rgba(5, 150, 105, 0.3);">
+                                    Track Live Order
+                                </a>
+                            </div>
+
+                            <p style="font-size: 13px; color: #64748b; margin: 0 0 8px; text-align: center;">
+                                We'll notify you when your order is packed and dispatched.
+                            </p>
+                            <p style="font-size: 13px; color: #475569; font-weight: 600; margin: 0; text-align: center;">
+                                Thank you for shopping with eGrossary Mart!
                             </p>
                         </td>
                     </tr>
@@ -61,10 +178,10 @@
                     <tr>
                         <td style="padding: 24px 32px; background-color: #f8fafc; border-top: 1px solid #f1f5f9; text-align: center;">
                             <p style="font-size: 12px; color: #94a3b8; margin: 0 0 6px;">
-                                Questions about your order? Reach out to support@egrossary.com
+                                Need help with this order? Reply directly or contact <a href="mailto:{{ urls.support_email }}" style="color: #059669; text-decoration: none;">{{ urls.support_email }}</a>
                             </p>
                             <p style="font-size: 12px; color: #94a3b8; margin: 0;">
-                                &copy; 2026 eGrossary Mart. All rights reserved.
+                                &copy; 2026 eGrossary Mart Pvt. Ltd. APMC Hub, Navi Mumbai.
                             </p>
                         </td>
                     </tr>

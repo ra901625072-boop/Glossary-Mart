@@ -186,29 +186,102 @@
 
                     <!-- Tab 2: Reviews -->
                     <div class="tab-pane fade" id="tab-reviews">
-                        <div class="row g-4">
-                            <div class="col-md-4 text-center border-end">
-                                <div class="display-4 fw-bold text-success mb-1" id="reviewSummaryRating">4.8</div>
-                                <div class="text-warning mb-2">★★★★★</div>
-                                <p class="small text-muted mb-0">Based on 1,240 verified customer purchases</p>
-                            </div>
-                            <div class="col-md-8">
-                                <div id="productReviewsContainer">
-                                    <div class="review-card-item">
-                                        <div class="d-flex justify-content-between mb-1">
-                                            <strong class="text-dark">Suresh Patel</strong>
-                                            <span class="text-warning small">★★★★★</span>
-                                        </div>
-                                        <div class="smallest text-muted mb-2"><i class="bi bi-patch-check-fill text-success me-1"></i>Verified Buyer &bull; 2 days ago</div>
-                                        <p class="small text-muted mb-0">Super fast 15-minute delivery in Pali! Fresh packing and high quality produce.</p>
+                        <div class="row g-4 g-lg-5">
+                            <!-- Left Column: Overall Rating & Write CTA -->
+                            <div class="col-lg-4">
+                                <div class="review-summary-box mb-4">
+                                    <div class="small text-muted fw-bold text-uppercase mb-2 letter-spacing-1">Customer Ratings</div>
+                                    <div class="review-hero-score text-dark mb-1" id="reviewSummaryRating">0.0</div>
+                                    <div class="review-hero-stars mb-2" id="reviewSummaryStars">
+                                        <i class="bi bi-star-fill"></i>
+                                        <i class="bi bi-star-fill"></i>
+                                        <i class="bi bi-star-fill"></i>
+                                        <i class="bi bi-star-fill"></i>
+                                        <i class="bi bi-star-fill"></i>
                                     </div>
-                                    <div class="review-card-item">
-                                        <div class="d-flex justify-content-between mb-1">
-                                            <strong class="text-dark">Pooja Sharma</strong>
-                                            <span class="text-warning small">★★★★★</span>
+                                    <p class="small text-muted mb-3">Based on <strong class="text-dark" id="reviewSummaryCount">0</strong> verified ratings</p>
+                                    <div class="p-2 rounded-3 bg-white border small text-success fw-semibold mb-3 d-flex align-items-center justify-content-center gap-2" id="reviewRecommendStrip">
+                                        <i class="bi bi-hand-thumbs-up-fill fs-6"></i>
+                                        <span><strong id="reviewRecommendPercent">100%</strong> of customers recommend this</span>
+                                    </div>
+                                    <button class="btn btn-success rounded-pill py-2 px-4 fw-bold w-100 shadow-sm d-flex align-items-center justify-content-center gap-2" id="btnOpenWriteReview" onclick="window.JG.openReviewModal()">
+                                        <i class="bi bi-pencil-square"></i>
+                                        <span>Write a Review</span>
+                                    </button>
+                                </div>
+
+                                <!-- Rating Breakdown Progress Bars -->
+                                <div class="bg-white p-3 rounded-4 border shadow-sm mb-4">
+                                    <h6 class="fw-bold text-dark mb-3 small text-uppercase">Rating Breakdown</h6>
+                                    <div id="ratingBreakdownContainer">
+                                        <!-- Rendered dynamically by customer.js -->
+                                        <div class="rating-bar-row" onclick="window.JG.filterReviewsByStar(5)">
+                                            <span class="rating-bar-label">5 ★</span>
+                                            <div class="rating-bar-track"><div class="rating-bar-fill" id="barFill5" style="width: 0%;"></div></div>
+                                            <span class="rating-bar-count" id="barCount5">0</span>
                                         </div>
-                                        <div class="smallest text-muted mb-2"><i class="bi bi-patch-check-fill text-success me-1"></i>Verified Buyer &bull; 1 week ago</div>
-                                        <p class="small text-muted mb-0">Completely genuine product at wholesale rates. Loved the express doorstep service.</p>
+                                        <div class="rating-bar-row" onclick="window.JG.filterReviewsByStar(4)">
+                                            <span class="rating-bar-label">4 ★</span>
+                                            <div class="rating-bar-track"><div class="rating-bar-fill" id="barFill4" style="width: 0%;"></div></div>
+                                            <span class="rating-bar-count" id="barCount4">0</span>
+                                        </div>
+                                        <div class="rating-bar-row" onclick="window.JG.filterReviewsByStar(3)">
+                                            <span class="rating-bar-label">3 ★</span>
+                                            <div class="rating-bar-track"><div class="rating-bar-fill" id="barFill3" style="width: 0%;"></div></div>
+                                            <span class="rating-bar-count" id="barCount3">0</span>
+                                        </div>
+                                        <div class="rating-bar-row" onclick="window.JG.filterReviewsByStar(2)">
+                                            <span class="rating-bar-label">2 ★</span>
+                                            <div class="rating-bar-track"><div class="rating-bar-fill" id="barFill2" style="width: 0%;"></div></div>
+                                            <span class="rating-bar-count" id="barCount2">0</span>
+                                        </div>
+                                        <div class="rating-bar-row" onclick="window.JG.filterReviewsByStar(1)">
+                                            <span class="rating-bar-label">1 ★</span>
+                                            <div class="rating-bar-track"><div class="rating-bar-fill" id="barFill1" style="width: 0%;"></div></div>
+                                            <span class="rating-bar-count" id="barCount1">0</span>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Right Column: Filter Controls, Your Review, and Reviews Feed -->
+                            <div class="col-lg-8">
+                                <!-- Filter & Sort Toolbar -->
+                                <div class="d-flex flex-wrap justify-content-between align-items-center gap-2 mb-3 pb-3 border-bottom">
+                                    <div class="d-flex flex-wrap align-items-center gap-2" id="reviewFilterPills">
+                                        <button class="review-filter-btn active" data-filter="all" onclick="window.JG.filterReviewsByStar('all')">
+                                            All Reviews (<span id="filterCountAll">0</span>)
+                                        </button>
+                                        <button class="review-filter-btn" data-filter="5" onclick="window.JG.filterReviewsByStar(5)">
+                                            5 ★
+                                        </button>
+                                        <button class="review-filter-btn" data-filter="4" onclick="window.JG.filterReviewsByStar(4)">
+                                            4 ★
+                                        </button>
+                                        <button class="review-filter-btn" data-filter="3" onclick="window.JG.filterReviewsByStar(3)">
+                                            3 ★
+                                        </button>
+                                        <button class="review-filter-btn" data-filter="verified" onclick="window.JG.filterReviewsByVerified()">
+                                            <i class="bi bi-patch-check-fill text-success"></i> Verified Only
+                                        </button>
+                                    </div>
+                                    <div>
+                                        <select class="form-select form-select-sm rounded-pill border shadow-none" id="reviewSortSelect" onchange="window.JG.sortReviews(this.value)" style="width: auto;">
+                                            <option value="newest">Most Recent</option>
+                                            <option value="highest">Highest Rating</option>
+                                            <option value="lowest">Lowest Rating</option>
+                                        </select>
+                                    </div>
+                                </div>
+
+                                <!-- User's Pinned Review Card (if customer already reviewed) -->
+                                <div id="yourReviewContainer" style="display: none;"></div>
+
+                                <!-- Reviews Dynamic Feed -->
+                                <div id="productReviewsContainer">
+                                    <div class="text-center py-5 text-muted">
+                                        <div class="spinner-border spinner-border-sm text-success me-2" role="status"></div>
+                                        <span>Loading reviews...</span>
                                     </div>
                                 </div>
                             </div>
@@ -238,6 +311,119 @@
 
     <!-- Mobile Sticky Bottom Touch Bar -->
     <div data-component="mobile-bottom-nav"></div>
+
+    <!-- MODAL: WRITE / EDIT PRODUCT REVIEW -->
+    <div class="modal fade" id="reviewModal" tabindex="-1" aria-labelledby="reviewModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content rounded-4 border-0 shadow-lg overflow-hidden">
+                <div class="modal-header border-bottom px-4 pt-4 pb-3 bg-light bg-opacity-50">
+                    <div class="d-flex align-items-center gap-3">
+                        <img src="" id="modalProductImg" alt="" class="rounded-3 border" style="width: 48px; height: 48px; object-fit: cover;">
+                        <div>
+                            <h5 class="modal-title fw-bold text-dark mb-0" id="reviewModalLabel">Rate &amp; Review Product</h5>
+                            <div class="smallest text-muted" id="modalProductName">Product Name</div>
+                        </div>
+                    </div>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+
+                <div class="modal-body p-4">
+                    <div id="modalReviewAlert" class="alert alert-danger small py-2 px-3 rounded-3" style="display: none;"></div>
+
+                    <!-- Interactive Star Rating Composer -->
+                    <div class="text-center mb-4">
+                        <label class="form-label small fw-bold text-uppercase text-muted d-block mb-2">Overall Rating *</label>
+                        <div class="star-rating-composer" id="modalStarComposer" role="radiogroup" aria-label="Product rating from 1 to 5 stars">
+                            <button type="button" class="star-btn" data-star="1" aria-label="1 star" onclick="window.JG.setReviewRating(1)">
+                                <i class="bi bi-star-fill"></i>
+                            </button>
+                            <button type="button" class="star-btn" data-star="2" aria-label="2 stars" onclick="window.JG.setReviewRating(2)">
+                                <i class="bi bi-star-fill"></i>
+                            </button>
+                            <button type="button" class="star-btn" data-star="3" aria-label="3 stars" onclick="window.JG.setReviewRating(3)">
+                                <i class="bi bi-star-fill"></i>
+                            </button>
+                            <button type="button" class="star-btn" data-star="4" aria-label="4 stars" onclick="window.JG.setReviewRating(4)">
+                                <i class="bi bi-star-fill"></i>
+                            </button>
+                            <button type="button" class="star-btn" data-star="5" aria-label="5 stars" onclick="window.JG.setReviewRating(5)">
+                                <i class="bi bi-star-fill"></i>
+                            </button>
+                        </div>
+                        <div class="mt-2">
+                            <span class="star-reaction-badge" id="modalStarReaction">Tap a star to rate</span>
+                        </div>
+                    </div>
+
+                    <!-- Quick-Feedback Highlight Tags -->
+                    <div class="mb-4">
+                        <label class="form-label small fw-bold text-uppercase text-muted d-block mb-2">What did you like most? (Optional)</label>
+                        <div class="review-tag-chips-wrap" id="modalTagChips">
+                            <span class="review-tag-chip" onclick="window.JG.toggleReviewTag(this, 'Fresh Produce')"><i class="bi bi-patch-check"></i> Fresh Produce</span>
+                            <span class="review-tag-chip" onclick="window.JG.toggleReviewTag(this, '15-Min Delivery')"><i class="bi bi-lightning-charge"></i> 15-Min Delivery</span>
+                            <span class="review-tag-chip" onclick="window.JG.toggleReviewTag(this, 'Great Packaging')"><i class="bi bi-box-seam"></i> Great Packaging</span>
+                            <span class="review-tag-chip" onclick="window.JG.toggleReviewTag(this, 'Value for Money')"><i class="bi bi-tag"></i> Value for Money</span>
+                            <span class="review-tag-chip" onclick="window.JG.toggleReviewTag(this, 'Authentic Quality')"><i class="bi bi-award"></i> Authentic Quality</span>
+                            <span class="review-tag-chip" onclick="window.JG.toggleReviewTag(this, 'Long Shelf Life')"><i class="bi bi-hourglass-split"></i> Long Shelf Life</span>
+                        </div>
+                    </div>
+
+                    <!-- Review Text Comment -->
+                    <div class="mb-3">
+                        <div class="d-flex justify-content-between align-items-center mb-1">
+                            <label for="modalReviewComment" class="form-label small fw-bold text-uppercase text-muted mb-0">Your Detailed Review *</label>
+                            <span class="char-counter" id="modalCharCounter">0 / 1000</span>
+                        </div>
+                        <textarea class="form-control rounded-3 p-3" id="modalReviewComment" rows="4" maxlength="1000" placeholder="Share how fresh the produce was, how the taste/packaging was, or tips for other grocery shoppers..." oninput="window.JG.handleCommentInput(this)"></textarea>
+                        <div class="smallest text-muted mt-1">Minimum 5 characters. Be honest and helpful to other shoppers!</div>
+                    </div>
+
+                    <!-- Recommendation Switch -->
+                    <div class="p-3 bg-light rounded-3 d-flex align-items-center justify-content-between">
+                        <div>
+                            <div class="fw-bold small text-dark">Recommend this item?</div>
+                            <div class="smallest text-muted">Would you recommend this grocery item to a friend?</div>
+                        </div>
+                        <div class="form-check form-switch mb-0 fs-5">
+                            <input class="form-check-input" type="checkbox" role="switch" id="modalRecommendSwitch" checked>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="modal-footer border-top px-4 py-3 bg-light bg-opacity-50 d-flex justify-content-between">
+                    <button type="button" class="btn btn-outline-secondary rounded-pill px-4" data-bs-dismiss="modal">Cancel</button>
+                    <button type="button" class="btn btn-success rounded-pill px-4 fw-bold shadow-sm" id="btnSubmitReview" onclick="window.JG.submitReview()">
+                        <span class="spinner-border spinner-border-sm me-1" id="reviewSubmitSpinner" style="display: none;"></span>
+                        <span id="reviewSubmitBtnText">Submit Review</span>
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- MODAL: DELETE REVIEW CONFIRMATION DIALOG -->
+    <div class="modal fade" id="deleteReviewModal" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered modal-sm">
+            <div class="modal-content rounded-4 border-0 shadow-lg text-center p-4">
+                <div class="mb-3">
+                    <div class="d-inline-flex align-items-center justify-content-center bg-danger bg-opacity-10 text-danger rounded-circle p-3" style="width: 64px; height: 64px;">
+                        <i class="bi bi-trash3-fill fs-3"></i>
+                    </div>
+                </div>
+                <h5 class="fw-bold text-dark mb-2">Delete Your Review?</h5>
+                <p class="small text-muted mb-4">
+                    Are you sure you want to permanently delete your review for <strong class="text-dark" id="deleteReviewProdName">this product</strong>? This action cannot be undone.
+                </p>
+                <div class="d-flex gap-2">
+                    <button type="button" class="btn btn-light border rounded-pill flex-fill py-2 fw-semibold" data-bs-dismiss="modal">Keep</button>
+                    <button type="button" class="btn btn-danger rounded-pill flex-fill py-2 fw-bold shadow-sm" id="btnConfirmDeleteReview" onclick="window.JG.confirmDeleteReview()">
+                        <span class="spinner-border spinner-border-sm me-1" id="reviewDeleteSpinner" style="display: none;"></span>
+                        <span>Delete</span>
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
 
     <!-- Scripts -->
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>

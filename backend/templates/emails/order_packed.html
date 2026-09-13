@@ -1,0 +1,107 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Order Packed #EGM-{{ order.id }} | eGrossary</title>
+</head>
+<body style="margin: 0; padding: 0; background-color: #f1f5f9; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; color: #1e293b; line-height: 1.6;">
+    <table role="presentation" width="100%" cellspacing="0" cellpadding="0" style="background-color: #f1f5f9; padding: 30px 12px;">
+        <tr>
+            <td align="center">
+                <table role="presentation" width="100%" style="max-width: 600px; background-color: #ffffff; border-radius: 16px; border: 1px solid #e2e8f0; overflow: hidden; box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.05);">
+                    <!-- Brand Header -->
+                    <tr>
+                        <td style="padding: 28px 32px 20px; text-align: center; background: linear-gradient(135deg, #eff6ff 0%, #ffffff 100%); border-bottom: 1px solid #e2e8f0;">
+                            <div style="font-size: 26px; font-weight: 800; letter-spacing: -0.5px; color: #0f172a;">
+                                e<span style="color: #2563eb;">Grossary</span>
+                            </div>
+                            <div style="font-size: 13px; color: #64748b; margin-top: 4px; font-weight: 500;">
+                                Fresh Groceries Superstore &bull; APMC Dark Store
+                            </div>
+                        </td>
+                    </tr>
+
+                    <!-- Main Content -->
+                    <tr>
+                        <td style="padding: 32px 28px;">
+                            <!-- Stage Badge -->
+                            <div style="margin-bottom: 16px;">
+                                <span style="display: inline-block; background-color: #dbeafe; color: #1e40af; font-size: 12px; font-weight: 800; padding: 6px 14px; border-radius: 9999px; text-transform: uppercase; letter-spacing: 0.5px;">
+                                    📦 &nbsp;Order Packed &amp; Quality Checked
+                                </span>
+                            </div>
+
+                            <h1 style="font-size: 24px; font-weight: 800; color: #0f172a; margin: 0 0 8px;">
+                                Your Groceries are Packed!
+                            </h1>
+                            <p style="font-size: 15px; color: #475569; margin: 0 0 24px;">
+                                Hi <strong>{{ (user.full_name or user.username) if user else 'Valued Customer' }}</strong>, our inventory team has carefully hand-picked, weighed, and sealed all <strong>{{ pricing.order_items|length if pricing.order_items else 1 }} item(s)</strong> in your order <strong>#EGM-{{ order.id }}</strong>.
+                            </p>
+
+                            <!-- Quality Assurance Highlight -->
+                            <table role="presentation" width="100%" style="border-collapse: collapse; background-color: #eff6ff; border-radius: 12px; border: 1px solid #bfdbfe; margin-bottom: 24px;">
+                                <tr>
+                                    <td style="padding: 16px 20px;">
+                                        <div style="font-size: 14px; font-weight: 700; color: #1e40af; margin-bottom: 6px;">
+                                            🛡️ 100% Freshness &amp; Safety Assured
+                                        </div>
+                                        <div style="font-size: 13px; color: #334155; line-height: 1.5;">
+                                            Every produce and pantry item has passed our 3-stage freshness inspection and is sealed in clean, eco-friendly food grade packaging.
+                                        </div>
+                                    </td>
+                                </tr>
+                            </table>
+
+                            <!-- Order Summary Box -->
+                            <table role="presentation" width="100%" style="border-collapse: collapse; background-color: #f8fafc; border-radius: 12px; border: 1px solid #e2e8f0; margin-bottom: 24px;">
+                                <tr>
+                                    <td style="padding: 12px 18px; border-bottom: 1px solid #e2e8f0; font-size: 13px; color: #64748b;">Order Number</td>
+                                    <td style="padding: 12px 18px; border-bottom: 1px solid #e2e8f0; font-size: 14px; font-weight: 700; color: #0f172a; text-align: right;">#EGM-{{ order.id }}</td>
+                                </tr>
+                                <tr>
+                                    <td style="padding: 12px 18px; border-bottom: 1px solid #e2e8f0; font-size: 13px; color: #64748b;">Total Value</td>
+                                    <td style="padding: 12px 18px; border-bottom: 1px solid #e2e8f0; font-size: 14px; font-weight: 700; color: #059669; text-align: right;">₹{{ "%.2f"|format(pricing.total) }}</td>
+                                </tr>
+                                <tr>
+                                    <td style="padding: 12px 18px; border-bottom: 1px solid #e2e8f0; font-size: 13px; color: #64748b;">Delivering To</td>
+                                    <td style="padding: 12px 18px; border-bottom: 1px solid #e2e8f0; font-size: 13px; font-weight: 600; color: #1e293b; text-align: right;">{{ order.shipping_address or 'Customer Address' }}</td>
+                                </tr>
+                                <tr>
+                                    <td style="padding: 12px 18px; font-size: 13px; color: #64748b;">Next Step</td>
+                                    <td style="padding: 12px 18px; font-size: 13px; font-weight: 700; color: #2563eb; text-align: right;">
+                                        Assigning Delivery Partner &rarr;
+                                    </td>
+                                </tr>
+                            </table>
+
+                            <!-- Action CTA -->
+                            <div style="text-align: center; margin-bottom: 24px;">
+                                <a href="{{ urls.order_url }}" style="display: inline-block; background-color: #2563eb; color: #ffffff; text-decoration: none; font-size: 15px; font-weight: 700; padding: 13px 32px; border-radius: 10px; box-shadow: 0 4px 6px -1px rgba(37, 99, 235, 0.3);">
+                                    Track Fulfillment Status
+                                </a>
+                            </div>
+
+                            <p style="font-size: 13px; color: #64748b; margin: 0; text-align: center;">
+                                You will receive another notification as soon as our rider departs for your doorstep.
+                            </p>
+                        </td>
+                    </tr>
+
+                    <!-- Footer -->
+                    <tr>
+                        <td style="padding: 24px 32px; background-color: #f8fafc; border-top: 1px solid #f1f5f9; text-align: center;">
+                            <p style="font-size: 12px; color: #94a3b8; margin: 0 0 6px;">
+                                Have special delivery notes? Reach out to <a href="mailto:{{ urls.support_email }}" style="color: #2563eb; text-decoration: none;">{{ urls.support_email }}</a>
+                            </p>
+                            <p style="font-size: 12px; color: #94a3b8; margin: 0;">
+                                &copy; 2026 eGrossary Mart Pvt. Ltd. All rights reserved.
+                            </p>
+                        </td>
+                    </tr>
+                </table>
+            </td>
+        </tr>
+    </table>
+</body>
+</html>

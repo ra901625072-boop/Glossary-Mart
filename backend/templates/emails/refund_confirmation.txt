@@ -1,0 +1,22 @@
+Hi {{ (user.full_name or user.username) if user else 'Valued Customer' }},
+
+We have processed a refund for your order #EGM-{{ order.id }}.
+
+Refund Transaction Summary
+──────────────────────────────────────────────────────────
+Refund Amount:       ₹{{ "%.2f"|format(refund_amount or pricing.total) }}
+Order Reference:     #EGM-{{ order.id }}
+Refund Ref ID:       {{ ref_id or ('REF-EGM-' ~ order.id) }}
+Credited Back To:    {{ order.payment_method }} (Source Account)
+Date:                Today
+──────────────────────────────────────────────────────────
+
+Settlement Timeline:
+- UPI / Netbanking: 24 to 48 hours
+- Credit / Debit Cards: 3 to 5 business days (subject to bank clearance)
+
+View your account:
+{{ urls.order_url }}
+
+Thank you for your patience.
+Support: {{ urls.support_email }}

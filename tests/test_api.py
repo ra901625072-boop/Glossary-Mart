@@ -368,4 +368,81 @@ def test_api_coupon_validation(client, session):
     assert res_invalid.get_json()['success'] is False
 
 
+def test_api_review_full_lifecycle(client, customer_user, admin_user, session):
+    """Verify complete review lifecycle: create, breakdown analytics, update, permission checks, delete, and my-reviews."""
+    from database.models.product import Category, Product
+    cat = Category(name='Dairy & Farm')
+    session.add(cat)
+    session.flush()
+
+    prod = Product(name='Fresh A2 Milk 1L', selling_price=65.0, cost_price=45.0, stock_quantity=40, category_id=cat.id)
+    session.add(prod)
+    session.commit()
+
+    # 1. Login as customer_user and submit 5-star review
+    client.post('/api/auth/login', json={'username': customer_user.username, 'password': 'cust123'})
+    create_res = client.post(f'/api/products/{prod.id}/reviews', json={
+        'rating': 5,
+        'comment': 'Exceptional farm freshness and speedy 15-min delivery!'
+    })
+    assert create_res.status_code == 201
+    rev_data = create_res.get_json()
+    review_id = rev_data['review']['id']
+    assert rev_data['review']['rating'] == 5
+
+    # 2. Get reviews for product — verify analytics breakdown and summary
+    get_res = client.get(f'/api/products/{prod.id}/reviews')
+    assert get_res.status_code == 200
+    summary = get_res.get_json()['summary']
+    assert summary['total_reviews'] == 1
+    assert summary['average_rating'] == 5.0
+    assert summary['rating_breakdown']['5'] == 1
+    assert summary['recommend_percent'] == 100
+    assert get_res.get_json()['user_review'] is not None
+
+    # 3. Check customer my-reviews
+    my_rev_res = client.get('/api/customer/my-reviews')
+    assert my_rev_res.status_code == 200
+    my_reviews = my_rev_res.get_json()['reviews']
+    assert len(my_reviews) >= 1
+    assert any(r['id'] == review_id and r['product_name'] == 'Fresh A2 Milk 1L' for r in my_reviews)
+
+    # 4. Update the review via PUT
+    put_res = client.put(f'/api/reviews/{review_id}', json={
+        'rating': 4,
+        'comment': 'Updated review: Still great quality, well packaged.'
+    })
+    assert put_res.status_code == 200
+    assert put_res.get_json()['review']['rating'] == 4
+    assert 'Updated review' in put_res.get_json()['review']['comment']
+
+    # 5. Permission guard: login as another user and attempt to edit/delete
+    from database.models.user import User
+    other_user = User(username='intruder', email='intruder@example.com', role='customer', is_verified=True)
+    other_user.set_password('intruder123')
+    session.add(other_user)
+    session.commit()
+
+    client.get('/auth/logout')
+    client.post('/api/auth/login', json={'username': 'intruder', 'password': 'intruder123'})
+    unauth_put = client.put(f'/api/reviews/{review_id}', json={'rating': 1, 'comment': 'Hacked review'})
+    assert unauth_put.status_code == 403
+
+    unauth_del = client.delete(f'/api/reviews/{review_id}')
+    assert unauth_del.status_code == 403
+
+    # 6. Re-login as owner and delete the review
+    client.get('/auth/logout')
+    client.post('/api/auth/login', json={'username': customer_user.username, 'password': 'cust123'})
+    del_res = client.delete(f'/api/reviews/{review_id}')
+    assert del_res.status_code == 200
+    assert del_res.get_json()['success'] is True
+
+
+    # 7. Verify review was deleted
+    get_after_del = client.get(f'/api/products/{prod.id}/reviews')
+    assert get_after_del.get_json()['summary']['total_reviews'] == 0
+
+
+
 

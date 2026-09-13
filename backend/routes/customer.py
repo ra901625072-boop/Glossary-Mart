@@ -322,9 +322,10 @@ def checkout():
             return redirect(url_for('customer.view_cart'))
         
         if payment_method == 'UDHAR':
+            EmailService.send_order_confirmation_email(order, current_user)
             if request.is_json:
                 return jsonify({'success': True, 'order_id': order.id, 'message': 'Order placed on Store Credit!', 'redirect': url_for('customer.order_confirmation', order_id=order.id)})
-            flash(f'Order placed successfully on Store Credit!', 'success')
+            flash('Order placed successfully on Store Credit!', 'success')
             return redirect(url_for('customer.order_confirmation', order_id=order.id))
         elif payment_method in ['UPI', 'CARD', 'NETBANKING']:
             if request.is_json:
@@ -446,8 +447,9 @@ def payment_success(order_id):
     
     db.session.commit()
     
-    # Send order confirmation email
+    # Send order confirmation and payment receipt emails
     EmailService.send_order_confirmation_email(order, current_user)
+    EmailService.send_payment_confirmation_email(order, current_user)
             
     if request.is_json:
         return jsonify({'success': True, 'message': 'Payment successful! Your order has been placed.', 'order_id': order.id})

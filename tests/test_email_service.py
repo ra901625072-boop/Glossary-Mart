@@ -157,7 +157,7 @@ def test_send_order_confirmation_email_renders_template(app):
             mock_send.assert_called_once()
             call_kwargs = mock_send.call_args[1]
             assert call_kwargs["to"] == "testuser@example.com"
-            assert "#999" in call_kwargs["subject"]
+            assert "#EGM-999" in call_kwargs["subject"]
             assert "450.00" in call_kwargs["html_content"]
             assert "COD" in call_kwargs["html_content"]
 

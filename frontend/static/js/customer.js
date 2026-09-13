@@ -158,7 +158,44 @@
         }
     }
 
+    function loadInitialAddresses(currentUser) {
+        try {
+            const raw = localStorage.getItem('jg_saved_addresses');
+            if (raw) {
+                const parsed = JSON.parse(raw);
+                if (Array.isArray(parsed) && parsed.length > 0) return parsed;
+            }
+        } catch (e) {}
+
+        if (currentUser && currentUser.address && currentUser.address.trim().length >= 10) {
+            const defaultAddr = {
+                id: 'addr_' + Date.now(),
+                tag: 'Home',
+                fullName: currentUser.full_name || currentUser.name || currentUser.username || 'Customer',
+                phone: currentUser.phone || '',
+                fullAddress: currentUser.address.trim(),
+                isDefault: true
+            };
+            localStorage.setItem('jg_saved_addresses', JSON.stringify([defaultAddr]));
+            return [defaultAddr];
+        }
+
+        return [];
+    }
+
     // ── Local State Initialization ──
+    const initialUser = (function () {
+        try {
+            const u = JSON.parse(localStorage.getItem('jg_auth_user') || 'null');
+            return (u && u.id && u.role === 'customer') ? u : null;
+        } catch (e) {
+            return null;
+        }
+    })();
+
+    const initialAddresses = loadInitialAddresses(initialUser);
+    const initialDef = initialAddresses.find(a => a.isDefault);
+
     let state = {
         products: DEFAULT_CATALOG,
         selectedCategory: 'all',
@@ -167,20 +204,20 @@
         cart: loadInitialCustomerCart(),
         wishlist: JSON.parse(localStorage.getItem('jg_wishlist')) || [],
         activeCoupon: JSON.parse(localStorage.getItem('jg_coupon')) || null,
-        user: (function () {
-            try {
-                const u = JSON.parse(localStorage.getItem('jg_auth_user') || 'null');
-                return (u && u.id && u.role === 'customer') ? u : null;
-            } catch (e) {
-                return null;
-            }
-        })(),
+        user: initialUser,
+        addresses: initialAddresses,
+        selectedAddressId: initialDef ? initialDef.id : (initialAddresses.length > 0 ? initialAddresses[0].id : null),
         orders: [],
         checkoutData: {
             addressType: 'home',
             slot: 'express',
-            paymentMethod: 'COD',
-            customAddress: ''
+            paymentMethod: 'UPI',
+            customAddress: '',
+            tip: 20,
+            deliveryInstructions: ['Leave at door'],
+            customNote: '',
+            selectedUpiApp: 'Google Pay',
+            bank: 'HDFC'
         }
     };
 
@@ -189,6 +226,7 @@
         localStorage.setItem('egm_cart', JSON.stringify(state.cart));
         localStorage.setItem('jg_wishlist', JSON.stringify(state.wishlist));
         localStorage.setItem('jg_coupon', JSON.stringify(state.activeCoupon));
+        localStorage.setItem('jg_saved_addresses', JSON.stringify(state.addresses));
         if (state.user && state.user.role === 'customer') {
             localStorage.setItem('jg_auth_user', JSON.stringify(state.user));
         }
@@ -250,7 +288,9 @@
 
         const deliveryFee = subtotal >= 499 || subtotal === 0 ? 0 : 30;
         const handlingFee = subtotal > 0 ? 5 : 0;
-        const finalTotal = Math.max(0, subtotal - couponDiscount + deliveryFee + handlingFee);
+        const isCheckoutPage = document.body && document.body.getAttribute('data-page') === 'checkout';
+        const partnerTip = (isCheckoutPage && state.checkoutData && state.checkoutData.tip !== undefined) ? Number(state.checkoutData.tip) : 0;
+        const finalTotal = Math.max(0, subtotal - couponDiscount + deliveryFee + handlingFee + (subtotal > 0 ? partnerTip : 0));
         const totalSavings = Math.max(0, (originalMrpTotal - subtotal) + couponDiscount);
 
         return {
@@ -259,9 +299,9 @@
             couponDiscount: Math.round(couponDiscount) || 0,
             deliveryFee,
             handlingFee,
+            partnerTip: subtotal > 0 ? partnerTip : 0,
             finalTotal: Math.round(finalTotal) || 0,
-            totalSavings: Math.round(totalSavings) || 0,
-            totalSavings
+            totalSavings: Math.round(totalSavings) || 0
         };
     }
 
@@ -522,6 +562,18 @@
 
         // Related Products
         renderRelatedProducts(prod);
+
+        // Load live reviews & ratings breakdown
+        loadProductReviews(prod.id);
+
+        if (window.location.hash.includes('review')) {
+            const revTabBtn = document.getElementById('reviews-tab');
+            if (revTabBtn && window.bootstrap) {
+                try {
+                    bootstrap.Tab.getOrCreateInstance(revTabBtn).show();
+                } catch (e) {}
+            }
+        }
     }
 
     function updateProductDetailWishlistState(prodId) {
@@ -619,6 +671,645 @@
         window.JG.toggleWishlist(currentDetailProduct.id);
         updateProductDetailWishlistState(currentDetailProduct.id);
     };
+
+    // ══════════════════════════════════════════════════════════════════
+    // PRODUCT REVIEWS & INTERACTIVE RATING SUPER-APP ENGINE
+    // ══════════════════════════════════════════════════════════════════
+    let currentProductReviews = [];
+    let currentReviewSummary = null;
+    let currentUserProductReview = null;
+    let currentSelectedStar = 5;
+    let activeReviewFilter = 'all';
+    let currentReviewSort = 'newest';
+    let targetReviewToDelete = null;
+    let selectedReviewTags = new Set();
+    let isEditingReview = false;
+    let editingReviewId = null;
+    let myProfileReviews = [];
+
+    function setReviewRating(val) {
+        currentSelectedStar = Math.max(1, Math.min(5, Number(val) || 5));
+        updateStarComposerVisuals(currentSelectedStar);
+        updateStarReactionBadge(currentSelectedStar);
+    }
+
+    function updateStarComposerVisuals(rating) {
+        const composer = document.getElementById('modalStarComposer');
+        if (!composer) return;
+        const stars = composer.querySelectorAll('.star-btn');
+        stars.forEach(btn => {
+            const s = Number(btn.getAttribute('data-star'));
+            btn.classList.toggle('active', s <= rating);
+            btn.classList.remove('hovered');
+        });
+    }
+
+    function updateStarReactionBadge(rating) {
+        const badge = document.getElementById('modalStarReaction');
+        if (!badge) return;
+        const reactions = {
+            1: { text: '😞 Poor — Not satisfied', cls: 'star-reaction-1' },
+            2: { text: '😐 Fair — Below expectations', cls: 'star-reaction-2' },
+            3: { text: '🙂 Average — It\'s okay', cls: 'star-reaction-3' },
+            4: { text: '😊 Good — Satisfied with quality', cls: 'star-reaction-4' },
+            5: { text: '🤩 Excellent — Highly recommended!', cls: 'star-reaction-5' }
+        };
+        const r = reactions[rating] || reactions[5];
+        badge.className = `star-reaction-badge ${r.cls}`;
+        badge.textContent = r.text;
+    }
+
+    function initStarComposerEvents() {
+        const composer = document.getElementById('modalStarComposer');
+        if (!composer || composer.dataset.initialized) return;
+        composer.dataset.initialized = 'true';
+
+        const stars = composer.querySelectorAll('.star-btn');
+        stars.forEach(btn => {
+            btn.addEventListener('mouseenter', () => {
+                const s = Number(btn.getAttribute('data-star'));
+                stars.forEach(b => {
+                    const bs = Number(b.getAttribute('data-star'));
+                    b.classList.toggle('hovered', bs <= s);
+                });
+                updateStarReactionBadge(s);
+            });
+        });
+
+        composer.addEventListener('mouseleave', () => {
+            stars.forEach(b => b.classList.remove('hovered'));
+            updateStarComposerVisuals(currentSelectedStar);
+            updateStarReactionBadge(currentSelectedStar);
+        });
+    }
+
+    function toggleReviewTag(element, tagText) {
+        if (selectedReviewTags.has(tagText)) {
+            selectedReviewTags.delete(tagText);
+            element.classList.remove('active');
+        } else {
+            selectedReviewTags.add(tagText);
+            element.classList.add('active');
+        }
+    }
+
+    async function loadProductReviews(productId) {
+        const container = document.getElementById('productReviewsContainer');
+        if (!container) return;
+
+        try {
+            const fetchFn = window.apiFetch || fetch;
+            const res = await fetchFn(`/api/products/${productId}/reviews`);
+            if (res.ok) {
+                const data = await res.json();
+                if (data.success) {
+                    currentReviewSummary = data.summary;
+                    currentUserProductReview = data.user_review;
+                    currentProductReviews = data.reviews || [];
+
+                    updateProductReviewSummaryDisplay();
+                    renderReviewsList();
+                    return;
+                }
+            }
+        } catch (e) {
+            console.debug('Could not load live reviews:', e);
+        }
+
+        renderReviewsList();
+    }
+
+    function updateProductReviewSummaryDisplay() {
+        const s = currentReviewSummary;
+        if (!s) return;
+
+        const ratingVal = s.total_reviews > 0 ? s.average_rating.toFixed(1) : '0.0';
+        const countVal = s.total_reviews || 0;
+
+        const heroRating = document.getElementById('reviewSummaryRating');
+        if (heroRating) heroRating.textContent = ratingVal;
+
+        const heroCount = document.getElementById('reviewSummaryCount');
+        if (heroCount) heroCount.textContent = countVal;
+
+        const filterCountAll = document.getElementById('filterCountAll');
+        if (filterCountAll) filterCountAll.textContent = countVal;
+
+        const tabCount = document.getElementById('tabReviewCount');
+        if (tabCount) tabCount.textContent = countVal;
+
+        const prodDetailRating = document.getElementById('productDetailRating');
+        if (prodDetailRating && s.total_reviews > 0) prodDetailRating.textContent = ratingVal;
+
+        const prodDetailReviews = document.getElementById('productDetailReviews');
+        if (prodDetailReviews && s.total_reviews > 0) prodDetailReviews.textContent = `(${countVal} reviews)`;
+
+        const starContainer = document.getElementById('reviewSummaryStars');
+        if (starContainer) {
+            let starsHtml = '';
+            const rounded = Math.round(s.average_rating * 2) / 2;
+            for (let i = 1; i <= 5; i++) {
+                if (i <= rounded) {
+                    starsHtml += '<i class="bi bi-star-fill text-warning me-1"></i>';
+                } else if (i - 0.5 === rounded) {
+                    starsHtml += '<i class="bi bi-star-half text-warning me-1"></i>';
+                } else {
+                    starsHtml += '<i class="bi bi-star text-muted text-opacity-25 me-1"></i>';
+                }
+            }
+            starContainer.innerHTML = starsHtml;
+        }
+
+        const recEl = document.getElementById('reviewRecommendPercent');
+        if (recEl) recEl.textContent = `${s.recommend_percent || 100}%`;
+
+        const total = s.total_reviews || 1;
+        for (let star = 1; star <= 5; star++) {
+            const count = (s.rating_breakdown && s.rating_breakdown[star]) || 0;
+            const pct = s.total_reviews > 0 ? Math.round((count / total) * 100) : 0;
+            const fillEl = document.getElementById(`barFill${star}`);
+            const countEl = document.getElementById(`barCount${star}`);
+            if (fillEl) fillEl.style.width = `${pct}%`;
+            if (countEl) countEl.textContent = count;
+        }
+
+        const btnWrite = document.getElementById('btnOpenWriteReview');
+        if (btnWrite) {
+            if (currentUserProductReview) {
+                btnWrite.className = 'btn btn-outline-success rounded-pill py-2 px-4 fw-bold w-100 shadow-sm d-flex align-items-center justify-content-center gap-2';
+                btnWrite.innerHTML = '<i class="bi bi-pencil-square"></i><span>Edit Your Review</span>';
+            } else {
+                btnWrite.className = 'btn btn-success rounded-pill py-2 px-4 fw-bold w-100 shadow-sm d-flex align-items-center justify-content-center gap-2';
+                btnWrite.innerHTML = '<i class="bi bi-pencil-square"></i><span>Write a Review</span>';
+            }
+        }
+
+        renderYourReviewCard();
+    }
+
+    function renderYourReviewCard() {
+        const container = document.getElementById('yourReviewContainer');
+        if (!container) return;
+
+        if (!currentUserProductReview) {
+            container.style.display = 'none';
+            container.innerHTML = '';
+            return;
+        }
+
+        const r = currentUserProductReview;
+        let starsHtml = '';
+        for (let i = 1; i <= 5; i++) {
+            starsHtml += `<i class="bi bi-star${i <= r.rating ? '-fill text-warning' : ' text-muted opacity-25'} me-1"></i>`;
+        }
+
+        const prodName = currentDetailProduct ? currentDetailProduct.name : 'Product';
+
+        container.style.display = 'block';
+        container.innerHTML = `
+            <div class="your-review-card">
+                <div class="d-flex flex-wrap justify-content-between align-items-center gap-2 mb-2">
+                    <div class="d-flex align-items-center gap-2">
+                        <span class="your-review-badge"><i class="bi bi-star-fill"></i> Your Review</span>
+                        ${r.is_verified_buyer ? '<span class="verified-buyer-badge"><i class="bi bi-patch-check-fill"></i> Verified Purchase</span>' : ''}
+                    </div>
+                    <div class="d-flex gap-2">
+                        <button type="button" class="btn btn-sm btn-outline-success rounded-pill px-3 py-1 fw-semibold" onclick="window.JG.openReviewModal(true)">
+                            <i class="bi bi-pencil me-1"></i> Edit
+                        </button>
+                        <button type="button" class="btn btn-sm btn-outline-danger rounded-pill px-3 py-1 fw-semibold" onclick="window.JG.openDeleteReviewModal(${r.id}, '${escapeHTML(prodName)}')">
+                            <i class="bi bi-trash3 me-1"></i> Delete
+                        </button>
+                    </div>
+                </div>
+                <div class="d-flex align-items-center gap-2 mb-2">
+                    <div class="small">${starsHtml}</div>
+                    <span class="smallest text-muted">• Reviewed on ${escapeHTML(r.created_at || 'Recently')}</span>
+                </div>
+                <p class="text-dark small mb-0" style="line-height: 1.6;">${escapeHTML(r.comment)}</p>
+            </div>
+        `;
+    }
+
+    function renderReviewsList() {
+        const container = document.getElementById('productReviewsContainer');
+        if (!container) return;
+
+        let filtered = [...currentProductReviews];
+
+        if (activeReviewFilter === 'verified') {
+            filtered = filtered.filter(r => r.is_verified_buyer);
+        } else if (activeReviewFilter !== 'all') {
+            const star = Number(activeReviewFilter);
+            filtered = filtered.filter(r => r.rating === star);
+        }
+
+        if (currentReviewSort === 'highest') {
+            filtered.sort((a, b) => b.rating - a.rating);
+        } else if (currentReviewSort === 'lowest') {
+            filtered.sort((a, b) => a.rating - b.rating);
+        } else {
+            filtered.sort((a, b) => new Date(b.created_at || 0) - new Date(a.created_at || 0));
+        }
+
+        if (filtered.length === 0) {
+            container.innerHTML = `
+                <div class="text-center py-5 bg-light rounded-4 border p-4">
+                    <i class="bi bi-chat-heart display-4 text-muted opacity-50 mb-3 d-block"></i>
+                    <h5 class="fw-bold text-dark">No reviews found</h5>
+                    <p class="text-muted small mx-auto mb-3" style="max-width: 380px;">
+                        ${activeReviewFilter === 'all' 
+                            ? 'Be the first verified customer to share your thoughts on this fresh grocery item!' 
+                            : 'No customer reviews found matching the selected star rating filter.'}
+                    </p>
+                    <button type="button" class="btn btn-success rounded-pill px-4 fw-bold shadow-sm" onclick="window.JG.openReviewModal()">
+                        <i class="bi bi-pencil-square me-1"></i> Write a Review
+                    </button>
+                </div>
+            `;
+            return;
+        }
+
+        container.innerHTML = filtered.map(r => {
+            const initial = (r.user_name || 'U').charAt(0).toUpperCase();
+            let starsHtml = '';
+            for (let i = 1; i <= 5; i++) {
+                starsHtml += `<i class="bi bi-star${i <= r.rating ? '-fill text-warning' : ' text-muted opacity-25'}"></i>`;
+            }
+
+            const isOwner = Boolean(r.is_current_user || (state.user && r.user_id === state.user.id));
+            const prodName = currentDetailProduct ? currentDetailProduct.name : 'Product';
+
+            return `
+                <div class="review-card-item" id="reviewItem-${r.id}">
+                    <div class="d-flex justify-content-between align-items-start mb-2">
+                        <div class="d-flex align-items-center gap-3">
+                            <div class="reviewer-avatar-circle">${escapeHTML(initial)}</div>
+                            <div>
+                                <div class="fw-bold text-dark small d-flex align-items-center gap-2">
+                                    <span>${escapeHTML(r.user_name || 'Verified Customer')}</span>
+                                    ${r.is_verified_buyer ? '<span class="verified-buyer-badge"><i class="bi bi-patch-check-fill"></i> Verified Purchase</span>' : ''}
+                                    ${isOwner ? '<span class="badge bg-success bg-opacity-10 text-success fw-bold border border-success-subtle">You</span>' : ''}
+                                </div>
+                                <div class="smallest text-muted">${escapeHTML(r.created_at || 'Verified Buyer')}</div>
+                            </div>
+                        </div>
+                        <div class="text-warning small">${starsHtml}</div>
+                    </div>
+                    <p class="small text-dark mb-3" style="line-height: 1.6;">${escapeHTML(r.comment)}</p>
+                    <div class="d-flex justify-content-between align-items-center pt-2 border-top">
+                        <button type="button" class="btn-helpful" onclick="window.JG.voteHelpful(${r.id}, this)">
+                            <i class="bi bi-hand-thumbs-up me-1"></i> Helpful
+                        </button>
+                        ${isOwner ? `
+                            <div class="d-flex gap-2">
+                                <button type="button" class="btn btn-sm btn-link text-success p-0 text-decoration-none small fw-semibold" onclick="window.JG.openReviewModal(true)">
+                                    <i class="bi bi-pencil me-1"></i>Edit
+                                </button>
+                                <button type="button" class="btn btn-sm btn-link text-danger p-0 text-decoration-none small fw-semibold" onclick="window.JG.openDeleteReviewModal(${r.id}, '${escapeHTML(prodName)}')">
+                                    <i class="bi bi-trash3 me-1"></i>Delete
+                                </button>
+                            </div>
+                        ` : ''}
+                    </div>
+                </div>
+            `;
+        }).join('');
+    }
+
+    function openReviewModal(isEditMode = false) {
+        const user = state.user || JSON.parse(localStorage.getItem('jg_auth_user') || 'null');
+        if (!user || !user.id) {
+            const prodId = currentDetailProduct ? currentDetailProduct.id : 1;
+            const inCustomer = window.location.pathname.includes('/customer/');
+            const targetLogin = inCustomer ? `../auth/login.html?redirect=customer/product.html?id=${prodId}` : `auth/login.html?redirect=customer/product.html?id=${prodId}`;
+            alert('Please sign in with your customer account to rate and review products.');
+            window.location.href = targetLogin;
+            return;
+        }
+
+        const prod = currentDetailProduct || (state.products && state.products[0]) || DEFAULT_CATALOG[0];
+        const modalImg = document.getElementById('modalProductImg');
+        const modalName = document.getElementById('modalProductName');
+        const alertEl = document.getElementById('modalReviewAlert');
+        if (alertEl) alertEl.style.display = 'none';
+
+        if (modalImg && prod) modalImg.src = prod.image || '../static/images/logo-icon.png';
+        if (modalName && prod) modalName.textContent = prod.name || 'Grocery Item';
+
+        initStarComposerEvents();
+
+        selectedReviewTags.clear();
+        document.querySelectorAll('.review-tag-chip').forEach(c => c.classList.remove('active'));
+
+        const modalTitle = document.getElementById('reviewModalLabel');
+        const commentInput = document.getElementById('modalReviewComment');
+        const submitBtnText = document.getElementById('reviewSubmitBtnText');
+
+        if (isEditMode && currentUserProductReview) {
+            isEditingReview = true;
+            editingReviewId = currentUserProductReview.id;
+            if (modalTitle) modalTitle.textContent = 'Edit Your Review';
+            if (submitBtnText) submitBtnText.textContent = 'Update Review';
+            setReviewRating(currentUserProductReview.rating || 5);
+            if (commentInput) {
+                commentInput.value = currentUserProductReview.comment || '';
+                handleCommentInput(commentInput);
+            }
+        } else {
+            isEditingReview = false;
+            editingReviewId = null;
+            if (modalTitle) modalTitle.textContent = `Rate & Review ${prod ? prod.name : 'Product'}`;
+            if (submitBtnText) submitBtnText.textContent = 'Submit Review';
+            setReviewRating(5);
+            if (commentInput) {
+                commentInput.value = '';
+                handleCommentInput(commentInput);
+            }
+        }
+
+        const modalEl = document.getElementById('reviewModal');
+        if (modalEl && window.bootstrap) {
+            const modal = bootstrap.Modal.getOrCreateInstance(modalEl);
+            modal.show();
+        }
+    }
+
+    function handleCommentInput(el) {
+        const counter = document.getElementById('modalCharCounter');
+        if (counter && el) {
+            counter.textContent = `${el.value.length} / 1000`;
+        }
+    }
+
+    async function submitReview() {
+        const commentInput = document.getElementById('modalReviewComment');
+        const alertEl = document.getElementById('modalReviewAlert');
+        const spinner = document.getElementById('reviewSubmitSpinner');
+        const btn = document.getElementById('btnSubmitReview');
+
+        if (!commentInput) return;
+        const comment = commentInput.value.trim();
+
+        if (comment.length < 5) {
+            if (alertEl) {
+                alertEl.textContent = 'Please write a review comment with at least 5 characters.';
+                alertEl.style.display = 'block';
+            }
+            return;
+        }
+
+        const prodId = currentDetailProduct ? currentDetailProduct.id : 1;
+        let fullComment = comment;
+        if (selectedReviewTags.size > 0) {
+            const tagsArr = Array.from(selectedReviewTags);
+            fullComment += `\n[Highlights: ${tagsArr.join(', ')}]`;
+        }
+
+        if (spinner) spinner.style.display = 'inline-block';
+        if (btn) btn.disabled = true;
+
+        try {
+            const fetchFn = window.apiFetch || fetch;
+            let endpoint = `/api/products/${prodId}/reviews`;
+            let method = 'POST';
+
+            if (isEditingReview && editingReviewId) {
+                endpoint = `/api/reviews/${editingReviewId}`;
+                method = 'PUT';
+            }
+
+            const res = await fetchFn(endpoint, {
+                method: method,
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    rating: currentSelectedStar,
+                    comment: fullComment
+                })
+            });
+
+            const data = await res.json();
+            if (res.ok && data.success) {
+                const modalEl = document.getElementById('reviewModal');
+                if (modalEl && window.bootstrap) {
+                    const modal = bootstrap.Modal.getInstance(modalEl);
+                    if (modal) modal.hide();
+                }
+
+                const toastFn = window.EG?.utils?.showToast || window.showToast || alert;
+                toastFn(data.message || 'Review submitted successfully!', 'success');
+
+                await loadProductReviews(prodId);
+                if (window.location.pathname.includes('profile')) {
+                    loadMyReviews();
+                }
+            } else {
+                if (alertEl) {
+                    alertEl.textContent = data.message || 'Could not submit review. Please try again.';
+                    alertEl.style.display = 'block';
+                }
+            }
+        } catch (err) {
+            if (alertEl) {
+                alertEl.textContent = 'A network error occurred. Please try again.';
+                alertEl.style.display = 'block';
+            }
+        } finally {
+            if (spinner) spinner.style.display = 'none';
+            if (btn) btn.disabled = false;
+        }
+    }
+
+    function openDeleteReviewModal(reviewId, prodName) {
+        targetReviewToDelete = reviewId;
+        const nameEl = document.getElementById('deleteReviewProdName');
+        if (nameEl) nameEl.textContent = prodName || 'this item';
+
+        const modalEl = document.getElementById('deleteReviewModal');
+        if (modalEl && window.bootstrap) {
+            const modal = bootstrap.Modal.getOrCreateInstance(modalEl);
+            modal.show();
+        }
+    }
+
+    async function confirmDeleteReview() {
+        if (!targetReviewToDelete) return;
+
+        const spinner = document.getElementById('reviewDeleteSpinner');
+        const btn = document.getElementById('btnConfirmDeleteReview');
+        if (spinner) spinner.style.display = 'inline-block';
+        if (btn) btn.disabled = true;
+
+        try {
+            const fetchFn = window.apiFetch || fetch;
+            const res = await fetchFn(`/api/reviews/${targetReviewToDelete}`, {
+                method: 'DELETE'
+            });
+            const data = await res.json();
+            if (res.ok && data.success) {
+                const modalEl = document.getElementById('deleteReviewModal');
+                if (modalEl && window.bootstrap) {
+                    const modal = bootstrap.Modal.getInstance(modalEl);
+                    if (modal) modal.hide();
+                }
+
+                const toastFn = window.EG?.utils?.showToast || window.showToast || alert;
+                toastFn('Your review was successfully deleted.', 'info');
+
+                currentUserProductReview = null;
+                const prodId = currentDetailProduct ? currentDetailProduct.id : 1;
+                await loadProductReviews(prodId);
+
+                if (window.location.pathname.includes('profile')) {
+                    loadMyReviews();
+                }
+            } else {
+                alert(data.message || 'Could not delete review.');
+            }
+        } catch (e) {
+            alert('Network error while deleting review.');
+        } finally {
+            if (spinner) spinner.style.display = 'none';
+            if (btn) btn.disabled = false;
+            targetReviewToDelete = null;
+        }
+    }
+
+    function filterReviewsByStar(star) {
+        activeReviewFilter = String(star);
+        document.querySelectorAll('.review-filter-btn').forEach(btn => {
+            btn.classList.toggle('active', btn.getAttribute('data-filter') === String(star));
+        });
+        document.querySelectorAll('.rating-bar-row').forEach(row => {
+            row.classList.remove('active-filter');
+        });
+        renderReviewsList();
+    }
+
+    function filterReviewsByVerified() {
+        activeReviewFilter = 'verified';
+        document.querySelectorAll('.review-filter-btn').forEach(btn => {
+            btn.classList.toggle('active', btn.getAttribute('data-filter') === 'verified');
+        });
+        renderReviewsList();
+    }
+
+    function sortReviews(criterion) {
+        currentReviewSort = criterion;
+        renderReviewsList();
+    }
+
+    function voteHelpful(reviewId, btn) {
+        if (btn.classList.contains('voted')) {
+            btn.classList.remove('voted');
+            btn.innerHTML = '<i class="bi bi-hand-thumbs-up me-1"></i> Helpful';
+        } else {
+            btn.classList.add('voted');
+            btn.innerHTML = '<i class="bi bi-hand-thumbs-up-fill text-success me-1"></i> Helpful (1)';
+        }
+    }
+
+    async function loadMyReviews() {
+        const container = document.getElementById('profileReviewsContainer');
+        if (!container) return;
+
+        try {
+            const fetchFn = window.apiFetch || fetch;
+            const res = await fetchFn('/api/customer/my-reviews');
+            if (res.ok) {
+                const data = await res.json();
+                if (data.success) {
+                    myProfileReviews = data.reviews || [];
+                    renderMyReviewsList(myProfileReviews);
+                    return;
+                }
+            }
+        } catch (e) {
+            console.debug('Could not load my-reviews:', e);
+        }
+
+        renderMyReviewsList([]);
+    }
+
+    function renderMyReviewsList(reviews) {
+        const container = document.getElementById('profileReviewsContainer');
+        if (!container) return;
+
+        if (reviews.length === 0) {
+            container.innerHTML = `
+                <div class="text-center py-5">
+                    <i class="bi bi-star display-3 text-muted opacity-50 mb-3 d-block"></i>
+                    <h5 class="fw-bold">You haven't reviewed any products yet</h5>
+                    <p class="text-muted small mx-auto mb-3" style="max-width: 400px;">
+                        Share your experience with fresh grocery items you have received to help the local community.
+                    </p>
+                    <a href="orders.html" class="btn btn-success rounded-pill px-4 fw-bold">
+                        <i class="bi bi-box-seam me-1"></i> Review from Orders
+                    </a>
+                </div>
+            `;
+            return;
+        }
+
+        container.innerHTML = reviews.map(r => {
+            let starsHtml = '';
+            for (let i = 1; i <= 5; i++) {
+                starsHtml += `<i class="bi bi-star${i <= r.rating ? '-fill text-warning' : ' text-muted opacity-25'}"></i>`;
+            }
+
+            const prodImg = r.product_image ? (window.apiUrl ? window.apiUrl(r.product_image) : r.product_image) : '../static/images/logo-icon.png';
+
+            return `
+                <div class="my-review-card d-flex flex-wrap gap-3 align-items-center justify-content-between">
+                    <div class="d-flex align-items-center gap-3">
+                        <img src="${escapeHTML(prodImg)}" alt="${escapeHTML(r.product_name)}" class="my-review-prod-img">
+                        <div>
+                            <h6 class="fw-bold text-dark mb-1">${escapeHTML(r.product_name)}</h6>
+                            <div class="d-flex align-items-center gap-2 mb-1">
+                                <span class="text-warning small">${starsHtml}</span>
+                                <span class="smallest text-muted">• ${escapeHTML(r.created_at || 'Recently')}</span>
+                            </div>
+                            <p class="small text-muted mb-0" style="max-width: 500px;">${escapeHTML(r.comment)}</p>
+                        </div>
+                    </div>
+                    <div class="d-flex flex-wrap gap-2 align-items-center">
+                        <a href="product.html?id=${r.product_id}" class="btn btn-sm btn-outline-secondary rounded-pill px-3">
+                            <i class="bi bi-box-arrow-up-right me-1"></i> View
+                        </a>
+                        <button type="button" class="btn btn-sm btn-outline-success rounded-pill px-3 fw-semibold" onclick="window.JG.openProfileEditReview(${r.id}, ${r.product_id}, '${escapeHTML(r.product_name)}', ${r.rating}, '${escapeHTML(r.comment)}')">
+                            <i class="bi bi-pencil me-1"></i> Edit
+                        </button>
+                        <button type="button" class="btn btn-sm btn-outline-danger rounded-pill px-3 fw-semibold" onclick="window.JG.openDeleteReviewModal(${r.id}, '${escapeHTML(r.product_name)}')">
+                            <i class="bi bi-trash3 me-1"></i> Delete
+                        </button>
+                    </div>
+                </div>
+            `;
+        }).join('');
+    }
+
+    function showProfileSection(section) {
+        const secSettings = document.getElementById('profileSectionSettings');
+        const secReviews = document.getElementById('profileSectionReviews');
+        const navItem = document.getElementById('navItemMyReviews');
+
+        if (section === 'reviews') {
+            if (secSettings) secSettings.style.display = 'none';
+            if (secReviews) secReviews.style.display = 'block';
+            if (navItem) navItem.classList.add('active');
+            document.querySelectorAll('.profile-nav-item').forEach(el => {
+                if (el !== navItem) el.classList.remove('active');
+            });
+            loadMyReviews();
+        } else {
+            if (secSettings) secSettings.style.display = 'block';
+            if (secReviews) secReviews.style.display = 'none';
+            if (navItem) navItem.classList.remove('active');
+            document.querySelectorAll('.profile-nav-item').forEach(el => {
+                if (el.getAttribute('href') === 'profile.html') el.classList.add('active');
+            });
+        }
+    }
 
     // ── Shop View Renderer ──
     function renderShopView() {
@@ -836,17 +1527,214 @@
     // ── Checkout View Renderer ──
     function renderCheckoutView() {
         const totals = calculateCartTotals();
+
+        // 1. Update Pay Totals across all buttons and summary labels
         document.querySelectorAll('.checkout-pay-total').forEach(el => el.textContent = `₹${totals.finalTotal}`);
 
-        const addrDisplay = document.getElementById('checkoutSelectedAddressText');
-        if (addrDisplay) {
-            addrDisplay.textContent = (state.user && state.user.address) ? state.user.address : 'Default Delivery Address: Sector 4, Pali, Rajasthan';
+        // 2. Render Bag Count
+        const bagCountEl = document.getElementById('checkoutBagCountLabel');
+        const totalItemsCount = state.cart.reduce((sum, item) => sum + (Number(item.qty || item.quantity) || 1), 0);
+        if (bagCountEl) {
+            bagCountEl.textContent = `${totalItemsCount} item${totalItemsCount === 1 ? '' : 's'}`;
         }
 
-        const phoneEl = document.getElementById('checkoutContactPhone');
-        if (phoneEl && state.user && state.user.phone) {
-            phoneEl.textContent = state.user.phone;
+        // 3. Render Itemized Bag Items inside checkout summary preview
+        const itemsContainer = document.getElementById('checkoutItemsContainer');
+        if (itemsContainer) {
+            if (state.cart.length === 0) {
+                itemsContainer.innerHTML = `
+                    <div class="text-center py-4">
+                        <i class="bi bi-bag-x display-4 text-muted opacity-50 mb-2 d-block"></i>
+                        <div class="small fw-bold text-dark">Your shopping bag is empty</div>
+                        <a href="shop.html" class="btn btn-sm btn-outline-success rounded-pill mt-2">Go to Shop</a>
+                    </div>
+                `;
+            } else {
+                itemsContainer.innerHTML = state.cart.map(c => {
+                    const numId = Number(c.productId || c.id || 0);
+                    const prod = state.products.find(p => Number(p.id) === numId);
+                    const name = (prod && prod.name) || c.name || 'Grocery Item';
+                    const unit = (prod && prod.unit) || c.unit || '1 pack';
+                    const price = prod ? Number(prod.price) : Number(c.price || 0);
+                    const mrp = prod ? Number(prod.mrp || Math.round(price * 1.15)) : (Number(c.mrp) || Math.round(price * 1.15));
+                    const img = (prod && prod.image) || c.image || 'https://images.unsplash.com/photo-1542838132-92c53300491e?auto=format&fit=crop&w=100&q=80';
+                    const qty = Number(c.qty || c.quantity) || 1;
+                    const itemTotal = price * qty;
+                    const itemSavings = (mrp - price) * qty;
+
+                    return `
+                        <div class="checkout-item-row">
+                            <img src="${img}" alt="${name}" class="checkout-item-thumb" onerror="this.src='https://images.unsplash.com/photo-1542838132-92c53300491e?auto=format&fit=crop&w=100&q=80'">
+                            <div class="flex-grow-1 min-w-0">
+                                <div class="fw-bold text-dark text-truncate small" title="${name}">${name}</div>
+                                <div class="smallest text-muted">${unit} &bull; <span class="badge bg-light text-dark border">Qty: ${qty}</span></div>
+                            </div>
+                            <div class="text-end">
+                                <div class="fw-bold text-dark small">₹${itemTotal}</div>
+                                ${itemSavings > 0 ? `<div class="smallest text-success">Save ₹${itemSavings}</div>` : ''}
+                            </div>
+                        </div>
+                    `;
+                }).join('');
+            }
         }
+
+        // 4. Update Detailed Bill Breakdown
+        const mrpEl = document.getElementById('checkoutMrpTotalVal');
+        if (mrpEl) mrpEl.textContent = `₹${totals.originalMrpTotal}`;
+
+        const prodDiscountRow = document.getElementById('checkoutDiscountRow');
+        const prodDiscountVal = document.getElementById('checkoutDiscountVal');
+        const prodSavings = totals.originalMrpTotal - totals.subtotal;
+        if (prodDiscountRow && prodDiscountVal) {
+            if (prodSavings > 0) {
+                prodDiscountRow.style.display = 'flex';
+                prodDiscountVal.textContent = `-₹${prodSavings}`;
+            } else {
+                prodDiscountRow.style.display = 'none';
+            }
+        }
+
+        const couponRow = document.getElementById('checkoutCouponDiscountRow');
+        const couponVal = document.getElementById('checkoutCouponDiscountVal');
+        if (couponRow && couponVal) {
+            if (totals.couponDiscount > 0) {
+                couponRow.style.display = 'flex';
+                couponVal.textContent = `-₹${totals.couponDiscount}`;
+            } else {
+                couponRow.style.display = 'none';
+            }
+        }
+
+        const deliveryEl = document.getElementById('checkoutDeliveryVal');
+        if (deliveryEl) {
+            deliveryEl.textContent = totals.deliveryFee === 0 ? 'FREE' : `₹${totals.deliveryFee}`;
+            deliveryEl.className = totals.deliveryFee === 0 ? 'fw-bold text-success' : 'fw-bold text-dark';
+        }
+
+        const handlingEl = document.getElementById('checkoutHandlingVal');
+        if (handlingEl) handlingEl.textContent = `₹${totals.handlingFee}`;
+
+        const tipRow = document.getElementById('checkoutTipRow');
+        const tipVal = document.getElementById('checkoutTipVal');
+        if (tipRow && tipVal) {
+            if (totals.partnerTip > 0) {
+                tipRow.style.display = 'flex';
+                tipVal.textContent = `+₹${totals.partnerTip}`;
+            } else {
+                tipRow.style.display = 'none';
+            }
+        }
+
+        // 5. Savings Banner & Badges
+        const savingsBanner = document.getElementById('checkoutSavingsBanner');
+        const totalSavingsBadge = document.getElementById('checkoutTotalSavingsBadge');
+        const mobileSavingsBadge = document.getElementById('mobileSavingsBadge');
+        if (totalSavingsBadge) totalSavingsBadge.textContent = `₹${totals.totalSavings}`;
+        if (mobileSavingsBadge) mobileSavingsBadge.textContent = `Save ₹${totals.totalSavings}`;
+        if (savingsBanner) {
+            savingsBanner.style.display = totals.totalSavings > 0 ? 'block' : 'none';
+        }
+
+        // 6. Active Coupon Chip
+        const appliedChip = document.getElementById('checkoutAppliedCouponChip');
+        const couponCodeTxt = document.getElementById('checkoutCouponCodeTxt');
+        if (appliedChip && couponCodeTxt) {
+            if (state.activeCoupon && state.activeCoupon.code) {
+                appliedChip.style.display = 'inline-flex';
+                couponCodeTxt.textContent = state.activeCoupon.code;
+            } else {
+                appliedChip.style.display = 'none';
+            }
+        }
+
+        // 7. Render Address Cards
+        renderCheckoutAddresses();
+
+        // 8. Cardholder preview default
+        const activeAddr = state.addresses && state.addresses.find(a => a.id === state.selectedAddressId);
+        const resolvedName = (activeAddr && activeAddr.fullName) || (state.user && (state.user.full_name || state.user.name || state.user.username)) || 'CUSTOMER';
+        const cardHolderPreview = document.getElementById('cardHolderPreview');
+        if (cardHolderPreview && (!cardHolderPreview.dataset.edited || cardHolderPreview.dataset.edited === 'false')) {
+            cardHolderPreview.textContent = resolvedName.toUpperCase();
+        }
+    }
+
+    function renderCheckoutAddresses() {
+        const container = document.getElementById('checkoutAddressCardsRow');
+        if (!container) return;
+
+        if (!state.addresses || state.addresses.length === 0) {
+            container.innerHTML = `
+                <div class="col-12">
+                    <div class="p-4 text-center border-2 border-dashed rounded-4 bg-light">
+                        <i class="bi bi-geo-alt display-4 text-muted opacity-50 mb-2 d-block"></i>
+                        <h6 class="fw-bold text-dark mb-1">No Delivery Address Found</h6>
+                        <p class="small text-muted mb-3">Please add your delivery address so our riders can bring your order accurately.</p>
+                        <button type="button" class="btn btn-success rounded-pill px-4 fw-bold shadow-sm" onclick="window.JG.openAddressModal()">
+                            <i class="bi bi-plus-lg me-1"></i> Add Delivery Address
+                        </button>
+                    </div>
+                </div>
+            `;
+            return;
+        }
+
+        // Ensure a selected address exists
+        if (!state.selectedAddressId || !state.addresses.some(a => a.id === state.selectedAddressId)) {
+            const def = state.addresses.find(a => a.isDefault);
+            state.selectedAddressId = def ? def.id : state.addresses[0].id;
+        }
+
+        container.innerHTML = state.addresses.map(addr => {
+            const isSelected = addr.id === state.selectedAddressId;
+            const isDef = Boolean(addr.isDefault);
+            const tagIcon = addr.tag === 'Work' ? 'bi-briefcase' : (addr.tag === 'Other' ? 'bi-geo-alt' : 'bi-house-door');
+            const tagColor = addr.tag === 'Work' ? 'secondary' : 'success';
+
+            return `
+                <div class="col-md-6">
+                    <div class="option-select-card checkout-addr-card ${isSelected ? 'selected' : ''}" 
+                         data-addr-id="${addr.id}" 
+                         onclick="window.JG.selectAddress('${addr.id}')">
+                        <div class="d-flex align-items-center justify-content-between mb-2">
+                            <div class="d-flex align-items-center gap-1">
+                                <span class="badge bg-${tagColor}-subtle text-${tagColor} fw-bold">
+                                    <i class="bi ${tagIcon} me-1"></i>${(addr.tag || 'Home').toUpperCase()}
+                                </span>
+                                ${isDef ? `<span class="badge bg-primary-subtle text-primary fw-bold"><i class="bi bi-star-fill me-1"></i>DEFAULT</span>` : ''}
+                            </div>
+                            <span class="addr-check-badge"><i class="bi bi-check-circle-fill text-success fs-5"></i></span>
+                        </div>
+                        <div class="fw-bold text-dark mb-1">${addr.fullName || 'Customer'}</div>
+                        <div class="small text-muted mb-1 address-card-text">${addr.fullAddress || ''}</div>
+                        <div class="smallest text-muted"><i class="bi bi-telephone me-1"></i>${addr.phone || 'No phone'}</div>
+                        
+                        <!-- Address Card Quick Actions: Deliver Here, Make Default, Change, Remove -->
+                        <div class="addr-actions">
+                            ${!isSelected ? `
+                                <button type="button" class="btn btn-xs btn-outline-success" onclick="event.stopPropagation(); window.JG.selectAddress('${addr.id}')">
+                                    <i class="bi bi-check2 me-1"></i>Deliver Here
+                                </button>
+                            ` : `
+                                <span class="badge bg-success-subtle text-success py-1 px-2 smallest fw-bold"><i class="bi bi-geo-alt-fill me-1"></i>Selected</span>
+                            `}
+                            ${!isDef ? `
+                                <button type="button" class="btn btn-xs btn-light text-secondary border" onclick="event.stopPropagation(); window.JG.setDefaultAddress('${addr.id}')" title="Set as default delivery address">
+                                    <i class="bi bi-star me-1"></i>Make Default
+                                </button>
+                            ` : ''}
+                            <button type="button" class="btn btn-xs btn-light text-dark border" onclick="event.stopPropagation(); window.JG.openAddressModal('${addr.id}')" title="Change / Edit address">
+                                <i class="bi bi-pencil me-1"></i>Change
+                            </button>
+                            <button type="button" class="btn btn-xs btn-light text-danger border" onclick="event.stopPropagation(); window.JG.removeAddress('${addr.id}')" title="Remove address">
+                                <i class="bi bi-trash me-1"></i>Remove
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            `;
+        }).join('');
     }
 
     // ── Orders View Renderer ──
@@ -984,6 +1872,11 @@
                             <span class="text-muted small ms-2">• ${escapeHTML(order.date)}</span>
                         </div>
                         <div class="d-flex flex-wrap gap-2">
+                            ${isDelivered ? `
+                                <a href="product.html?id=1#reviews" class="btn btn-sm btn-outline-warning rounded-pill px-3 fw-bold text-dark shadow-sm" title="Rate and review products from this order">
+                                    <i class="bi bi-star-fill text-warning me-1"></i> Rate &amp; Review
+                                </a>
+                            ` : ''}
                             <a href="invoice.html?order_id=${encodeURIComponent(order.id)}" class="btn btn-sm btn-outline-success rounded-pill px-3 fw-semibold">
                                 <i class="bi bi-receipt-cutoff me-1"></i> View Bill
                             </a>
@@ -994,6 +1887,7 @@
                                 <i class="bi bi-arrow-repeat me-1"></i> Reorder
                             </button>
                         </div>
+
                     </div>
 
                     ${stepperHtml}
@@ -1085,7 +1979,14 @@
         if (walletEl) {
             walletEl.textContent = `₹${user.wallet_balance !== undefined ? user.wallet_balance : 250}`;
         }
+
+        if (window.location.hash.includes('review')) {
+            showProfileSection('reviews');
+        } else {
+            showProfileSection('settings');
+        }
     }
+
 
     window.handleCartCheckoutProceed = function (e) {
         if (e) e.preventDefault();
@@ -1140,6 +2041,54 @@
             state.sortBy = val;
             renderShopView();
         },
+
+        // ── Real-World Product Review & Rating System APIs ──
+        openReviewModal: function (isEditMode) {
+            openReviewModal(Boolean(isEditMode));
+        },
+        setReviewRating: function (val) {
+            setReviewRating(val);
+        },
+        toggleReviewTag: function (el, tag) {
+            toggleReviewTag(el, tag);
+        },
+        handleCommentInput: function (el) {
+            handleCommentInput(el);
+        },
+        submitReview: function () {
+            submitReview();
+        },
+        openDeleteReviewModal: function (reviewId, prodName) {
+            openDeleteReviewModal(reviewId, prodName);
+        },
+        confirmDeleteReview: function () {
+            confirmDeleteReview();
+        },
+        filterReviewsByStar: function (star) {
+            filterReviewsByStar(star);
+        },
+        filterReviewsByVerified: function () {
+            filterReviewsByVerified();
+        },
+        sortReviews: function (criterion) {
+            sortReviews(criterion);
+        },
+        voteHelpful: function (reviewId, btn) {
+            voteHelpful(reviewId, btn);
+        },
+        showProfileSection: function (section) {
+            showProfileSection(section);
+        },
+        openProfileEditReview: function (reviewId, prodId, prodName, rating, comment) {
+            currentUserProductReview = { id: reviewId, rating: rating, comment: comment };
+            currentDetailProduct = { id: prodId, name: prodName };
+            openReviewModal(true);
+        },
+        promptOrderReview: function (orderId) {
+            const inCustomer = window.location.pathname.includes('/customer/');
+            window.location.href = inCustomer ? 'product.html?id=1#reviews' : 'customer/product.html?id=1#reviews';
+        },
+
 
         addToCart: async function (productId, quantityToAdd = 1) {
             const addQty = Math.max(1, Number(quantityToAdd) || 1);
@@ -1282,11 +2231,266 @@
             renderCartView();
         },
 
-        selectCheckoutAddress: function (type) {
-            state.checkoutData.addressType = type;
-            document.querySelectorAll('.checkout-addr-card').forEach(c => {
-                c.classList.toggle('selected', c.getAttribute('data-addr') === type);
+        selectAddress: function (addrId) {
+            state.selectedAddressId = addrId;
+            renderCheckoutAddresses();
+            renderCheckoutView();
+        },
+
+        setDefaultAddress: function (addrId) {
+            state.addresses.forEach(a => {
+                a.isDefault = (a.id === addrId);
             });
+            state.selectedAddressId = addrId;
+            const chosen = state.addresses.find(a => a.id === addrId);
+            if (chosen && state.user) {
+                state.user.address = chosen.fullAddress;
+                if (chosen.phone) state.user.phone = chosen.phone;
+                if (chosen.fullName) state.user.full_name = chosen.fullName;
+            }
+            persistState();
+
+            // Background sync with profile
+            if (chosen) {
+                try {
+                    const fetchFn = window.apiFetch || fetch;
+                    fetchFn('/api/auth/profile', {
+                        method: 'PUT',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({
+                            full_name: chosen.fullName,
+                            phone: chosen.phone,
+                            address: chosen.fullAddress
+                        })
+                    }).catch(() => {});
+                } catch (e) {}
+            }
+
+            renderCheckoutAddresses();
+            renderCheckoutView();
+        },
+
+        removeAddress: function (addrId) {
+            const target = state.addresses.find(a => a.id === addrId);
+            const name = target ? (target.tag || 'this') : 'this';
+            if (!confirm(`Are you sure you want to remove ${name} delivery address?`)) {
+                return;
+            }
+
+            state.addresses = state.addresses.filter(a => a.id !== addrId);
+
+            if (state.selectedAddressId === addrId) {
+                const def = state.addresses.find(a => a.isDefault);
+                state.selectedAddressId = def ? def.id : (state.addresses.length > 0 ? state.addresses[0].id : null);
+            }
+
+            // If removed was default and there are other addresses, make the first one default
+            if (target && target.isDefault && state.addresses.length > 0) {
+                state.addresses[0].isDefault = true;
+                if (state.user) {
+                    state.user.address = state.addresses[0].fullAddress;
+                    if (state.addresses[0].phone) state.user.phone = state.addresses[0].phone;
+                    if (state.addresses[0].fullName) state.user.full_name = state.addresses[0].fullName;
+                }
+                try {
+                    const fetchFn = window.apiFetch || fetch;
+                    fetchFn('/api/auth/profile', {
+                        method: 'PUT',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({
+                            full_name: state.addresses[0].fullName,
+                            phone: state.addresses[0].phone,
+                            address: state.addresses[0].fullAddress
+                        })
+                    }).catch(() => {});
+                } catch (e) {}
+            } else if (state.addresses.length === 0) {
+                if (state.user) state.user.address = '';
+                try {
+                    const fetchFn = window.apiFetch || fetch;
+                    fetchFn('/api/auth/profile', {
+                        method: 'PUT',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ address: '' })
+                    }).catch(() => {});
+                } catch (e) {}
+            }
+
+            persistState();
+            renderCheckoutAddresses();
+            renderCheckoutView();
+        },
+
+        selectCheckoutAddress: function (type) {
+            const match = state.addresses.find(a => (a.tag || '').toLowerCase() === type.toLowerCase());
+            if (match) {
+                window.JG.selectAddress(match.id);
+            }
+        },
+
+        openAddressModal: function (addrId) {
+            const modalEl = document.getElementById('checkoutAddressModal');
+            if (!modalEl) return;
+
+            const titleEl = document.getElementById('addrModalTitleText');
+            const editIdInput = document.getElementById('addrEditingId');
+            const nameInput = document.getElementById('addrFullName');
+            const phoneInput = document.getElementById('addrPhone');
+            const flatInput = document.getElementById('addrFlat');
+            const streetInput = document.getElementById('addrStreet');
+            const landmarkInput = document.getElementById('addrLandmark');
+            const cityInput = document.getElementById('addrCity');
+            const pincodeInput = document.getElementById('addrPincode');
+            const defCheck = document.getElementById('addrSetDefault');
+
+            if (addrId) {
+                // Change / Edit existing address
+                const addr = state.addresses.find(a => a.id === addrId);
+                if (addr) {
+                    if (titleEl) titleEl.textContent = 'Change / Edit Delivery Address';
+                    if (editIdInput) editIdInput.value = addr.id;
+                    if (nameInput) nameInput.value = addr.fullName || '';
+                    if (phoneInput) phoneInput.value = (addr.phone || '').replace('+91', '').trim();
+                    if (flatInput) flatInput.value = addr.flat || '';
+                    if (streetInput) streetInput.value = addr.street || '';
+                    if (landmarkInput) landmarkInput.value = addr.landmark || '';
+                    if (cityInput) cityInput.value = addr.city || 'Pali';
+                    if (pincodeInput) pincodeInput.value = addr.pincode || '306401';
+                    if (defCheck) defCheck.checked = Boolean(addr.isDefault);
+
+                    const tag = addr.tag || 'Home';
+                    const radio = document.getElementById(`tag${tag}`);
+                    if (radio) radio.checked = true;
+                }
+            } else {
+                // Add new address
+                if (titleEl) titleEl.textContent = 'Add New Delivery Address';
+                if (editIdInput) editIdInput.value = '';
+                if (nameInput) nameInput.value = (state.user && (state.user.full_name || state.user.name || state.user.username)) || '';
+                if (phoneInput) phoneInput.value = (state.user && state.user.phone ? state.user.phone.replace('+91', '').trim() : '');
+                if (flatInput) flatInput.value = '';
+                if (streetInput) streetInput.value = '';
+                if (landmarkInput) landmarkInput.value = '';
+                if (cityInput) cityInput.value = 'Pali';
+                if (pincodeInput) pincodeInput.value = '306401';
+                if (defCheck) defCheck.checked = (state.addresses.length === 0);
+
+                const homeRadio = document.getElementById('tagHome');
+                if (homeRadio) homeRadio.checked = true;
+            }
+
+            if (window.bootstrap && bootstrap.Modal) {
+                bootstrap.Modal.getOrCreateInstance(modalEl).show();
+            }
+        },
+
+        saveCustomAddress: function (e) {
+            if (e) e.preventDefault();
+            const editingId = (document.getElementById('addrEditingId')?.value || '').trim();
+            const fullName = (document.getElementById('addrFullName')?.value || '').trim();
+            const phone = (document.getElementById('addrPhone')?.value || '').trim();
+            const flat = (document.getElementById('addrFlat')?.value || '').trim();
+            const street = (document.getElementById('addrStreet')?.value || '').trim();
+            const landmark = (document.getElementById('addrLandmark')?.value || '').trim();
+            const city = (document.getElementById('addrCity')?.value || 'Pali').trim();
+            const pincode = (document.getElementById('addrPincode')?.value || '306401').trim();
+            const isDefault = Boolean(document.getElementById('addrSetDefault')?.checked) || state.addresses.length === 0;
+
+            const selectedTagRadio = document.querySelector('input[name="addrTagRadio"]:checked');
+            const tag = selectedTagRadio ? selectedTagRadio.value : 'Home';
+
+            const fullAddr = [flat, street, landmark ? 'Near ' + landmark : '', `${city}, Rajasthan - ${pincode}`].filter(Boolean).join(', ');
+            const formattedPhone = phone.startsWith('+91') ? phone : `+91 ${phone}`;
+
+            let activeId = editingId;
+            if (editingId) {
+                // Update existing
+                const existing = state.addresses.find(a => a.id === editingId);
+                if (existing) {
+                    existing.tag = tag;
+                    existing.fullName = fullName;
+                    existing.phone = formattedPhone;
+                    existing.flat = flat;
+                    existing.street = street;
+                    existing.landmark = landmark;
+                    existing.city = city;
+                    existing.pincode = pincode;
+                    existing.fullAddress = fullAddr;
+                    if (isDefault) existing.isDefault = true;
+                }
+                activeId = editingId;
+            } else {
+                // Add new address
+                const newId = 'addr_' + Date.now();
+                const newObj = {
+                    id: newId,
+                    tag: tag,
+                    fullName: fullName,
+                    phone: formattedPhone,
+                    flat: flat,
+                    street: street,
+                    landmark: landmark,
+                    city: city,
+                    pincode: pincode,
+                    fullAddress: fullAddr,
+                    isDefault: isDefault
+                };
+                state.addresses.push(newObj);
+                activeId = newId;
+            }
+
+            state.selectedAddressId = activeId;
+
+            if (isDefault) {
+                state.addresses.forEach(a => {
+                    if (a.id !== activeId) a.isDefault = false;
+                });
+                if (!state.user) state.user = {};
+                state.user.address = fullAddr;
+                state.user.phone = formattedPhone;
+                if (fullName) state.user.full_name = fullName;
+            }
+
+            persistState();
+
+            // Background profile sync
+            if (isDefault) {
+                try {
+                    const fetchFn = window.apiFetch || fetch;
+                    fetchFn('/api/auth/profile', {
+                        method: 'PUT',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({
+                            full_name: fullName,
+                            phone: formattedPhone,
+                            address: fullAddr
+                        })
+                    }).catch(() => {});
+                } catch (err) {}
+            }
+
+            // Dismiss modal
+            const modalEl = document.getElementById('checkoutAddressModal');
+            if (modalEl && window.bootstrap && bootstrap.Modal) {
+                const inst = bootstrap.Modal.getInstance(modalEl);
+                if (inst) inst.hide();
+            }
+
+            renderCheckoutAddresses();
+            renderCheckoutView();
+        },
+
+        toggleInstruction: function (el, text) {
+            el.classList.toggle('active');
+            if (!state.checkoutData.deliveryInstructions) {
+                state.checkoutData.deliveryInstructions = [];
+            }
+            const idx = state.checkoutData.deliveryInstructions.indexOf(text);
+            if (el.classList.contains('active')) {
+                if (idx === -1) state.checkoutData.deliveryInstructions.push(text);
+            } else {
+                if (idx !== -1) state.checkoutData.deliveryInstructions.splice(idx, 1);
+            }
         },
 
         selectCheckoutSlot: function (slot) {
@@ -1296,11 +2500,173 @@
             });
         },
 
-        selectPaymentMethod: function (method) {
+        switchPaymentTab: function (method) {
             state.checkoutData.paymentMethod = method;
-            document.querySelectorAll('.checkout-pay-card').forEach(c => {
-                c.classList.toggle('selected', c.getAttribute('data-pay') === method);
+            document.querySelectorAll('.payment-tab-btn').forEach(b => {
+                const target = b.getAttribute('data-target');
+                const isTarget = target === `panel-${method.toLowerCase()}`;
+                b.classList.toggle('active', isTarget);
             });
+            document.querySelectorAll('.payment-panel').forEach(p => {
+                p.classList.toggle('active', p.id === `panel-${method.toLowerCase()}`);
+            });
+        },
+
+        selectUpiApp: function (appName) {
+            state.checkoutData.selectedUpiApp = appName;
+            document.querySelectorAll('.upi-app-btn').forEach(btn => {
+                btn.classList.toggle('selected', btn.textContent.includes(appName) || btn.innerText.includes(appName));
+            });
+        },
+
+        verifyUpiVpa: function () {
+            const input = document.getElementById('upiVpaInput');
+            const feedback = document.getElementById('upiVpaFeedback');
+            const val = input ? input.value.trim() : '';
+            if (val.includes('@') && val.length >= 6) {
+                state.checkoutData.upiVpa = val;
+                if (feedback) {
+                    feedback.innerHTML = `<span class="text-success fw-bold"><i class="bi bi-check-circle-fill me-1"></i> Verified & Active: ${val} (Linked to Jay Goga Escrow)</span>`;
+                }
+            } else {
+                if (feedback) {
+                    feedback.innerHTML = `<span class="text-danger fw-bold"><i class="bi bi-exclamation-triangle-fill me-1"></i> Please enter a valid UPI VPA (e.g. mobile@okhdfcbank)</span>`;
+                }
+            }
+        },
+
+        appendUpiHandle: function (handle) {
+            const input = document.getElementById('upiVpaInput');
+            if (input) {
+                let current = input.value.trim();
+                if (current.includes('@')) current = current.split('@')[0];
+                if (!current) current = (state.user && state.user.phone ? state.user.phone.replace(/\D/g, '') : '9876543210');
+                input.value = current + handle;
+                input.focus();
+                window.JG.verifyUpiVpa();
+            }
+        },
+
+        toggleUpiQr: function (show) {
+            const qrBox = document.getElementById('desktopQrBox');
+            if (qrBox) qrBox.style.display = show ? 'block' : 'none';
+        },
+
+        handleCardNumberInput: function (input) {
+            let val = input.value.replace(/\D/g, '').substring(0, 16);
+            input.value = val.replace(/(\d{4})(?=\d)/g, '$1 ');
+
+            const preview = document.getElementById('cardNumberPreview');
+            if (preview) {
+                if (val.length === 0) {
+                    preview.textContent = '•••• •••• •••• 4242';
+                } else {
+                    const formatted = val.padEnd(16, '•').replace(/(.{4})/g, '$1 ').trim();
+                    preview.textContent = formatted;
+                }
+            }
+
+            // Brand Detection
+            const brandPreview = document.getElementById('cardBrandPreview');
+            const brandIcon = document.getElementById('cardBrandIcon');
+            let brand = 'CARD';
+            if (/^4/.test(val)) brand = 'VISA';
+            else if (/^(5[1-5]|2[2-7])/.test(val)) brand = 'MASTERCARD';
+            else if (/^(60|65|81|82|508)/.test(val)) brand = 'RUPAY';
+            else if (/^3[47]/.test(val)) brand = 'AMEX';
+
+            if (brandPreview) brandPreview.textContent = brand;
+            if (brandIcon) {
+                brandIcon.innerHTML = `<span class="badge bg-success-subtle text-success fw-bold">${brand}</span>`;
+            }
+        },
+
+        handleCardNameInput: function (input) {
+            const preview = document.getElementById('cardHolderPreview');
+            if (preview) {
+                preview.textContent = input.value.trim().toUpperCase() || 'REGISTERED CUSTOMER';
+                preview.dataset.edited = 'true';
+            }
+        },
+
+        handleCardExpiryInput: function (input) {
+            let val = input.value.replace(/\D/g, '').substring(0, 4);
+            if (val.length >= 3) {
+                input.value = val.substring(0, 2) + '/' + val.substring(2);
+            } else {
+                input.value = val;
+            }
+            const preview = document.getElementById('cardExpiryPreview');
+            if (preview) {
+                preview.textContent = input.value || '12/28';
+            }
+        },
+
+        selectBank: function (bankCode) {
+            state.checkoutData.bank = bankCode;
+            document.querySelectorAll('.bank-pill').forEach(pill => {
+                pill.classList.toggle('selected', pill.textContent.includes(bankCode));
+            });
+            const sel = document.getElementById('allBanksSelector');
+            if (sel) {
+                const hasOption = Array.from(sel.options).some(o => o.value === bankCode);
+                if (hasOption) sel.value = bankCode;
+            }
+        },
+
+        selectTip: function (amount, btn) {
+            state.checkoutData.tip = Number(amount);
+            document.querySelectorAll('.tip-pill').forEach(b => b.classList.remove('active'));
+            if (btn) btn.classList.add('active');
+            renderCheckoutView();
+        },
+
+        applyCheckoutCoupon: function () {
+            const input = document.getElementById('checkoutCouponInput');
+            const code = input ? input.value.trim().toUpperCase() : '';
+            const feedback = document.getElementById('checkoutCouponFeedback');
+            if (!code) return;
+
+            if (code === 'FRESH15' || code === 'SAVE10') {
+                state.activeCoupon = { code: code, discountPercent: code === 'FRESH15' ? 15 : 10 };
+                persistState();
+                renderCheckoutView();
+                if (feedback) {
+                    feedback.className = 'text-success smallest mt-1 fw-bold';
+                    feedback.textContent = `🎉 Coupon ${code} applied successfully!`;
+                }
+            } else if (code === 'JAYGOGA100') {
+                state.activeCoupon = { code: code, discountFlat: 100 };
+                persistState();
+                renderCheckoutView();
+                if (feedback) {
+                    feedback.className = 'text-success smallest mt-1 fw-bold';
+                    feedback.textContent = `🎉 Flat ₹100 Discount Applied!`;
+                }
+            } else {
+                if (feedback) {
+                    feedback.className = 'text-danger smallest mt-1 fw-bold';
+                    feedback.textContent = `Invalid coupon code. Try FRESH15 or JAYGOGA100.`;
+                }
+            }
+        },
+
+        removeCheckoutCoupon: function () {
+            state.activeCoupon = null;
+            const input = document.getElementById('checkoutCouponInput');
+            if (input) input.value = '';
+            const feedback = document.getElementById('checkoutCouponFeedback');
+            if (feedback) feedback.textContent = '';
+            persistState();
+            renderCheckoutView();
+        },
+
+        fillCoupon: function (code) {
+            const input = document.getElementById('checkoutCouponInput');
+            if (input) {
+                input.value = code;
+                window.JG.applyCheckoutCoupon();
+            }
         },
 
         // Real-World Backend Checkout
@@ -1319,16 +2685,44 @@
             }
 
             const totals = calculateCartTotals();
-            const address = (state.user && state.user.address && state.user.address.length >= 15)
-                ? state.user.address
-                : 'Pali Sector 4, Opposite Krishi Mandi, Pali, Rajasthan 306401';
+
+            // Validate Delivery Address from user's saved addresses (No hardcoded mock addresses)
+            const activeAddr = state.addresses && state.addresses.find(a => a.id === state.selectedAddressId);
+            if (!activeAddr || !activeAddr.fullAddress || activeAddr.fullAddress.trim().length < 10) {
+                alert('Please add or select a delivery address before placing your order.');
+                window.JG.openAddressModal();
+                return;
+            }
+
+            const baseAddress = activeAddr.fullAddress.trim();
+
+            const slotLabel = state.checkoutData.slot === 'evening' ? 'Evening 6-8 PM' 
+                            : (state.checkoutData.slot === 'tomorrow' ? 'Tomorrow Morning 7-9 AM' : '⚡ 15-Min Instant Express');
+
+            const instructionsArr = state.checkoutData.deliveryInstructions || [];
+            const customNote = (document.getElementById('customDeliveryNote')?.value || '').trim();
+            if (customNote) instructionsArr.push(customNote);
+
+            const instructionsStr = instructionsArr.length > 0 ? ` | Instructions: ${instructionsArr.join(', ')}` : '';
+            const finalShippingAddress = `${baseAddress} [Slot: ${slotLabel}]${instructionsStr}`.substring(0, 480);
+
+            // Button Loading State
+            const btn = document.getElementById('btnPlaceOrder');
+            const spinner = document.getElementById('checkoutSpinner');
+            if (btn) btn.disabled = true;
+            if (spinner) spinner.classList.remove('d-none');
+
+            const rawMethod = (state.checkoutData.paymentMethod || 'UPI').toUpperCase();
+            const validPaymentMethod = (rawMethod === 'CARD') ? 'CARD' 
+                                     : (rawMethod === 'NETBANKING' ? 'NETBANKING' 
+                                     : (rawMethod === 'COD' ? 'COD' : 'UPI'));
 
             const payload = {
-                shipping_address: address,
-                payment_method: state.checkoutData.paymentMethod || 'COD',
+                shipping_address: finalShippingAddress,
+                payment_method: validPaymentMethod,
                 items: state.cart.map(c => ({
-                    product_id: c.productId,
-                    quantity: c.qty
+                    product_id: c.productId || c.id,
+                    quantity: c.qty || c.quantity || 1
                 }))
             };
 
@@ -1348,7 +2742,7 @@
                         unit: c.unit || c.weight || '1 pack',
                         mrp: Number(c.mrp) || (Number(c.price) * 1.15),
                         price: Number(c.price),
-                        qty: Number(c.qty),
+                        qty: Number(c.qty || c.quantity || 1),
                         category: c.category || 'Grocery'
                     }));
 
@@ -1359,7 +2753,7 @@
                         step: 1,
                         paymentMethod: serverOrder.payment_method,
                         total: serverOrder.total_amount,
-                        address: address,
+                        address: finalShippingAddress,
                         items: cartItemsSnapshot
                     };
 
@@ -1367,7 +2761,7 @@
                     state.cart = [];
                     persistState();
 
-                    // If non-COD, show quick verification animation
+                    // Route based on payment method
                     if (payload.payment_method !== 'COD') {
                         initPaymentSimulation(confirmedOrder);
                     } else {
@@ -1375,10 +2769,14 @@
                     }
                 } else {
                     alert(data.message || 'Checkout could not be processed. Please check address and stock.');
+                    if (btn) btn.disabled = false;
+                    if (spinner) spinner.classList.add('d-none');
                 }
             } catch (err) {
                 console.error('Checkout network error:', err);
                 alert('Network connection error during checkout. Please try again.');
+                if (btn) btn.disabled = false;
+                if (spinner) spinner.classList.add('d-none');
             }
         },
 
@@ -1819,6 +3217,7 @@
                 state.cart = e.detail.cart;
                 renderShopView();
                 if (document.getElementById('cartItemsList')) renderCartView();
+                if (document.getElementById('checkoutItemsContainer')) renderCheckoutView();
             }
         });
     });

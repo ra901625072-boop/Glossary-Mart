@@ -4,7 +4,9 @@ from sqlalchemy import func
 from sqlalchemy.orm import joinedload, selectinload
 from database.models import db
 from database.models.product import Category, Product, Review
+from database.models.order import Order, OrderItem
 from . import api_bp
+
 
 
 @api_bp.route('/products', methods=['GET'])
@@ -131,9 +133,80 @@ def get_categories():
     return jsonify({'success': True, 'categories': results}), 200
 
 
+@api_bp.route('/products/<int:product_id>/reviews', methods=['GET'])
+def get_product_reviews(product_id):
+    """Get all reviews for a product with rating breakdown, summary metrics, and verified status."""
+    product = db.session.query(Product).filter_by(id=product_id, is_active=True).first()
+    if not product:
+        return jsonify({'success': False, 'message': 'Product not found'}), 404
+
+    reviews = (
+        db.session.query(Review)
+        .options(joinedload(Review.user))
+        .filter_by(product_id=product.id)
+        .order_by(Review.created_at.desc())
+        .all()
+    )
+
+    # Find verified buyers (users who have ordered this product)
+    verified_user_ids = set()
+    purchased_records = (
+        db.session.query(Order.user_id)
+        .join(OrderItem, OrderItem.order_id == Order.id)
+        .filter(OrderItem.product_id == product.id)
+        .distinct()
+        .all()
+    )
+    verified_user_ids = {r[0] for r in purchased_records}
+
+    total_reviews = len(reviews)
+    breakdown = {5: 0, 4: 0, 3: 0, 2: 0, 1: 0}
+    for r in reviews:
+        if r.rating in breakdown:
+            breakdown[r.rating] += 1
+
+    avg_rating = round(sum(r.rating for r in reviews) / total_reviews, 1) if total_reviews else 0.0
+    recommended_count = breakdown.get(4, 0) + breakdown.get(5, 0)
+    recommend_percent = round((recommended_count / total_reviews) * 100) if total_reviews else 100
+
+    current_user_id = current_user.id if current_user.is_authenticated else None
+    user_review_data = None
+    reviews_list = []
+
+    for r in reviews:
+        is_owner = bool(current_user_id and r.user_id == current_user_id)
+        is_verified = r.user_id in verified_user_ids
+        review_item = {
+            'id': r.id,
+            'product_id': r.product_id,
+            'user_id': r.user_id,
+            'user_name': (r.user.full_name or r.user.username) if r.user else 'Verified Customer',
+            'rating': r.rating,
+            'comment': r.comment or '',
+            'created_at': r.created_at.strftime('%Y-%m-%d') if r.created_at else '',
+            'is_verified_buyer': is_verified,
+            'is_current_user': is_owner
+        }
+        reviews_list.append(review_item)
+        if is_owner and not user_review_data:
+            user_review_data = review_item
+
+    return jsonify({
+        'success': True,
+        'summary': {
+            'average_rating': avg_rating,
+            'total_reviews': total_reviews,
+            'recommend_percent': recommend_percent,
+            'rating_breakdown': breakdown,
+        },
+        'user_review': user_review_data,
+        'reviews': reviews_list
+    }), 200
+
+
 @api_bp.route('/products/<int:product_id>/reviews', methods=['POST'])
 def add_product_review(product_id):
-    """Add a review for a product. Requires authentication."""
+    """Add or update a review for a product. Requires authentication."""
     if not current_user.is_authenticated:
         return jsonify({'success': False, 'message': 'Authentication required to submit review'}), 401
 
@@ -143,7 +216,7 @@ def add_product_review(product_id):
 
     data = request.get_json(silent=True) or request.form
     rating = data.get('rating')
-    comment = (data.get('comment') or '').strip()[:500]
+    comment = (data.get('comment') or '').strip()[:1000]
 
     try:
         rating = int(rating)
@@ -152,23 +225,142 @@ def add_product_review(product_id):
     except (TypeError, ValueError):
         return jsonify({'success': False, 'message': 'Rating must be an integer between 1 and 5'}), 400
 
-    review = Review(
-        product_id=product.id,
-        user_id=current_user.id,
-        rating=rating,
-        comment=comment
-    )
-    db.session.add(review)
+    # Upsert: check if user already wrote a review for this product
+    existing_review = db.session.query(Review).filter_by(product_id=product.id, user_id=current_user.id).first()
+    if existing_review:
+        existing_review.rating = rating
+        existing_review.comment = comment
+        review = existing_review
+        msg = 'Your review has been updated successfully'
+    else:
+        review = Review(
+            product_id=product.id,
+            user_id=current_user.id,
+            rating=rating,
+            comment=comment
+        )
+        db.session.add(review)
+        msg = 'Review submitted successfully'
+
+    db.session.commit()
+
+    is_verified = db.session.query(OrderItem.id).join(Order, Order.id == OrderItem.order_id).filter(
+        Order.user_id == current_user.id,
+        OrderItem.product_id == product.id
+    ).first() is not None
+
+    return jsonify({
+        'success': True,
+        'message': msg,
+        'review': {
+            'id': review.id,
+            'product_id': product.id,
+            'rating': review.rating,
+            'comment': review.comment,
+            'user_name': current_user.full_name or current_user.username,
+            'created_at': review.created_at.strftime('%Y-%m-%d') if review.created_at else '',
+            'is_verified_buyer': is_verified,
+            'is_current_user': True
+        }
+    }), 201
+
+
+@api_bp.route('/reviews/<int:review_id>', methods=['PUT'])
+def update_review(review_id):
+    """Update an existing review. Customer must be the review owner."""
+    if not current_user.is_authenticated:
+        return jsonify({'success': False, 'message': 'Authentication required'}), 401
+
+    review = db.session.query(Review).filter_by(id=review_id).first()
+    if not review:
+        return jsonify({'success': False, 'message': 'Review not found'}), 404
+
+    if review.user_id != current_user.id and getattr(current_user, 'role', '') != 'admin':
+        return jsonify({'success': False, 'message': 'Permission denied. You can only edit your own reviews.'}), 403
+
+    data = request.get_json(silent=True) or request.form
+    if 'rating' in data:
+        try:
+            rating = int(data.get('rating'))
+            if rating < 1 or rating > 5:
+                raise ValueError()
+            review.rating = rating
+        except (TypeError, ValueError):
+            return jsonify({'success': False, 'message': 'Rating must be an integer between 1 and 5'}), 400
+
+    if 'comment' in data:
+        review.comment = (data.get('comment') or '').strip()[:1000]
+
     db.session.commit()
 
     return jsonify({
         'success': True,
-        'message': 'Review submitted successfully',
+        'message': 'Review updated successfully',
         'review': {
             'id': review.id,
+            'product_id': review.product_id,
             'rating': review.rating,
             'comment': review.comment,
             'user_name': current_user.full_name or current_user.username,
-            'created_at': review.created_at.strftime('%Y-%m-%d')
+            'created_at': review.created_at.strftime('%Y-%m-%d') if review.created_at else '',
+            'is_current_user': True
         }
-    }), 201
+    }), 200
+
+
+@api_bp.route('/reviews/<int:review_id>', methods=['DELETE'])
+def delete_review(review_id):
+    """Delete a review. Customer must be the review owner or admin."""
+    if not current_user.is_authenticated:
+        return jsonify({'success': False, 'message': 'Authentication required'}), 401
+
+    review = db.session.query(Review).filter_by(id=review_id).first()
+    if not review:
+        return jsonify({'success': False, 'message': 'Review not found'}), 404
+
+    if review.user_id != current_user.id and getattr(current_user, 'role', '') != 'admin':
+        return jsonify({'success': False, 'message': 'Permission denied. You can only delete your own reviews.'}), 403
+
+    product_id = review.product_id
+    db.session.delete(review)
+    db.session.commit()
+
+    return jsonify({
+        'success': True,
+        'message': 'Review deleted successfully',
+        'product_id': product_id
+    }), 200
+
+
+@api_bp.route('/customer/my-reviews', methods=['GET'])
+def get_my_reviews():
+    """Get all reviews written by the currently logged-in customer."""
+    if not current_user.is_authenticated:
+        return jsonify({'success': False, 'message': 'Authentication required'}), 401
+
+    reviews = (
+        db.session.query(Review)
+        .options(joinedload(Review.product))
+        .filter_by(user_id=current_user.id)
+        .order_by(Review.created_at.desc())
+        .all()
+    )
+
+    results = []
+    for r in reviews:
+        results.append({
+            'id': r.id,
+            'product_id': r.product_id,
+            'product_name': r.product.name if r.product else 'Unknown Product',
+            'product_image': r.product.image_path if r.product else '',
+            'product_price': float(r.product.selling_price) if (r.product and r.product.selling_price) else 0.0,
+            'rating': r.rating,
+            'comment': r.comment or '',
+            'created_at': r.created_at.strftime('%Y-%m-%d') if r.created_at else ''
+        })
+
+    return jsonify({
+        'success': True,
+        'reviews': results
+    }), 200
+

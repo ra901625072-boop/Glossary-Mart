@@ -1,0 +1,196 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Order Delivered &bull; Tax Invoice #EGM-{{ order.id }} | eGrossary</title>
+</head>
+<body style="margin: 0; padding: 0; background-color: #f1f5f9; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; color: #1e293b; line-height: 1.6;">
+    <table role="presentation" width="100%" cellspacing="0" cellpadding="0" style="background-color: #f1f5f9; padding: 30px 12px;">
+        <tr>
+            <td align="center">
+                <table role="presentation" width="100%" style="max-width: 600px; background-color: #ffffff; border-radius: 16px; border: 1px solid #e2e8f0; overflow: hidden; box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.05);">
+                    <!-- Brand Header -->
+                    <tr>
+                        <td style="padding: 28px 32px 20px; text-align: center; background: linear-gradient(135deg, #ecfdf5 0%, #ffffff 100%); border-bottom: 1px solid #e2e8f0;">
+                            <div style="font-size: 26px; font-weight: 800; letter-spacing: -0.5px; color: #0f172a;">
+                                e<span style="color: #059669;">Grossary</span>
+                            </div>
+                            <div style="font-size: 13px; color: #64748b; margin-top: 4px; font-weight: 500;">
+                                GST Tax Invoice &bull; Delivery Confirmation
+                            </div>
+                        </td>
+                    </tr>
+
+                    <!-- Main Content -->
+                    <tr>
+                        <td style="padding: 32px 28px;">
+                            <!-- Stage Badge -->
+                            <div style="margin-bottom: 16px;">
+                                <span style="display: inline-block; background-color: #d1fae5; color: #065f46; font-size: 12px; font-weight: 800; padding: 6px 14px; border-radius: 9999px; text-transform: uppercase; letter-spacing: 0.5px;">
+                                    ✅ &nbsp;Delivered Successfully
+                                </span>
+                            </div>
+
+                            <h1 style="font-size: 24px; font-weight: 800; color: #0f172a; margin: 0 0 8px;">
+                                Your Groceries Have Arrived!
+                            </h1>
+                            <p style="font-size: 15px; color: #475569; margin: 0 0 24px;">
+                                Hi <strong>{{ (user.full_name or user.username) if user else 'Valued Customer' }}</strong>, your order <strong>#EGM-{{ order.id }}</strong> has been safely delivered to your doorstep. We hope you enjoy your fresh groceries!
+                            </p>
+
+                            <!-- Official Tax Invoice Notice Banner -->
+                            <table role="presentation" width="100%" style="border-collapse: collapse; background-color: #f0fdf4; border-radius: 12px; border: 1px solid #bbf7d0; margin-bottom: 24px;">
+                                <tr>
+                                    <td style="padding: 16px 20px;">
+                                        <div style="font-size: 14px; font-weight: 700; color: #166534; margin-bottom: 4px;">
+                                            📄 Official GST Tax Invoice Attached
+                                        </div>
+                                        <div style="font-size: 13px; color: #15803d; line-height: 1.5;">
+                                            Your itemized tax invoice (INV-EGM-{{ "%05d"|format(order.id) }}) with GST breakdown is attached to this email as a PDF. You can also view or print it anytime online.
+                                        </div>
+                                    </td>
+                                </tr>
+                            </table>
+
+                            <!-- Seller & Tax Info Card -->
+                            <table role="presentation" width="100%" style="border-collapse: collapse; background-color: #f8fafc; border-radius: 12px; border: 1px solid #e2e8f0; margin-bottom: 24px; font-size: 13px;">
+                                <tr>
+                                    <td style="padding: 12px 18px; border-bottom: 1px solid #e2e8f0; color: #64748b;">Invoice Number</td>
+                                    <td style="padding: 12px 18px; border-bottom: 1px solid #e2e8f0; font-weight: 700; color: #0f172a; text-align: right;">INV-EGM-{{ "%05d"|format(order.id) }}</td>
+                                </tr>
+                                <tr>
+                                    <td style="padding: 12px 18px; border-bottom: 1px solid #e2e8f0; color: #64748b;">Seller GSTIN</td>
+                                    <td style="padding: 12px 18px; border-bottom: 1px solid #e2e8f0; font-weight: 600; color: #334155; text-align: right;">27AABCE1234F1Z5 (MH)</td>
+                                </tr>
+                                <tr>
+                                    <td style="padding: 12px 18px; border-bottom: 1px solid #e2e8f0; color: #64748b;">FSSAI License</td>
+                                    <td style="padding: 12px 18px; border-bottom: 1px solid #e2e8f0; font-weight: 600; color: #334155; text-align: right;">11521034000123</td>
+                                </tr>
+                                <tr>
+                                    <td style="padding: 12px 18px; border-bottom: 1px solid #e2e8f0; color: #64748b;">Delivered To</td>
+                                    <td style="padding: 12px 18px; border-bottom: 1px solid #e2e8f0; font-weight: 600; color: #1e293b; text-align: right;">{{ order.shipping_address or 'Customer Address' }}</td>
+                                </tr>
+                                <tr>
+                                    <td style="padding: 12px 18px; color: #64748b;">Payment Settled</td>
+                                    <td style="padding: 12px 18px; font-weight: 700; color: #059669; text-align: right;">{{ order.payment_status }} ({{ order.payment_method }})</td>
+                                </tr>
+                            </table>
+
+                            <!-- Fulfilled Items Table -->
+                            <div style="font-size: 14px; font-weight: 700; color: #0f172a; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 12px;">
+                                Delivered Items Summary
+                            </div>
+                            <table role="presentation" width="100%" style="border-collapse: collapse; margin-bottom: 20px; font-size: 14px;">
+                                <thead>
+                                    <tr style="border-bottom: 2px solid #e2e8f0; color: #64748b; font-size: 12px; text-transform: uppercase;">
+                                        <th align="left" style="padding: 8px 4px;">Delivered Item</th>
+                                        <th align="center" style="padding: 8px 4px;">Qty</th>
+                                        <th align="right" style="padding: 8px 4px;">Price</th>
+                                        <th align="right" style="padding: 8px 4px;">Subtotal</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {% for item in pricing.order_items %}
+                                    <tr style="border-bottom: 1px solid #f1f5f9;">
+                                        <td style="padding: 10px 4px; font-weight: 600; color: #1e293b;">
+                                            {{ item.name }}
+                                        </td>
+                                        <td align="center" style="padding: 10px 4px; color: #64748b;">
+                                            {{ item.quantity }}
+                                        </td>
+                                        <td align="right" style="padding: 10px 4px; color: #64748b;">
+                                            ₹{{ "%.2f"|format(item.price) }}
+                                        </td>
+                                        <td align="right" style="padding: 10px 4px; font-weight: 700; color: #0f172a;">
+                                            ₹{{ "%.2f"|format(item.subtotal) }}
+                                        </td>
+                                    </tr>
+                                    {% else %}
+                                    <tr style="border-bottom: 1px solid #f1f5f9;">
+                                        <td style="padding: 10px 4px; font-weight: 600; color: #1e293b;">
+                                            Delivered Grocery Package
+                                        </td>
+                                        <td align="center" style="padding: 10px 4px; color: #64748b;">
+                                            1
+                                        </td>
+                                        <td align="right" style="padding: 10px 4px; color: #64748b;">
+                                            ₹{{ "%.2f"|format(pricing.total) }}
+                                        </td>
+                                        <td align="right" style="padding: 10px 4px; font-weight: 700; color: #0f172a;">
+                                            ₹{{ "%.2f"|format(pricing.total) }}
+                                        </td>
+                                    </tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+
+                            <!-- Financial Breakdown with GST -->
+                            <table role="presentation" width="100%" style="border-collapse: collapse; margin-bottom: 28px; font-size: 14px;">
+                                <tr>
+                                    <td style="padding: 6px 4px; color: #64748b;">Taxable Value (Food &amp; Groceries)</td>
+                                    <td align="right" style="padding: 6px 4px; font-weight: 600; color: #334155;">₹{{ "%.2f"|format(pricing.total / 1.05) }}</td>
+                                </tr>
+                                <tr>
+                                    <td style="padding: 6px 4px; color: #64748b;">CGST (2.5%)</td>
+                                    <td align="right" style="padding: 6px 4px; font-weight: 600; color: #334155;">₹{{ "%.2f"|format((pricing.total - (pricing.total / 1.05)) / 2) }}</td>
+                                </tr>
+                                <tr>
+                                    <td style="padding: 6px 4px; color: #64748b;">SGST (2.5%)</td>
+                                    <td align="right" style="padding: 6px 4px; font-weight: 600; color: #334155;">₹{{ "%.2f"|format((pricing.total - (pricing.total / 1.05)) / 2) }}</td>
+                                </tr>
+                                <tr style="border-top: 2px solid #e2e8f0;">
+                                    <td style="padding: 12px 4px; font-size: 16px; font-weight: 800; color: #0f172a;">Final Amount Paid</td>
+                                    <td align="right" style="padding: 12px 4px; font-size: 18px; font-weight: 800; color: #059669;">₹{{ "%.2f"|format(pricing.total) }}</td>
+                                </tr>
+                            </table>
+
+                            <!-- Rate & Review Hero Box -->
+                            <div style="background: linear-gradient(135deg, #fffbeb 0%, #fef3c7 100%); border: 1px solid #fde68a; border-radius: 12px; padding: 22px; text-align: center; margin-bottom: 28px;">
+                                <div style="font-size: 22px; margin-bottom: 6px;">
+                                    ⭐⭐⭐⭐⭐
+                                </div>
+                                <div style="font-size: 16px; font-weight: 800; color: #92400e; margin-bottom: 6px;">
+                                    How was the freshness &amp; quality?
+                                </div>
+                                <p style="font-size: 13px; color: #78350f; margin: 0 0 16px; line-height: 1.5;">
+                                    Your review helps fellow shoppers choose the freshest groceries and helps our APMC farmers maintain top quality.
+                                </p>
+                                <a href="{{ urls.review_url }}" style="display: inline-block; background-color: #b45309; color: #ffffff; text-decoration: none; font-size: 14px; font-weight: 700; padding: 10px 24px; border-radius: 8px; box-shadow: 0 4px 6px -1px rgba(180, 83, 9, 0.3);">
+                                    Rate &amp; Review Products
+                                </a>
+                            </div>
+
+                            <!-- Buttons Row -->
+                            <div style="text-align: center; margin-bottom: 24px;">
+                                <a href="{{ urls.invoice_view_url }}" style="display: inline-block; background-color: #059669; color: #ffffff; text-decoration: none; font-size: 14px; font-weight: 700; padding: 12px 26px; border-radius: 8px; margin: 0 4px 8px;">
+                                    View Digital Invoice
+                                </a>
+                                <a href="{{ urls.invoice_pdf_url }}" style="display: inline-block; background-color: #ffffff; color: #059669; border: 1px solid #059669; text-decoration: none; font-size: 14px; font-weight: 700; padding: 12px 24px; border-radius: 8px; margin: 0 4px 8px;">
+                                    Download PDF Invoice
+                                </a>
+                            </div>
+
+                            <p style="font-size: 13px; color: #64748b; margin: 0; text-align: center;">
+                                Thank you for being a valued customer of eGrossary Superstore!
+                            </p>
+                        </td>
+                    </tr>
+
+                    <!-- Footer -->
+                    <tr>
+                        <td style="padding: 24px 32px; background-color: #f8fafc; border-top: 1px solid #f1f5f9; text-align: center;">
+                            <p style="font-size: 12px; color: #94a3b8; margin: 0 0 6px;">
+                                Need to return or replace an item? Report an issue within 2 hours at <a href="mailto:{{ urls.support_email }}" style="color: #059669; text-decoration: none;">{{ urls.support_email }}</a>
+                            </p>
+                            <p style="font-size: 12px; color: #94a3b8; margin: 0;">
+                                &copy; 2026 eGrossary Mart Pvt. Ltd. APMC Hub, Sector 19, Vashi, Navi Mumbai 400705.
+                            </p>
+                        </td>
+                    </tr>
+                </table>
+            </td>
+        </tr>
+    </table>
+</body>
+</html>

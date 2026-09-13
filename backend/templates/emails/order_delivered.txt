@@ -1,0 +1,38 @@
+Hi {{ (user.full_name or user.username) if user else 'Valued Customer' }},
+
+Your order #EGM-{{ order.id }} has been safely delivered!
+
+TAX INVOICE & CASH RECEIPT
+──────────────────────────────────────────────────────────
+Invoice No:        INV-EGM-{{ "%05d"|format(order.id) }}
+Invoice Date:      {{ order_date }}
+Seller:            eGrossary Superstore Pvt. Ltd.
+Seller GSTIN:      27AABCE1234F1Z5
+FSSAI License:     11521034000123
+Delivered To:      {{ order.shipping_address or 'Customer Address' }}
+Payment Method:    {{ order.payment_method }} ({{ order.payment_status }})
+──────────────────────────────────────────────────────────
+
+Delivered Items:
+{% for item in pricing.order_items %}
+{{ "%-24s"|format(item.name[:24]) }} ₹{{ "%.2f"|format(item.price) }} × {{ item.quantity }} = ₹{{ "%.2f"|format(item.subtotal) }}
+{% else %}
+Delivered Grocery Package ₹{{ "%.2f"|format(pricing.total) }} × 1 = ₹{{ "%.2f"|format(pricing.total) }}
+{% endfor %}
+──────────────────────────────────────────────────────────
+Taxable Value:     ₹{{ "%.2f"|format(pricing.total / 1.05) }}
+CGST (2.5%):       ₹{{ "%.2f"|format((pricing.total - (pricing.total / 1.05)) / 2) }}
+SGST (2.5%):       ₹{{ "%.2f"|format((pricing.total - (pricing.total / 1.05)) / 2) }}
+──────────────────────────────────────────────────────────
+Total Paid:        ₹{{ "%.2f"|format(pricing.total) }}
+
+Your official PDF Tax Invoice is attached to this email.
+You can also view your invoice online here:
+{{ urls.invoice_view_url }}
+
+⭐ Rate & Review Your Products:
+How was the freshness of your groceries? Please take 30 seconds to rate your items:
+{{ urls.review_url }}
+
+Thank you for shopping with eGrossary Mart.
+Support: {{ urls.support_email }}
