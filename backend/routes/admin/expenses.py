@@ -13,28 +13,52 @@ from . import admin_bp
 @admin_bp.route('/expenses')
 @admin_required
 def get_expenses():
-    """List operating expenses with summary analytics."""
+    """List operating expenses with summary analytics and audit-compliant filtering."""
     page = request.args.get('page', 1, type=int)
     per_page = request.args.get('per_page', 20, type=int)
     category_filter = request.args.get('category', '').strip()
+    type_filter = request.args.get('type', '').strip()
 
-    query = db.session.query(Expense).order_by(Expense.expense_date.desc(), Expense.id.desc())
+    query = db.session.query(Expense).filter(Expense.is_deleted == False).order_by(Expense.expense_date.desc(), Expense.id.desc())
     if category_filter:
         query = query.filter(Expense.category == category_filter)
+    if type_filter:
+        query = query.filter(Expense.expense_type == type_filter)
 
     pagination = query.paginate(page=page, per_page=per_page, error_out=False)
 
-    # Monthly Summary
+    # Monthly Summary (excluding soft-deleted)
     now = datetime.now(timezone.utc)
     current_month_start = datetime(now.year, now.month, 1, tzinfo=timezone.utc)
+
+    # OpEx Monthly Total
+    opex_monthly = db.session.query(func.coalesce(func.sum(Expense.amount), 0)).filter(
+        Expense.is_deleted == False,
+        Expense.expense_type == 'OpEx',
+        Expense.expense_date >= current_month_start
+    ).scalar() or 0
+
+    # CapEx Monthly Total
+    capex_monthly = db.session.query(func.coalesce(func.sum(Expense.amount), 0)).filter(
+        Expense.is_deleted == False,
+        Expense.expense_type == 'CapEx',
+        Expense.expense_date >= current_month_start
+    ).scalar() or 0
+
     monthly_total = db.session.query(func.coalesce(func.sum(Expense.amount), 0)).filter(
+        Expense.is_deleted == False,
+        Expense.expense_type.in_(['OpEx', 'CapEx']),
         Expense.expense_date >= current_month_start
     ).scalar() or 0
 
     category_aggregates = db.session.query(
         Expense.category,
         func.sum(Expense.amount).label('total')
-    ).filter(Expense.expense_date >= current_month_start).group_by(Expense.category).all()
+    ).filter(
+        Expense.is_deleted == False,
+        Expense.expense_type.in_(['OpEx', 'CapEx']),
+        Expense.expense_date >= current_month_start
+    ).group_by(Expense.category).all()
 
     return jsonify({
         'success': True,
@@ -48,6 +72,8 @@ def get_expenses():
         },
         'summary': {
             'monthly_total': float(monthly_total),
+            'monthly_opex': float(opex_monthly),
+            'monthly_capex': float(capex_monthly),
             'categories': [{'category': row[0], 'total': float(row[1])} for row in category_aggregates]
         }
     })
@@ -56,7 +82,7 @@ def get_expenses():
 @admin_bp.route('/expenses/add', methods=['POST'])
 @admin_required
 def add_expense():
-    """Record a new operating expense."""
+    """Record a new operating or capital expense."""
     data = request.get_json(silent=True) or request.form
     category = (data.get('category') or 'Other').strip()
     try:
@@ -68,6 +94,7 @@ def add_expense():
         return jsonify({'success': False, 'message': 'Expense amount must be strictly greater than zero.'}), 400
 
     payment_mode = (data.get('payment_mode') or 'Cash').strip()
+    expense_type = (data.get('expense_type') or 'OpEx').strip()
     description = (data.get('description') or '').strip()
     is_recurring = bool(data.get('is_recurring', False))
 
@@ -84,9 +111,11 @@ def add_expense():
         category=category,
         amount=amount,
         payment_mode=payment_mode,
+        expense_type=expense_type,
         description=description,
         is_recurring=is_recurring,
-        expense_date=expense_date
+        expense_date=expense_date,
+        is_deleted=False
     )
 
     try:
@@ -96,7 +125,7 @@ def add_expense():
             action='RECORD_EXPENSE',
             entity_type='Expense',
             entity_id=expense.id,
-            details=f"Recorded ₹{amount:.2f} under {category} ({payment_mode})"
+            details=f"Recorded ₹{amount:.2f} under {category} ({payment_mode} - {expense_type})"
         )
         return jsonify({
             'success': True,
@@ -113,24 +142,26 @@ def add_expense():
 @admin_bp.route('/expenses/delete/<int:expense_id>', methods=['POST', 'DELETE'])
 @admin_required
 def delete_expense(expense_id):
-    """Delete an operating expense entry."""
+    """
+    Void/Soft-delete an expense entry to preserve immutable audit trail.
+    """
     expense = db.session.get(Expense, expense_id)
-    if not expense:
+    if not expense or expense.is_deleted:
         return jsonify({'success': False, 'message': 'Expense not found.'}), 404
 
     try:
         amt = float(expense.amount)
         cat = expense.category
-        db.session.delete(expense)
+        expense.is_deleted = True
         db.session.commit()
         _log_action(
-            action='DELETE_EXPENSE',
+            action='VOID_EXPENSE',
             entity_type='Expense',
             entity_id=expense_id,
-            details=f"Deleted ₹{amt:.2f} expense under {cat}"
+            details=f"Voided ₹{amt:.2f} expense under {cat} (Audit-preserved soft deletion)"
         )
-        return jsonify({'success': True, 'message': 'Expense deleted successfully.'})
+        return jsonify({'success': True, 'message': 'Expense voided and removed from ledger.'})
     except Exception:
         db.session.rollback()
-        current_app.logger.exception("Failed to delete expense")
-        return jsonify({'success': False, 'message': 'Failed to delete expense.'}), 500
+        current_app.logger.exception("Failed to void expense")
+        return jsonify({'success': False, 'message': 'Failed to void expense.'}), 500

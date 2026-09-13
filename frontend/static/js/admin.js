@@ -326,7 +326,10 @@
                         phone: s.phone || '',
                         email: s.email || '',
                         category: 'FMCG Supplier',
-                        address: s.address || ''
+                        address: s.address || '',
+                        gstin: s.gstin || '',
+                        bank_details: s.bank_details || '',
+                        outstanding_balance: parseFloat(s.outstanding_balance || 0)
                     }));
                     renderSuppliers();
                     return;
@@ -1098,22 +1101,39 @@
             if (!state.expenses || state.expenses.length === 0) {
                 tbody.innerHTML = `<tr><td colspan="8" class="text-center text-muted py-4 small">No operating expenses recorded this period.</td></tr>`;
             } else {
-                tbody.innerHTML = state.expenses.map(e => `
+                tbody.innerHTML = state.expenses.map(e => {
+                    const isRecovery = (e.expense_type === 'Debt Recovery' || (e.category && e.category.includes('Debt Recovery')));
+                    const isApPayout = (e.expense_type === 'Supplier Payment' || (e.category && e.category.includes('Supplier Payment')));
+                    const isCapEx = (e.expense_type === 'CapEx');
+                    
+                    let typeBadge = '<span class="badge bg-secondary-subtle text-secondary border">OpEx</span>';
+                    if (isRecovery) typeBadge = '<span class="badge bg-success-subtle text-success border border-success">Debt Recovery (Inflow)</span>';
+                    else if (isApPayout) typeBadge = '<span class="badge bg-primary-subtle text-primary border">AP Payout</span>';
+                    else if (isCapEx) typeBadge = '<span class="badge bg-warning-subtle text-warning-emphasis border">CapEx</span>';
+
+                    const amountColor = isRecovery ? 'text-success' : 'text-danger';
+                    const amountPrefix = isRecovery ? '+₹' : '₹';
+
+                    return `
                     <tr>
                         <td class="text-muted small tabular-nums">#${Number(e.id)}</td>
                         <td class="tabular-nums">${escapeHTML(e.expense_date || '-')}</td>
-                        <td><span class="badge bg-light text-dark border">${escapeHTML(e.category)}</span></td>
+                        <td>
+                            <span class="badge bg-light text-dark border">${escapeHTML(e.category)}</span>
+                            <div class="mt-1">${typeBadge}</div>
+                        </td>
                         <td>${escapeHTML(e.description || '-')}</td>
                         <td><span class="badge bg-secondary-subtle text-secondary">${escapeHTML(e.payment_mode || 'Cash')}</span></td>
-                        <td class="fw-bold text-danger tabular-nums">₹${Number(e.amount).toLocaleString('en-IN')}</td>
+                        <td class="fw-bold ${amountColor} tabular-nums">${amountPrefix}${Number(e.amount).toLocaleString('en-IN', {minimumFractionDigits: 2})}</td>
                         <td>${e.is_recurring ? '<span class="badge bg-primary">Recurring</span>' : '<span class="badge bg-light text-dark border">One-off</span>'}</td>
                         <td>
-                            <button class="btn btn-sm btn-outline-danger rounded-pill px-2 py-0 smallest" onclick="window.Adm.deleteExpense(${Number(e.id)})">
-                                <i class="bi bi-trash3"></i>
+                            <button class="btn btn-sm btn-outline-danger rounded-pill px-2 py-0 smallest" title="Archive / Soft Delete" onclick="window.Adm.deleteExpense(${Number(e.id)})">
+                                <i class="bi bi-archive me-1"></i>Archive
                             </button>
                         </td>
                     </tr>
-                `).join('');
+                    `;
+                }).join('');
             }
         }
 
@@ -1443,14 +1463,27 @@
 
         tbody.innerHTML = state.sales.map(s => `
             <tr>
-                <td class="fw-bold text-dark">#SAL-${Number(s.id)}</td>
-                <td>${s.sale_date ? new Date(s.sale_date).toLocaleString('en-IN') : 'Recent'}</td>
-                <td>${escapeHTML(s.product_name || 'Item')}</td>
-                <td><span class="badge bg-light text-dark border">Qty: ${Number(s.quantity)}</span></td>
-                <td class="fw-bold text-dark">₹${Number(s.total_price)}</td>
-                <td class="fw-bold text-success">₹${Number(s.profit)}</td>
                 <td>
-                    <span class="badge bg-success-subtle text-success">Recorded</span>
+                    <span class="fw-bold font-monospace text-dark">${escapeHTML(s.bill_number || ('#SAL-' + s.id))}</span>
+                    <div class="smallest text-muted">${escapeHTML(s.product_name || 'Item')} &times; ${Number(s.quantity)}</div>
+                </td>
+                <td><span class="small text-muted tabular-nums">${s.sale_date ? new Date(s.sale_date).toLocaleString('en-IN') : 'Recent'}</span></td>
+                <td>
+                    <div class="fw-semibold text-dark">${escapeHTML(s.customer_name || 'Walk-in Counter')}</div>
+                    ${s.customer_phone ? `<div class="smallest text-muted font-monospace">${escapeHTML(s.customer_phone)}</div>` : ''}
+                </td>
+                <td>
+                    <span class="badge ${s.payment_method === 'Cash' ? 'bg-success-subtle text-success border border-success' : (s.payment_method && s.payment_method.includes('UPI')) ? 'bg-primary-subtle text-primary border border-primary' : 'bg-secondary-subtle text-secondary border'}">
+                        ${escapeHTML(s.payment_method || 'Cash')}
+                    </span>
+                </td>
+                <td class="num-cell fw-bold text-dark tabular-nums">₹${Number(s.total_price).toLocaleString('en-IN', {minimumFractionDigits: 2})}</td>
+                <td class="num-cell fw-bold tabular-nums ${Number(s.profit) >= 0 ? 'text-success' : 'text-danger'}">₹${Number(s.profit).toLocaleString('en-IN', {minimumFractionDigits: 2})}</td>
+                <td>
+                    <button class="btn btn-sm btn-outline-secondary rounded-pill px-2 py-0 smallest d-inline-flex align-items-center gap-1" onclick="window.Adm.viewReceipt(${Number(s.id)})">
+                        <i class="bi bi-receipt"></i>
+                        <span>Slip</span>
+                    </button>
                 </td>
             </tr>
         `).join('');
@@ -1489,23 +1522,51 @@
             return;
         }
 
-        grid.innerHTML = state.suppliers.map(s => `
+        const totalAP = state.suppliers.reduce((sum, s) => sum + (s.outstanding_balance || 0), 0);
+        const apBadge = document.getElementById('totalSupplierApBadge');
+        if (apBadge) {
+            apBadge.innerHTML = `<i class="bi bi-wallet2 me-1"></i> Total AP Payable: ₹${totalAP.toLocaleString('en-IN', {minimumFractionDigits: 2})}`;
+        }
+
+        grid.innerHTML = state.suppliers.map(s => {
+            const hasDue = (s.outstanding_balance || 0) > 0;
+            return `
             <div class="col-md-6 col-xl-4">
-                <div class="kpi-card p-4">
-                    <div class="d-flex justify-content-between align-items-center mb-2">
-                        <span class="badge bg-light text-dark border">${escapeHTML(s.category)}</span>
-                        <i class="bi bi-building text-success fs-4"></i>
+                <div class="kpi-card p-4 h-100 d-flex flex-column justify-content-between">
+                    <div>
+                        <div class="d-flex justify-content-between align-items-center mb-2">
+                            <span class="badge bg-light text-dark border">${escapeHTML(s.category)}</span>
+                            <i class="bi bi-building text-success fs-4"></i>
+                        </div>
+                        <h5 class="fw-bold brand-font text-dark mb-1">${escapeHTML(s.name)}</h5>
+                        ${s.gstin ? `<div class="smallest text-muted mb-2 font-monospace"><i class="bi bi-card-text me-1"></i>GSTIN: <strong>${escapeHTML(s.gstin)}</strong></div>` : ''}
+                        <div class="small text-muted mb-1"><i class="bi bi-person me-1"></i>Contact: <strong>${escapeHTML(s.contact || 'Direct')}</strong></div>
+                        <div class="small text-muted mb-1"><i class="bi bi-telephone me-1"></i>${escapeHTML(s.phone || '-')}</div>
+                        <div class="small text-muted mb-2"><i class="bi bi-envelope me-1"></i>${escapeHTML(s.email || '-')}</div>
+                        
+                        <!-- Accounts Payable Balance Card -->
+                        <div class="p-2 rounded-2 ${hasDue ? 'bg-danger-subtle text-danger border border-danger-subtle' : 'bg-success-subtle text-success border border-success-subtle'} mb-3">
+                            <div class="d-flex justify-content-between align-items-center small">
+                                <span class="fw-semibold">Accounts Payable (Due):</span>
+                                <span class="fw-bold fs-6 tabular-nums">₹${Number(s.outstanding_balance || 0).toLocaleString('en-IN', {minimumFractionDigits: 2})}</span>
+                            </div>
+                        </div>
                     </div>
-                    <h5 class="fw-bold brand-font text-dark mb-1">${escapeHTML(s.name)}</h5>
-                    <div class="small text-muted mb-2"><i class="bi bi-person me-1"></i>Contact: <strong>${escapeHTML(s.contact)}</strong></div>
-                    <div class="small text-muted mb-2"><i class="bi bi-telephone me-1"></i>${escapeHTML(s.phone)}</div>
-                    <div class="small text-muted mb-3"><i class="bi bi-envelope me-1"></i>${escapeHTML(s.email)}</div>
-                    <button class="btn btn-sm btn-outline-success rounded-2 px-3" onclick="window.Adm.openRecordPurchaseModal('${escapeHTML(s.name)}')">
-                        + Record Stock In
-                    </button>
+
+                    <div class="d-flex gap-2 pt-2 border-top">
+                        <button class="btn btn-sm btn-outline-success rounded-2 px-3 flex-grow-1" onclick="window.Adm.openRecordPurchaseModal(${Number(s.id)})">
+                            + Stock In
+                        </button>
+                        ${hasDue ? `
+                        <button class="btn btn-sm btn-danger rounded-2 px-3 flex-grow-1" onclick="window.Adm.paySupplier(${Number(s.id)}, '${escapeHTML(s.name).replace(/'/g, "\\'")}', ${Number(s.outstanding_balance)})">
+                            <i class="bi bi-cash me-1"></i>Pay AP
+                        </button>
+                        ` : ''}
+                    </div>
                 </div>
             </div>
-        `).join('');
+            `;
+        }).join('');
     }
 
     // Coupons
@@ -1638,12 +1699,18 @@
                 return;
             }
 
-            const phone = document.getElementById('posCustomerPhoneInput').value.trim() || 'Walk-in';
-            const paymentMode = document.getElementById('posPaymentModeSelect').value || 'Cash';
+            const phone = (document.getElementById('posCustomerPhoneInput')?.value || '').trim();
+            const customerName = phone ? `Walk-in (${phone})` : 'Walk-in Counter';
+            const paymentMode = document.getElementById('posPaymentModeSelect')?.value || 'Cash';
+            const discount = parseFloat(state.posDiscount) || 0;
             const fetchFn = window.apiFetch || fetch;
 
             // Prepare POS checkout payload
             const payload = {
+                customer_phone: phone,
+                customer_name: customerName,
+                payment_mode: paymentMode,
+                discount_amount: discount,
                 cart: state.posCart.map(c => ({
                     id: c.productId,
                     qty: c.qty
@@ -1663,42 +1730,90 @@
                     return;
                 }
 
-                const total = data.total;
-                const billId = `BILL-${Math.floor(100000 + Math.random() * 900000)}`;
+                const total = Number(data.total || 0);
+                const subtotal = Number(data.subtotal || total);
+                const discAmt = Number(data.discount || 0);
+                const cgst = Number(data.cgst || ((data.tax || 0) / 2));
+                const sgst = Number(data.sgst || ((data.tax || 0) / 2));
+                const billId = data.bill_number || `BILL-${data.bill_id || '0000'}`;
                 const dateStr = new Date().toLocaleString('en-IN', { dateStyle: 'short', timeStyle: 'short' });
 
                 // Populate thermal bill modal
-                document.getElementById('billModalNumber').textContent = billId;
-                document.getElementById('billModalDate').textContent = dateStr;
-                document.getElementById('billModalCustomer').textContent = phone;
-                document.getElementById('billModalPayment').textContent = paymentMode;
-                document.getElementById('billModalTotal').textContent = `₹${total}`;
+                const billNumEl = document.getElementById('billModalNumber');
+                if (billNumEl) billNumEl.textContent = billId;
+
+                const billDateEl = document.getElementById('billModalDate');
+                if (billDateEl) billDateEl.textContent = dateStr;
+
+                const billCustEl = document.getElementById('billModalCustomer');
+                if (billCustEl) billCustEl.textContent = phone || 'Walk-in';
+
+                const billPayEl = document.getElementById('billModalPayment');
+                if (billPayEl) billPayEl.textContent = paymentMode;
+
+                const subtotalEl = document.getElementById('billModalSubtotal');
+                if (subtotalEl) subtotalEl.textContent = `₹${subtotal.toFixed(2)}`;
+
+                const discRow = document.getElementById('billModalDiscountRow');
+                const discEl = document.getElementById('billModalDiscount');
+                if (discRow && discEl) {
+                    if (discAmt > 0) {
+                        discRow.style.display = 'flex';
+                        discEl.textContent = `-₹${discAmt.toFixed(2)}`;
+                    } else {
+                        discRow.style.display = 'none';
+                    }
+                }
+
+                const taxableEl = document.getElementById('billModalTaxable');
+                if (taxableEl) taxableEl.textContent = `₹${Number(data.taxable_amount || (subtotal - discAmt)).toFixed(2)}`;
+
+                const cgstEl = document.getElementById('billModalCGST');
+                if (cgstEl) cgstEl.textContent = `₹${cgst.toFixed(2)}`;
+
+                const sgstEl = document.getElementById('billModalSGST');
+                if (sgstEl) sgstEl.textContent = `₹${sgst.toFixed(2)}`;
+
+                const taxEl = document.getElementById('billModalTax');
+                if (taxEl) taxEl.textContent = `₹${Number(data.tax || (cgst + sgst)).toFixed(2)}`;
+
+                const totalEl = document.getElementById('billModalTotal');
+                if (totalEl) totalEl.textContent = `₹${total.toFixed(2)}`;
 
                 const tbody = document.getElementById('billModalItemsTbody');
-                tbody.innerHTML = state.posCart.map((c, idx) => {
-                    const p = state.products.find(prod => prod.id === c.productId);
-                    const name = p ? p.name : 'Item';
-                    const price = p ? p.price : 0;
-                    return `
-                        <tr>
-                            <td>${idx + 1}. ${escapeHTML(name)}</td>
-                            <td class="text-center">${Number(c.qty)}</td>
-                            <td class="text-end">₹${Number(price)}</td>
-                            <td class="text-end fw-bold">₹${Number(price * c.qty)}</td>
-                        </tr>
-                    `;
-                }).join('');
+                if (tbody) {
+                    tbody.innerHTML = state.posCart.map((c, idx) => {
+                        const p = state.products.find(prod => prod.id === c.productId);
+                        const name = p ? p.name : 'Item';
+                        const price = p ? Number(p.price) : 0;
+                        return `
+                            <tr>
+                                <td>${idx + 1}. ${escapeHTML(name)}</td>
+                                <td class="text-center">${Number(c.qty)}</td>
+                                <td class="text-end">₹${price.toFixed(2)}</td>
+                                <td class="text-end fw-bold">₹${(price * c.qty).toFixed(2)}</td>
+                            </tr>
+                        `;
+                    }).join('');
+                }
 
                 // Clear POS cart and reload live inventory
                 state.posCart = [];
                 state.posDiscount = 0;
+                const discInput = document.getElementById('posDiscountInput');
+                if (discInput) discInput.value = '';
+                const phoneInput = document.getElementById('posCustomerPhoneInput');
+                if (phoneInput) phoneInput.value = '';
                 renderPOS();
                 loadProductsData();
-                logActionLocally('POS Counter Sale', `Billed ₹${total} (${paymentMode}) for ${phone}`);
+                logActionLocally('POS Counter Sale', `Billed #${billId} for ₹${total} (${paymentMode})`);
                 showToast(`POS Sale completed! Bill #${billId}`, 'success');
 
-                const modal = new bootstrap.Modal(document.getElementById('billModal'));
-                modal.show();
+                const modalEl = document.getElementById('billModal');
+                if (modalEl && typeof bootstrap !== 'undefined') {
+                    const modal = new bootstrap.Modal(modalEl);
+                    modal.show();
+                }
 
             } catch (err) {
                 console.error('POS Checkout network error:', err);
@@ -1912,23 +2027,54 @@
             }
         },
 
-        openRecordPurchaseModal: function (supplierName) {
+        openRecordPurchaseModal: function (supplierArg) {
             const suppSelect = document.getElementById('purchaseSupplierSelect');
-            if (suppSelect && supplierName) suppSelect.value = supplierName;
-            const modal = new bootstrap.Modal(document.getElementById('addPurchaseModal'));
-            modal.show();
+            if (suppSelect && state.suppliers && state.suppliers.length > 0) {
+                suppSelect.innerHTML = state.suppliers.map(s => `
+                    <option value="${s.id}">${escapeHTML(s.name)} (AP Due: ₹${Number(s.outstanding_balance || 0).toLocaleString('en-IN')})</option>
+                `).join('');
+                if (supplierArg) {
+                    if (typeof supplierArg === 'number' || !isNaN(Number(supplierArg))) {
+                        suppSelect.value = String(supplierArg);
+                    } else {
+                        const found = state.suppliers.find(s => s.name === supplierArg);
+                        if (found) suppSelect.value = String(found.id);
+                    }
+                }
+            }
+
+            const prodSelect = document.getElementById('purchaseProductSelect');
+            if (prodSelect && state.products && state.products.length > 0) {
+                prodSelect.innerHTML = state.products.map(p => `
+                    <option value="${p.id}">${escapeHTML(p.name)} [Stock: ${p.stock}, WAC Cost: ₹${p.cost}]</option>
+                `).join('');
+            }
+
+            const modalEl = document.getElementById('addPurchaseModal');
+            if (modalEl && typeof bootstrap !== 'undefined') {
+                const modal = new bootstrap.Modal(modalEl);
+                modal.show();
+            }
         },
 
         saveNewPurchase: async function (e) {
             if (e) e.preventDefault();
             const suppSelect = document.getElementById('purchaseSupplierSelect');
             const prodSelect = document.getElementById('purchaseProductSelect');
-            const qty = parseInt(document.getElementById('purchaseQty').value) || 0;
-            const unitCost = parseFloat(document.getElementById('purchaseUnitCost').value) || 0;
-            const supplierId = suppSelect && suppSelect.value ? parseInt(suppSelect.value) || 1 : 1;
+            const qty = parseInt(document.getElementById('purchaseQty')?.value) || 0;
+            const unitCost = parseFloat(document.getElementById('purchaseUnitCost')?.value) || 0;
+            const supplierId = parseInt(suppSelect?.value) || 1;
+            const productId = parseInt(prodSelect?.value) || 1;
+            const invoiceNum = (document.getElementById('purchaseInvoiceNum')?.value || '').trim();
+            const paymentStatus = document.getElementById('purchasePaymentStatus')?.value || 'Credit';
+            const paymentMode = document.getElementById('purchasePaymentMode')?.value || 'Credit';
 
             if (qty <= 0) {
                 showToast('Quantity must be greater than zero.', 'warning');
+                return;
+            }
+            if (unitCost <= 0) {
+                showToast('Wholesale unit price must be greater than zero.', 'warning');
                 return;
             }
 
@@ -1939,19 +2085,25 @@
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({
                         supplier_id: supplierId,
-                        product_id: parseInt(prodSelect.value) || 1,
+                        product_id: productId,
                         quantity: qty,
-                        purchase_price: unitCost > 0 ? unitCost : 10.0
+                        purchase_price: unitCost,
+                        invoice_number: invoiceNum,
+                        payment_status: paymentStatus.includes('Paid') ? 'Paid' : 'Credit',
+                        payment_mode: paymentMode
                     })
                 });
                 const data = await res.json();
                 if (res.ok && data.success) {
-                    showToast('Stock purchase recorded and product quantity increased!', 'success');
+                    showToast(data.message || 'Stock purchase recorded with blended WAC cost!', 'success');
                     const modalEl = document.getElementById('addPurchaseModal');
-                    const modal = bootstrap.Modal.getInstance(modalEl);
-                    if (modal) modal.hide();
+                    if (modalEl && typeof bootstrap !== 'undefined') {
+                        const modal = bootstrap.Modal.getInstance(modalEl);
+                        if (modal) modal.hide();
+                    }
                     loadPurchasesData();
                     loadProductsData();
+                    loadSuppliersData();
                 } else {
                     showToast(data.message || data.error || 'Failed to record stock purchase.', 'danger');
                 }
@@ -2041,24 +2193,148 @@
         },
 
         clearCustomerUdhar: async function (customerId, amount) {
-            if (!confirm(`Settle customer #${customerId} store credit of ₹${amount}?`)) return;
+            const entered = prompt(`Enter amount to settle for Customer #${customerId} (Balance: ₹${amount}):`, amount);
+            if (entered === null) return;
+            const amountPaid = parseFloat(entered);
+            if (isNaN(amountPaid) || amountPaid <= 0 || amountPaid > amount) {
+                showToast('Please enter a valid amount within current credit balance.', 'warning');
+                return;
+            }
+
+            const modeChoice = prompt('Payment Method:\n1. Cash Register\n2. UPI / QR\n3. Bank Transfer', '1');
+            if (modeChoice === null) return;
+            let paymentMode = 'Cash';
+            if (modeChoice.trim() === '2' || modeChoice.toLowerCase().includes('upi')) paymentMode = 'UPI';
+            else if (modeChoice.trim() === '3' || modeChoice.toLowerCase().includes('bank')) paymentMode = 'Bank Transfer';
+
             const fetchFn = window.apiFetch || fetch;
             try {
                 const res = await fetchFn(`/api/admin/customers/${customerId}/clear_credit`, {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ amount_paid: amount })
+                    body: JSON.stringify({ amount_paid: amountPaid, payment_mode: paymentMode })
                 });
                 const data = await res.json();
                 if (res.ok && data.success) {
-                    showToast('Udhar settled successfully!', 'success');
+                    showToast(data.message || 'Udhar collected and ledger updated!', 'success');
                     loadCustomersData();
+                    if (state.expenses) loadExpensesData();
                 } else {
                     showToast(data.message || 'Could not settle credit.', 'danger');
                 }
             } catch (err) {
                 console.error('Clear credit error:', err);
                 showToast('Network error settling credit.', 'danger');
+            }
+        },
+
+        paySupplier: async function (supplierId, supplierName, currentDue) {
+            const entered = prompt(`Disburse AP payment to ${supplierName}\nCurrent Accounts Payable (AP) Due: ₹${currentDue}\nEnter disbursement amount (₹):`, currentDue);
+            if (entered === null) return;
+            const amountPaid = parseFloat(entered);
+            if (isNaN(amountPaid) || amountPaid <= 0) {
+                showToast('Please enter a valid disbursement amount greater than zero.', 'warning');
+                return;
+            }
+
+            const modeChoice = prompt('Disbursement Payment Mode:\n1. Bank Transfer (NEFT/IMPS)\n2. Store UPI / QR\n3. Cash Register\n4. Bank Cheque', '1');
+            if (modeChoice === null) return;
+            let paymentMode = 'Bank Transfer';
+            if (modeChoice.trim() === '2' || modeChoice.toLowerCase().includes('upi')) paymentMode = 'UPI';
+            else if (modeChoice.trim() === '3' || modeChoice.toLowerCase().includes('cash')) paymentMode = 'Cash';
+            else if (modeChoice.trim() === '4' || modeChoice.toLowerCase().includes('cheque')) paymentMode = 'Cheque';
+
+            const notes = prompt('Enter reference / bank transaction UTR (optional):', `Vendor settlement for ${supplierName}`) || '';
+
+            const fetchFn = window.apiFetch || fetch;
+            try {
+                const res = await fetchFn(`/api/admin/suppliers/${supplierId}/pay`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ amount_paid: amountPaid, payment_mode: paymentMode, notes: notes })
+                });
+                const data = await res.json();
+                if (res.ok && data.success) {
+                    showToast(data.message || 'Vendor AP settled and cash outflow logged!', 'success');
+                    loadSuppliersData();
+                    if (state.expenses) loadExpensesData();
+                } else {
+                    showToast(data.message || 'Could not disburse payment.', 'danger');
+                }
+            } catch (err) {
+                console.error('Disburse AP error:', err);
+                showToast('Network error processing payment.', 'danger');
+            }
+        },
+
+        viewReceipt: async function (saleId) {
+            const fetchFn = window.apiFetch || fetch;
+            try {
+                const res = await fetchFn(`/api/admin/sales/bill/${saleId}`);
+                if (!res.ok) {
+                    showToast('Could not fetch receipt details.', 'danger');
+                    return;
+                }
+                const data = await res.json();
+
+                const billNumEl = document.getElementById('billModalNumber');
+                if (billNumEl) billNumEl.textContent = data.bill_number || `SAL-${data.bill_id}`;
+
+                const billDateEl = document.getElementById('billModalDate');
+                if (billDateEl) billDateEl.textContent = data.sale_date || 'Recent';
+
+                const billCustEl = document.getElementById('billModalCustomer');
+                if (billCustEl) billCustEl.textContent = data.customer_name + (data.customer_phone ? ` (${data.customer_phone})` : '');
+
+                const billPayEl = document.getElementById('billModalPayment');
+                if (billPayEl) billPayEl.textContent = data.payment_method || 'Cash';
+
+                const subtotalEl = document.getElementById('billModalSubtotal');
+                if (subtotalEl) subtotalEl.textContent = `₹${Number(data.subtotal || data.total_price).toFixed(2)}`;
+
+                const discRow = document.getElementById('billModalDiscountRow');
+                const discEl = document.getElementById('billModalDiscount');
+                if (discRow && discEl) {
+                    if (data.discount && data.discount > 0) {
+                        discRow.style.display = 'flex';
+                        discEl.textContent = `-₹${Number(data.discount).toFixed(2)}`;
+                    } else {
+                        discRow.style.display = 'none';
+                    }
+                }
+
+                const cgstEl = document.getElementById('billModalCGST');
+                if (cgstEl) cgstEl.textContent = `₹${Number(data.cgst || (data.tax / 2) || 0).toFixed(2)}`;
+
+                const sgstEl = document.getElementById('billModalSGST');
+                if (sgstEl) sgstEl.textContent = `₹${Number(data.sgst || (data.tax / 2) || 0).toFixed(2)}`;
+
+                const taxEl = document.getElementById('billModalTax');
+                if (taxEl) taxEl.textContent = `₹${Number(data.tax || 0).toFixed(2)}`;
+
+                const totalEl = document.getElementById('billModalTotal');
+                if (totalEl) totalEl.textContent = `₹${Number(data.total_price).toFixed(2)}`;
+
+                const tbody = document.getElementById('billModalItemsTbody');
+                if (tbody && data.items) {
+                    tbody.innerHTML = data.items.map((item, idx) => `
+                        <tr>
+                            <td>${idx + 1}. ${escapeHTML(item.product_name)}</td>
+                            <td class="text-center">${Number(item.quantity)}</td>
+                            <td class="text-end">₹${Number(item.unit_price || (item.total_price / item.quantity)).toFixed(2)}</td>
+                            <td class="text-end fw-bold">₹${Number(item.total_price).toFixed(2)}</td>
+                        </tr>
+                    `).join('');
+                }
+
+                const modalEl = document.getElementById('billModal');
+                if (modalEl && typeof bootstrap !== 'undefined') {
+                    const modal = new bootstrap.Modal(modalEl);
+                    modal.show();
+                }
+            } catch (e) {
+                console.error('View receipt error:', e);
+                showToast('Error loading receipt data.', 'danger');
             }
         },
 
@@ -2121,6 +2397,7 @@
             const category = document.getElementById('expCategoryInput')?.value;
             const amount = parseFloat(document.getElementById('expAmountInput')?.value || 0);
             const paymentMode = document.getElementById('expPaymentModeInput')?.value;
+            const expenseType = document.getElementById('expTypeInput')?.value || 'OpEx';
             const expenseDate = document.getElementById('expDateInput')?.value;
             const isRecurring = document.getElementById('expRecurringInput')?.checked || false;
             const description = document.getElementById('expDescInput')?.value?.trim();
@@ -2139,6 +2416,7 @@
                         category: category,
                         amount: amount,
                         payment_mode: paymentMode,
+                        expense_type: expenseType,
                         expense_date: expenseDate,
                         is_recurring: isRecurring,
                         description: description
@@ -2146,7 +2424,7 @@
                 });
                 const data = await res.json();
                 if (res.ok && data.success) {
-                    showToast(`Expense of ₹${amount} recorded under ${category}!`, 'success');
+                    showToast(`Expense of ₹${amount} recorded under ${category} (${expenseType})!`, 'success');
                     const modalEl = document.getElementById('recordExpenseModal');
                     if (modalEl && typeof bootstrap !== 'undefined') {
                         const modalInstance = bootstrap.Modal.getInstance(modalEl);
@@ -2164,7 +2442,7 @@
         },
 
         deleteExpense: async function (expenseId) {
-            if (!confirm('Are you sure you want to delete this expense record?')) return;
+            if (!confirm(`Archive / soft-delete expense record #${expenseId}?\nThis will retain the transaction in audit history while safely excluding it from active operating totals.`)) return;
             try {
                 const fetchFn = window.apiFetch || fetch;
                 const res = await fetchFn(`/api/admin/expenses/${expenseId}`, {
@@ -2172,15 +2450,15 @@
                 });
                 const data = await res.json();
                 if (res.ok && data.success) {
-                    showToast('Expense deleted successfully.', 'info');
+                    showToast(data.message || 'Expense archived successfully.', 'info');
                     loadExpensesData();
                     loadDashboardData();
                 } else {
-                    showToast(data.message || 'Failed to delete expense.', 'danger');
+                    showToast(data.message || 'Failed to archive expense.', 'danger');
                 }
             } catch (err) {
                 console.error('Delete expense error:', err);
-                showToast('Error deleting expense.', 'danger');
+                showToast('Error archiving expense.', 'danger');
             }
         }
     };

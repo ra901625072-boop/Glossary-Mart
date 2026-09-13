@@ -4,7 +4,7 @@ db = SQLAlchemy()
 
 # Import models to register them with SQLAlchemy
 from .user import User, ActivityLog
-from .product import Product, Category, Review, Sale
+from .product import Product, Category, Review, Sale, PosBill
 from .order import Order, OrderItem, Cart, Wishlist
 from .inventory import Supplier, Purchase
 from .promotion import Coupon, Notification
@@ -13,7 +13,7 @@ from .expense import Expense
 __all__ = [
     'db',
     'User', 'ActivityLog',
-    'Product', 'Category', 'Review', 'Sale',
+    'Product', 'Category', 'Review', 'Sale', 'PosBill',
     'Order', 'OrderItem', 'Cart', 'Wishlist',
     'Supplier', 'Purchase',
     'Coupon', 'Notification',

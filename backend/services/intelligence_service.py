@@ -590,11 +590,23 @@ class IntelligenceService:
         today_orders = float(db.session.query(func.coalesce(func.sum(Order.total_amount), 0)).filter(
             Order.created_at >= today_start, Order.payment_status == 'Paid'
         ).scalar() or 0)
-        today_inflow = today_sales + today_orders
+        today_recovery = float(db.session.query(func.coalesce(func.sum(Expense.amount), 0)).filter(
+            Expense.expense_date >= today_start,
+            Expense.expense_type == 'Debt Recovery',
+            Expense.is_deleted == False
+        ).scalar() or 0)
+        today_inflow = today_sales + today_orders + today_recovery
 
-        # 2. Today Money Out
-        today_purchases = float(db.session.query(func.coalesce(func.sum(Purchase.total_cost), 0)).filter(Purchase.purchase_date >= today_start).scalar() or 0)
-        today_expenses = float(db.session.query(func.coalesce(func.sum(Expense.amount), 0)).filter(Expense.expense_date >= today_start).scalar() or 0)
+        # 2. Today Money Out (Only Cash Paid Purchases + Active Operating/AP Expenses)
+        today_purchases = float(db.session.query(func.coalesce(func.sum(Purchase.total_cost), 0)).filter(
+            Purchase.purchase_date >= today_start,
+            Purchase.payment_status == 'Paid'
+        ).scalar() or 0)
+        today_expenses = float(db.session.query(func.coalesce(func.sum(Expense.amount), 0)).filter(
+            Expense.expense_date >= today_start,
+            Expense.expense_type != 'Debt Recovery',
+            Expense.is_deleted == False
+        ).scalar() or 0)
         today_outflow = today_purchases + today_expenses
         today_net = today_inflow - today_outflow
 
@@ -603,30 +615,45 @@ class IntelligenceService:
         m30_orders = float(db.session.query(func.coalesce(func.sum(Order.total_amount), 0)).filter(
             Order.created_at >= thirty_days_ago, Order.payment_status == 'Paid'
         ).scalar() or 0)
-        m30_inflow = m30_sales + m30_orders
+        m30_recovery = float(db.session.query(func.coalesce(func.sum(Expense.amount), 0)).filter(
+            Expense.expense_date >= thirty_days_ago,
+            Expense.expense_type == 'Debt Recovery',
+            Expense.is_deleted == False
+        ).scalar() or 0)
+        m30_inflow = m30_sales + m30_orders + m30_recovery
 
-        m30_purchases = float(db.session.query(func.coalesce(func.sum(Purchase.total_cost), 0)).filter(Purchase.purchase_date >= thirty_days_ago).scalar() or 0)
-        m30_expenses = float(db.session.query(func.coalesce(func.sum(Expense.amount), 0)).filter(Expense.expense_date >= thirty_days_ago).scalar() or 0)
+        m30_purchases = float(db.session.query(func.coalesce(func.sum(Purchase.total_cost), 0)).filter(
+            Purchase.purchase_date >= thirty_days_ago,
+            Purchase.payment_status == 'Paid'
+        ).scalar() or 0)
+        m30_expenses = float(db.session.query(func.coalesce(func.sum(Expense.amount), 0)).filter(
+            Expense.expense_date >= thirty_days_ago,
+            Expense.expense_type != 'Debt Recovery',
+            Expense.is_deleted == False
+        ).scalar() or 0)
         m30_outflow = m30_purchases + m30_expenses
         m30_net = m30_inflow - m30_outflow
 
-        # Expected receivables & payables
+        # Expected receivables & payables (Working Capital Position)
         pending_credit_receivables = float(db.session.query(func.coalesce(func.sum(User.credit), 0)).scalar() or 0)
         pending_cod_orders = float(db.session.query(func.coalesce(func.sum(Order.total_amount), 0)).filter(
             Order.payment_status != 'Paid', Order.order_status.in_(['Processing', 'Shipped', 'Out for Delivery'])
         ).scalar() or 0)
+        pending_supplier_payables = float(db.session.query(func.coalesce(func.sum(Supplier.outstanding_balance), 0)).scalar() or 0)
 
         return {
             'today': {
                 'money_in': round(today_inflow, 2),
                 'money_out': round(today_outflow, 2),
                 'net_cash_flow': round(today_net, 2),
+                'debt_recovery_inflow': round(today_recovery, 2),
                 'status': 'positive' if today_net >= 0 else 'negative'
             },
             'monthly': {
                 'money_in': round(m30_inflow, 2),
                 'money_out': round(m30_outflow, 2),
                 'net_cash_flow': round(m30_net, 2),
+                'debt_recovery_inflow': round(m30_recovery, 2),
                 'purchases_outflow': round(m30_purchases, 2),
                 'expenses_outflow': round(m30_expenses, 2)
             },
@@ -634,7 +661,12 @@ class IntelligenceService:
                 'customer_udhar': round(pending_credit_receivables, 2),
                 'pending_cod': round(pending_cod_orders, 2),
                 'total_incoming_expected': round(pending_credit_receivables + pending_cod_orders, 2)
-            }
+            },
+            'expected_payables': {
+                'supplier_ap': round(pending_supplier_payables, 2),
+                'total_outgoing_expected': round(pending_supplier_payables, 2)
+            },
+            'working_capital_net': round((pending_credit_receivables + pending_cod_orders) - pending_supplier_payables, 2)
         }
 
     @staticmethod

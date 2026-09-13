@@ -79,7 +79,7 @@ def sales():
 @admin_bp.route('/sales/history')
 @admin_required
 def sales_history():
-    """Sales history — returns JSON."""
+    """Sales history — returns JSON with invoice/bill metadata."""
     page = request.args.get('page', 1, type=int)
     per_page = 50
     pagination = db.session.query(Sale).order_by(Sale.sale_date.desc()).paginate(page=page, per_page=per_page, error_out=False)
@@ -88,6 +88,11 @@ def sales_history():
         'sales': [
             {
                 'id': s.id,
+                'bill_id': s.bill_id,
+                'bill_number': s.bill_rel.bill_number if s.bill_rel else f"SAL-{s.id:04d}",
+                'customer_name': s.bill_rel.customer_name if s.bill_rel else 'Walk-in Counter',
+                'customer_phone': s.bill_rel.customer_phone if s.bill_rel and s.bill_rel.customer_phone else '',
+                'payment_method': s.bill_rel.payment_method if s.bill_rel else 'Cash',
                 'product_name': s.product.name if s.product else 'Unknown',
                 'product_id': s.product_id,
                 'quantity': s.quantity,
@@ -158,16 +163,57 @@ def export_sales():
 @admin_bp.route('/sales/bill/<int:sale_id>')
 @admin_required
 def view_bill(sale_id):
-    """Printable bill for a manual sale — returns JSON bill data."""
+    """Printable bill for a sale or complete POS invoice — returns JSON bill data."""
     sale = db.session.get(Sale, sale_id)
     if not sale:
         return jsonify({'error': 'Sale record not found.'}), 404
+
+    bill = sale.bill_rel
+    if bill:
+        items = [
+            {
+                'product_name': si.product.name if si.product else 'Unknown',
+                'quantity': si.quantity,
+                'unit_price': float(si.product.selling_price) if si.product else 0,
+                'total_price': float(si.total_price),
+            }
+            for si in bill.sales
+        ]
+        return jsonify({
+            'bill_id': bill.id,
+            'bill_number': bill.bill_number,
+            'customer_name': bill.customer_name or 'Walk-in Counter',
+            'customer_phone': bill.customer_phone or '',
+            'subtotal': float(bill.subtotal),
+            'discount': float(bill.discount_amount),
+            'tax': float(bill.tax_amount),
+            'total_price': float(bill.total_amount),
+            'payment_method': bill.payment_method,
+            'sale_date': bill.created_at.strftime('%Y-%m-%d %H:%M:%S') if bill.created_at else None,
+            'items': items,
+        })
+
     return jsonify({
-        'sale_id': sale.id,
+        'bill_id': sale.id,
+        'bill_number': f"SAL-{sale.id:04d}",
+        'customer_name': 'Walk-in Counter',
+        'customer_phone': '',
         'product_name': sale.product.name if sale.product else 'Unknown',
         'quantity': sale.quantity,
         'total_price': float(sale.total_price),
+        'subtotal': float(sale.total_price),
+        'discount': 0.0,
+        'tax': round(float(sale.total_price) * 0.05 / 1.05, 2),
+        'payment_method': 'Cash',
         'profit': float(sale.profit),
-        'sale_date': sale.sale_date.isoformat() if sale.sale_date else None,
+        'sale_date': sale.sale_date.strftime('%Y-%m-%d %H:%M:%S') if sale.sale_date else None,
         'unit_price': float(sale.product.selling_price) if sale.product else 0,
+        'items': [
+            {
+                'product_name': sale.product.name if sale.product else 'Unknown',
+                'quantity': sale.quantity,
+                'unit_price': float(sale.product.selling_price) if sale.product else 0,
+                'total_price': float(sale.total_price),
+            }
+        ]
     })

@@ -1,4 +1,5 @@
 """Admin customer management routes (list customers, clear Udhar credit)."""
+from datetime import datetime, timezone
 from flask import current_app, jsonify, request
 
 from database.models import db
@@ -33,15 +34,17 @@ def customers():
 @admin_bp.route('/customers/<int:user_id>/clear_credit', methods=['POST'])
 @admin_required
 def clear_credit(user_id):
-    """Partially or fully settle a customer's Udhar credit balance."""
+    """
+    Partially or fully settle a customer's Udhar credit balance.
+    Reduces customer.credit and books an immutable cash/payment recovery record into cash flow.
+    """
     customer = db.session.get(User, user_id)
     if not customer:
         return jsonify({'success': False, 'message': 'Customer not found.'}), 404
 
-    if request.is_json:
-        amount_paid_str = request.json.get('amount_paid')
-    else:
-        amount_paid_str = request.form.get('amount_paid')
+    data = request.get_json(silent=True) or request.form
+    amount_paid_str = data.get('amount_paid') or data.get('amount')
+    payment_mode = (data.get('payment_mode') or 'Cash').strip()
     
     if not amount_paid_str:
         return jsonify({'success': False, 'message': 'Amount is required.'}), 400
@@ -51,26 +54,40 @@ def clear_credit(user_id):
         if amount_paid <= 0:
             return jsonify({'success': False, 'message': 'Amount must be strictly positive.'}), 400
 
-        current_balance = float(customer.credit)
+        current_balance = float(customer.credit or 0.0)
         if current_balance < amount_paid:
             return jsonify({
                 'success': False,
                 'message': f'Amount paid ({amount_paid:.2f}) cannot exceed the current balance ({current_balance:.2f}).'
             }), 400
 
-        customer.credit = current_balance - amount_paid
+        customer.credit = max(0.0, current_balance - amount_paid)
+
+        # Record Debt Recovery in financial ledger to debit Cash/Bank and credit Receivables
+        from database.models.expense import Expense
+        recovery_entry = Expense(
+            category='Debt Recovery (Udhar)',
+            amount=amount_paid,
+            payment_mode=payment_mode,
+            expense_type='Debt Recovery',
+            description=f"Collected Udhar debt from customer {customer.full_name or customer.username} (@{customer.username})",
+            expense_date=datetime.now(timezone.utc),
+        )
+        db.session.add(recovery_entry)
+
         _log_action(
             action='CLEAR_CUSTOMER_CREDIT',
             entity_type='User',
             entity_id=user_id,
-            details=f"Settled ₹{amount_paid:.2f} credit for {customer.username}. New balance: ₹{float(customer.credit):.2f}"
+            details=f"Settled ₹{amount_paid:.2f} ({payment_mode}) for {customer.username}. New balance: ₹{float(customer.credit):.2f}"
         )
         try:
             db.session.commit()
             return jsonify({
                 'success': True,
-                'message': f'Cleared ₹{amount_paid:.2f} for {customer.full_name or customer.username}!',
+                'message': f'Cleared ₹{amount_paid:.2f} for {customer.full_name or customer.username} via {payment_mode}!',
                 'new_balance': float(customer.credit),
+                'payment_mode': payment_mode,
             })
         except Exception:
             db.session.rollback()
@@ -79,3 +96,4 @@ def clear_credit(user_id):
 
     except (ValueError, TypeError):
         return jsonify({'success': False, 'message': 'Invalid amount entered.'}), 400
+

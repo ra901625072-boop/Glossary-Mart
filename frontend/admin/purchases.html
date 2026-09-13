@@ -287,6 +287,25 @@
                                 <input type="number" id="purchaseUnitCost" class="form-control rounded-2" required min="1" placeholder="28">
                             </div>
                         </div>
+
+                        <div class="row g-2 mb-3">
+                            <div class="col-6">
+                                <label class="form-label small fw-bold text-dark">Payment Terms *</label>
+                                <select id="purchasePaymentStatus" class="form-select rounded-2">
+                                    <option value="Credit (Unpaid)" selected>Credit (Add to Vendor AP)</option>
+                                    <option value="Paid">Paid Immediately (Cash Outflow)</option>
+                                </select>
+                            </div>
+                            <div class="col-6">
+                                <label class="form-label small fw-bold text-dark">Settlement Mode</label>
+                                <select id="purchasePaymentMode" class="form-select rounded-2">
+                                    <option value="Credit" selected>On Account (Credit)</option>
+                                    <option value="Bank Transfer">Bank Transfer (NEFT/RTGS)</option>
+                                    <option value="Cash">Cash Register</option>
+                                    <option value="UPI">Store UPI / QR</option>
+                                </select>
+                            </div>
+                        </div>
                     </div>
                     <div class="modal-footer border-top pt-3">
                         <button type="button" class="btn btn-secondary rounded-2 px-3" data-bs-dismiss="modal">Cancel</button>
