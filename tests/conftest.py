@@ -4,6 +4,8 @@ import os
 # Set environment variables BEFORE importing app
 os.environ['FLASK_ENV'] = 'testing'
 os.environ['TESTING'] = 'true'
+os.environ['DATABASE_URL'] = 'sqlite:///:memory:'
+os.environ['DATABASE_URI'] = 'sqlite:///:memory:'
 os.environ['SECRET_KEY'] = 'super-secret-test-key-for-pytest-12345'
 os.environ['WTF_CSRF_ENABLED'] = 'false'
 os.environ['SKIP_DB_CREATE'] = 'false'
