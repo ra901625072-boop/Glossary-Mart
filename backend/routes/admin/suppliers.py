@@ -33,6 +33,7 @@ def suppliers():
     })
 
 
+@admin_bp.route('/suppliers', methods=['POST'])
 @admin_bp.route('/suppliers/add', methods=['GET', 'POST'])
 @admin_required
 def add_supplier():
@@ -40,14 +41,17 @@ def add_supplier():
     if request.method == 'GET':
         return jsonify({'fields': ['name', 'contact_person', 'phone', 'email', 'address', 'gstin', 'bank_details']})
 
-    data = request.get_json() if request.is_json else request.form
+    data = request.get_json(silent=True) if request.is_json else (request.form.to_dict() if request.form else {})
+    if not data:
+        data = request.get_json(force=True, silent=True) or {}
+
     name = (data.get('name') or '').strip()
     if not name:
         return jsonify({'success': False, 'message': 'Supplier name is required.'}), 400
 
     supplier = Supplier(
         name=name,
-        contact_person=(data.get('contact_person') or '').strip(),
+        contact_person=(data.get('contact_person') or data.get('contact') or '').strip(),
         phone=(data.get('phone') or '').strip(),
         email=(data.get('email') or '').strip(),
         address=(data.get('address') or '').strip(),
@@ -58,13 +62,27 @@ def add_supplier():
     try:
         db.session.add(supplier)
         db.session.commit()
-        return jsonify({'success': True, 'message': f'Supplier "{supplier.name}" added successfully!', 'supplier_id': supplier.id})
+
+        _log_action(
+            action='ADD_SUPPLIER',
+            entity_type='Supplier',
+            entity_id=supplier.id,
+            details=f"Registered new supplier '{supplier.name}' (Phone: {supplier.phone or 'N/A'}, GSTIN: {supplier.gstin or 'N/A'})"
+        )
+
+        return jsonify({
+            'success': True,
+            'message': f'Supplier "{supplier.name}" added successfully!',
+            'supplier_id': supplier.id,
+            'supplier': supplier.to_dict(),
+        }), 201
     except Exception:
         db.session.rollback()
         current_app.logger.exception("Failed to add supplier")
         return jsonify({'success': False, 'message': 'Could not add supplier. Please try again.'}), 500
 
 
+@admin_bp.route('/suppliers/<int:supplier_id>', methods=['GET', 'PUT', 'PATCH'])
 @admin_bp.route('/suppliers/edit/<int:supplier_id>', methods=['GET', 'POST'])
 @admin_required
 def edit_supplier(supplier_id):
@@ -75,6 +93,8 @@ def edit_supplier(supplier_id):
 
     if request.method == 'GET':
         return jsonify({
+            'success': True,
+            'supplier': supplier.to_dict(),
             'id': supplier.id,
             'name': supplier.name,
             'contact_person': supplier.contact_person or '',
@@ -86,14 +106,17 @@ def edit_supplier(supplier_id):
             'outstanding_balance': float(supplier.outstanding_balance or 0.0),
         })
 
-    data = request.get_json() if request.is_json else request.form
+    data = request.get_json(silent=True) if request.is_json else (request.form.to_dict() if request.form else {})
+    if not data:
+        data = request.get_json(force=True, silent=True) or {}
+
     name = (data.get('name') or '').strip()
     if not name:
         return jsonify({'success': False, 'message': 'Supplier name is required.'}), 400
 
     supplier.name = name
-    if 'contact_person' in data:
-        supplier.contact_person = (data.get('contact_person') or '').strip()
+    if 'contact_person' in data or 'contact' in data:
+        supplier.contact_person = (data.get('contact_person') or data.get('contact') or '').strip()
     if 'phone' in data:
         supplier.phone = (data.get('phone') or '').strip()
     if 'email' in data:
@@ -107,7 +130,19 @@ def edit_supplier(supplier_id):
 
     try:
         db.session.commit()
-        return jsonify({'success': True, 'message': f'Supplier "{supplier.name}" updated successfully!'})
+
+        _log_action(
+            action='EDIT_SUPPLIER',
+            entity_type='Supplier',
+            entity_id=supplier.id,
+            details=f"Updated details for supplier '{supplier.name}'"
+        )
+
+        return jsonify({
+            'success': True,
+            'message': f'Supplier "{supplier.name}" updated successfully!',
+            'supplier': supplier.to_dict(),
+        })
     except Exception:
         db.session.rollback()
         current_app.logger.exception(f"Failed to update supplier #{supplier_id}")
@@ -171,21 +206,39 @@ def pay_supplier(supplier_id):
         return jsonify({'success': False, 'message': 'Could not record supplier payment. Please try again.'}), 500
 
 
-@admin_bp.route('/suppliers/delete/<int:supplier_id>', methods=['POST'])
+@admin_bp.route('/suppliers/<int:supplier_id>', methods=['DELETE'])
+@admin_bp.route('/suppliers/delete/<int:supplier_id>', methods=['POST', 'DELETE'])
 @admin_required
 def delete_supplier(supplier_id):
-    """Delete a supplier — blocked if linked to past purchases."""
+    """Delete a supplier — blocked if linked to past purchases or has outstanding AP."""
     supplier = db.session.get(Supplier, supplier_id)
     if not supplier:
         return jsonify({'error': 'Supplier not found.'}), 404
 
+    if float(supplier.outstanding_balance or 0.0) > 0:
+        return jsonify({
+            'success': False,
+            'message': f'Cannot delete "{supplier.name}" — outstanding Accounts Payable of ₹{float(supplier.outstanding_balance):.2f} must be settled first.'
+        }), 400
+
     if supplier.purchases:
-        return jsonify({'success': False, 'message': f'Cannot delete "{supplier.name}" — it is linked to past purchases.'}), 409
+        return jsonify({
+            'success': False,
+            'message': f'Cannot delete "{supplier.name}" — it is linked to past purchase orders. Deleting would violate accounting and stock audit integrity.'
+        }), 409
 
     name = supplier.name
     try:
         db.session.delete(supplier)
         db.session.commit()
+
+        _log_action(
+            action='DELETE_SUPPLIER',
+            entity_type='Supplier',
+            entity_id=supplier_id,
+            details=f"Deleted supplier record for '{name}'"
+        )
+
         return jsonify({'success': True, 'message': f'Supplier "{name}" deleted successfully!'})
     except Exception:
         db.session.rollback()

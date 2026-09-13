@@ -1553,15 +1553,22 @@
                         </div>
                     </div>
 
-                    <div class="d-flex gap-2 pt-2 border-top">
-                        <button class="btn btn-sm btn-outline-success rounded-2 px-3 flex-grow-1" onclick="window.Adm.openRecordPurchaseModal(${Number(s.id)})">
-                            + Stock In
+                    <div class="d-flex gap-2 pt-2 border-top align-items-center">
+                        <button class="btn btn-sm btn-outline-success rounded-2 px-2 flex-grow-1 d-inline-flex align-items-center justify-content-center gap-1" onclick="window.Adm.openRecordPurchaseModal(${Number(s.id)})" title="Record Inward Delivery">
+                            <i class="bi bi-box-arrow-in-down"></i>
+                            <span>Stock In</span>
                         </button>
                         ${hasDue ? `
-                        <button class="btn btn-sm btn-danger rounded-2 px-3 flex-grow-1" onclick="window.Adm.paySupplier(${Number(s.id)}, '${escapeHTML(s.name).replace(/'/g, "\\'")}', ${Number(s.outstanding_balance)})">
-                            <i class="bi bi-cash me-1"></i>Pay AP
+                        <button class="btn btn-sm btn-danger rounded-2 px-2 d-inline-flex align-items-center gap-1" onclick="window.Adm.paySupplier(${Number(s.id)}, '${escapeHTML(s.name).replace(/'/g, "\\'")}', ${Number(s.outstanding_balance)})" title="Pay AP Due">
+                            <i class="bi bi-cash"></i>Pay AP
                         </button>
                         ` : ''}
+                        <button class="btn btn-sm btn-outline-primary rounded-2 px-2" onclick="window.Adm.openEditSupplierModal(${Number(s.id)})" title="Edit Supplier Details">
+                            <i class="bi bi-pencil"></i>
+                        </button>
+                        <button class="btn btn-sm btn-outline-danger rounded-2 px-2" onclick="window.Adm.deleteSupplier(${Number(s.id)}, '${escapeHTML(s.name).replace(/'/g, "\\'")}')" title="Delete Supplier">
+                            <i class="bi bi-trash"></i>
+                        </button>
                     </div>
                 </div>
             </div>
@@ -1693,6 +1700,22 @@
             renderPOSCart();
         },
 
+        posPaymentModeChanged: function () {
+            const mode = document.getElementById('posPaymentModeSelect')?.value || 'Cash';
+            const notice = document.getElementById('posUdharNotice');
+            if (notice) {
+                if (mode.toLowerCase().includes('udhar')) {
+                    notice.classList.remove('d-none');
+                    const phoneInput = document.getElementById('posCustomerPhoneInput');
+                    if (phoneInput && !phoneInput.value.trim()) {
+                        phoneInput.focus();
+                    }
+                } else {
+                    notice.classList.add('d-none');
+                }
+            }
+        },
+
         posCompleteSale: async function () {
             if (state.posCart.length === 0) {
                 showToast('POS cart is empty! Select products first.', 'warning');
@@ -1702,6 +1725,15 @@
             const phone = (document.getElementById('posCustomerPhoneInput')?.value || '').trim();
             const customerName = phone ? `Walk-in (${phone})` : 'Walk-in Counter';
             const paymentMode = document.getElementById('posPaymentModeSelect')?.value || 'Cash';
+            const isUdhar = paymentMode.toLowerCase().includes('udhar');
+
+            if (isUdhar && !phone) {
+                showToast('Customer Mobile Number or Name is required for Udhar (Store Credit / Khata) billing!', 'warning');
+                const phoneInput = document.getElementById('posCustomerPhoneInput');
+                if (phoneInput) phoneInput.focus();
+                return;
+            }
+
             const discount = parseFloat(state.posDiscount) || 0;
             const fetchFn = window.apiFetch || fetch;
 
@@ -1746,10 +1778,10 @@
                 if (billDateEl) billDateEl.textContent = dateStr;
 
                 const billCustEl = document.getElementById('billModalCustomer');
-                if (billCustEl) billCustEl.textContent = phone || 'Walk-in';
+                if (billCustEl) billCustEl.textContent = (data.customer_name || phone || 'Walk-in');
 
                 const billPayEl = document.getElementById('billModalPayment');
-                if (billPayEl) billPayEl.textContent = paymentMode;
+                if (billPayEl) billPayEl.textContent = data.payment_mode || paymentMode;
 
                 const subtotalEl = document.getElementById('billModalSubtotal');
                 if (subtotalEl) subtotalEl.textContent = `₹${subtotal.toFixed(2)}`;
@@ -1780,6 +1812,20 @@
                 const totalEl = document.getElementById('billModalTotal');
                 if (totalEl) totalEl.textContent = `₹${total.toFixed(2)}`;
 
+                // Udhar breakdown in thermal receipt slip
+                const udharRow = document.getElementById('billModalUdharRow');
+                const udharBalEl = document.getElementById('billModalUdharBalance');
+                if (udharRow) {
+                    if (data.is_udhar || isUdhar) {
+                        udharRow.style.display = 'block';
+                        if (udharBalEl) {
+                            udharBalEl.textContent = `₹${Number(data.customer_credit || total).toLocaleString('en-IN', {minimumFractionDigits: 2})}`;
+                        }
+                    } else {
+                        udharRow.style.display = 'none';
+                    }
+                }
+
                 const tbody = document.getElementById('billModalItemsTbody');
                 if (tbody) {
                     tbody.innerHTML = state.posCart.map((c, idx) => {
@@ -1804,9 +1850,15 @@
                 if (discInput) discInput.value = '';
                 const phoneInput = document.getElementById('posCustomerPhoneInput');
                 if (phoneInput) phoneInput.value = '';
+                const notice = document.getElementById('posUdharNotice');
+                if (notice) notice.classList.add('d-none');
+                const paySelect = document.getElementById('posPaymentModeSelect');
+                if (paySelect) paySelect.value = 'Cash';
+
                 renderPOS();
                 loadProductsData();
-                logActionLocally('POS Counter Sale', `Billed #${billId} for ₹${total} (${paymentMode})`);
+                loadCustomersData();
+                logActionLocally('POS Counter Sale', `Billed #${billId} for ₹${total} (${data.payment_mode || paymentMode})`);
                 showToast(`POS Sale completed! Bill #${billId}`, 'success');
 
                 const modalEl = document.getElementById('billModal');
@@ -2264,6 +2316,130 @@
             } catch (err) {
                 console.error('Disburse AP error:', err);
                 showToast('Network error processing payment.', 'danger');
+            }
+        },
+
+        openAddSupplierModal: function () {
+            const form = document.getElementById('supplierForm');
+            if (form) form.reset();
+            const idInput = document.getElementById('supplierFormId');
+            if (idInput) idInput.value = '';
+            const title = document.getElementById('supplierModalLabel');
+            if (title) title.innerHTML = '<i class="bi bi-building-add me-2 text-success"></i>Add New Supplier';
+            const submitBtn = document.getElementById('supplierFormSubmitBtn');
+            if (submitBtn) submitBtn.textContent = 'Save Supplier';
+
+            const modalEl = document.getElementById('supplierModal');
+            if (modalEl && typeof bootstrap !== 'undefined') {
+                const modal = bootstrap.Modal.getInstance(modalEl) || new bootstrap.Modal(modalEl);
+                modal.show();
+            }
+        },
+
+        openEditSupplierModal: function (supplierId) {
+            const s = state.suppliers.find(sup => sup.id === Number(supplierId));
+            if (!s) {
+                showToast('Supplier not found in local cache.', 'warning');
+                return;
+            }
+            const idInput = document.getElementById('supplierFormId');
+            if (idInput) idInput.value = s.id;
+            const nameInput = document.getElementById('supplierFormName');
+            if (nameInput) nameInput.value = s.name || '';
+            const contactInput = document.getElementById('supplierFormContact');
+            if (contactInput) contactInput.value = s.contact || '';
+            const phoneInput = document.getElementById('supplierFormPhone');
+            if (phoneInput) phoneInput.value = s.phone || '';
+            const emailInput = document.getElementById('supplierFormEmail');
+            if (emailInput) emailInput.value = s.email || '';
+            const gstinInput = document.getElementById('supplierFormGstin');
+            if (gstinInput) gstinInput.value = s.gstin || '';
+            const addressInput = document.getElementById('supplierFormAddress');
+            if (addressInput) addressInput.value = s.address || '';
+            const bankInput = document.getElementById('supplierFormBank');
+            if (bankInput) bankInput.value = s.bank_details || '';
+
+            const title = document.getElementById('supplierModalLabel');
+            if (title) title.innerHTML = `<i class="bi bi-pencil-square me-2 text-primary"></i>Edit Supplier: ${escapeHTML(s.name)}`;
+            const submitBtn = document.getElementById('supplierFormSubmitBtn');
+            if (submitBtn) submitBtn.textContent = 'Update Supplier';
+
+            const modalEl = document.getElementById('supplierModal');
+            if (modalEl && typeof bootstrap !== 'undefined') {
+                const modal = bootstrap.Modal.getInstance(modalEl) || new bootstrap.Modal(modalEl);
+                modal.show();
+            }
+        },
+
+        saveSupplier: async function (e) {
+            if (e && e.preventDefault) e.preventDefault();
+            const id = (document.getElementById('supplierFormId')?.value || '').trim();
+            const name = (document.getElementById('supplierFormName')?.value || '').trim();
+            if (!name) {
+                showToast('Supplier Name is required.', 'warning');
+                return;
+            }
+
+            const payload = {
+                name: name,
+                contact_person: (document.getElementById('supplierFormContact')?.value || '').trim(),
+                phone: (document.getElementById('supplierFormPhone')?.value || '').trim(),
+                email: (document.getElementById('supplierFormEmail')?.value || '').trim(),
+                gstin: (document.getElementById('supplierFormGstin')?.value || '').trim(),
+                address: (document.getElementById('supplierFormAddress')?.value || '').trim(),
+                bank_details: (document.getElementById('supplierFormBank')?.value || '').trim()
+            };
+
+            const isEdit = Boolean(id);
+            const url = isEdit ? `/api/admin/suppliers/${id}` : '/api/admin/suppliers/add';
+            const method = isEdit ? 'PUT' : 'POST';
+            const fetchFn = window.apiFetch || fetch;
+
+            try {
+                const res = await fetchFn(url, {
+                    method: method,
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(payload)
+                });
+                const data = await res.json();
+                if (res.ok && data.success) {
+                    showToast(data.message || (isEdit ? 'Supplier updated successfully!' : 'Supplier added successfully!'), 'success');
+                    const modalEl = document.getElementById('supplierModal');
+                    if (modalEl && typeof bootstrap !== 'undefined') {
+                        const modal = bootstrap.Modal.getInstance(modalEl);
+                        if (modal) modal.hide();
+                    }
+                    loadSuppliersData();
+                } else {
+                    showToast(data.message || data.error || 'Failed to save supplier.', 'danger');
+                }
+            } catch (err) {
+                console.error('Save supplier error:', err);
+                showToast('Network error saving supplier.', 'danger');
+            }
+        },
+
+        deleteSupplier: async function (supplierId, supplierName) {
+            if (!confirm(`Are you sure you want to delete supplier "${supplierName}"?\n\nNote: If this supplier has past purchase orders or outstanding Accounts Payable, deletion will be safely blocked.`)) {
+                return;
+            }
+
+            const fetchFn = window.apiFetch || fetch;
+            try {
+                const res = await fetchFn(`/api/admin/suppliers/${supplierId}`, {
+                    method: 'DELETE',
+                    headers: { 'Content-Type': 'application/json' }
+                });
+                const data = await res.json();
+                if (res.ok && data.success) {
+                    showToast(data.message || `Supplier "${supplierName}" deleted successfully!`, 'success');
+                    loadSuppliersData();
+                } else {
+                    showToast(data.message || data.error || 'Could not delete supplier.', 'danger');
+                }
+            } catch (err) {
+                console.error('Delete supplier error:', err);
+                showToast('Network error deleting supplier.', 'danger');
             }
         },
 

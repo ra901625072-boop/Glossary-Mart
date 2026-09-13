@@ -5,6 +5,7 @@ from sqlalchemy import func
 
 from database.models import db
 from database.models.product import Product, Sale, PosBill
+from database.models.user import User
 from backend.services.inventory_service import InventoryService
 from backend.routes.decorators import admin_required
 from .helpers import _log_action
@@ -112,6 +113,62 @@ def pos_checkout():
         # Standard retail tax calculation (5% GST included)
         tax_amount = round(net_total * 0.05 / 1.05, 2)
 
+        # Detect Udhar (Store Credit / Khata Book) payment mode
+        is_udhar = any(k in payment_mode.lower() for k in ('udhar', 'credit', 'khata'))
+        customer_user = None
+
+        if is_udhar:
+            clean_digits = ''.join(filter(str.isdigit, customer_phone))
+            has_name = bool(customer_name and customer_name not in ('Walk-in', 'Walk-in Counter'))
+            if not clean_digits and not has_name:
+                db.session.rollback()
+                return jsonify({
+                    'success': False,
+                    'error': 'Customer mobile number or name is required for Udhar (Store Credit / Khata) billing.'
+                }), 400
+
+            # 1. Look up existing customer in database
+            if customer_phone:
+                customer_user = db.session.query(User).filter(
+                    User.phone == customer_phone,
+                    User.role == 'customer'
+                ).first()
+            if not customer_user and has_name:
+                customer_user = db.session.query(User).filter(
+                    (User.full_name.ilike(customer_name) | (User.username.ilike(customer_name))),
+                    User.role == 'customer'
+                ).first()
+
+            # 2. Provision new customer profile if first-time in-store Khata customer
+            if not customer_user:
+                cust_key = clean_digits or f"instore_{int(now.timestamp())}"
+                uname = f"khata_{cust_key}"
+                # Ensure unique username
+                existing_uname = db.session.query(User).filter_by(username=uname).first()
+                if existing_uname:
+                    uname = f"khata_{cust_key}_{int(now.timestamp()) % 10000}"
+                email_val = f"{cust_key}@khata.egrossary.com"
+                display_name = customer_name if has_name else f"Customer {customer_phone}"
+
+                customer_user = User(
+                    username=uname,
+                    email=email_val,
+                    full_name=display_name,
+                    phone=customer_phone,
+                    role='customer',
+                    credit=0.0,
+                    is_verified=True,
+                )
+                customer_user.set_password("InStoreKhata@123")
+                db.session.add(customer_user)
+                db.session.flush()
+
+            # 3. Increase customer unpaid credit balance (Accounts Receivable debt)
+            customer_user.credit = float(customer_user.credit or 0.0) + net_total
+            customer_name = customer_user.full_name or customer_name
+            customer_phone = customer_user.phone or customer_phone
+            payment_mode = 'Udhar'
+
         # Generate statutory consecutive sequential bill serial (e.g. EG/26/POS-00001)
         max_id = db.session.query(func.coalesce(func.max(PosBill.id), 0)).scalar() or 0
         next_seq = max_id + 1
@@ -161,10 +218,16 @@ def pos_checkout():
 
         db.session.commit()
 
-        _log_action(
-            'POS_COUNTER_SALE', 'PosBill', pos_bill.id,
-            details=f"Issued invoice {bill_number} for ₹{net_total:.2f} ({payment_mode}) to {customer_phone or customer_name}"
-        )
+        if is_udhar and customer_user:
+            _log_action(
+                'POS_UDHAR_SALE', 'User', customer_user.id,
+                details=f"Billed invoice {bill_number} for ₹{net_total:.2f} to Udhar account for {customer_user.full_name or customer_user.username} (Phone: {customer_user.phone or 'N/A'}). Total Udhar balance: ₹{float(customer_user.credit):.2f}"
+            )
+        else:
+            _log_action(
+                'POS_COUNTER_SALE', 'PosBill', pos_bill.id,
+                details=f"Issued invoice {bill_number} for ₹{net_total:.2f} ({payment_mode}) to {customer_phone or customer_name}"
+            )
 
         return jsonify({
             'success': True,
@@ -178,6 +241,9 @@ def pos_checkout():
             'sgst': round(tax_amount / 2, 2),
             'payment_mode': payment_mode,
             'customer_phone': customer_phone or 'Walk-in',
+            'customer_name': customer_name or 'Walk-in',
+            'is_udhar': is_udhar,
+            'customer_credit': float(customer_user.credit) if customer_user else 0.0,
             'created_at': now.strftime('%Y-%m-%d %H:%M:%S'),
         })
 
