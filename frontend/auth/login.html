@@ -142,6 +142,25 @@
             if (redirect) {
                 const regLink = document.querySelector('a[href="register.html"]');
                 if (regLink) regLink.href = 'register.html?redirect=' + encodeURIComponent(redirect);
+                
+                if (redirect.includes('admin')) {
+                    const heading = document.getElementById('authHeading');
+                    const subheading = document.getElementById('authSubheading');
+                    const feedback = document.getElementById('loginFeedback');
+                    if (heading) heading.textContent = 'Admin Console Login';
+                    if (subheading) subheading.textContent = 'Sign in with Administrator credentials to access the ERP Console';
+                    if (feedback) {
+                        feedback.innerHTML = `
+                            <div class="alert alert-warning py-2 px-3 small mb-3 border-0 rounded-3 d-flex align-items-center gap-2">
+                                <i class="bi bi-shield-lock-fill text-warning fs-5"></i>
+                                <div>
+                                    <strong>Admin Privilege Required</strong>
+                                    <div class="smallest text-muted">Customer accounts cannot access the ERP Console. Please sign in with your Administrator account.</div>
+                                </div>
+                            </div>
+                        `;
+                    }
+                }
             }
         });
     </script>

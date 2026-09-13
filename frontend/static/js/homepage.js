@@ -1014,18 +1014,30 @@
         function applyAuthenticatedState(user) {
             const displayName = user.full_name || user.name || user.username || 'Account';
             const firstName = displayName.split(' ')[0];
-            if (accountText) accountText.innerText = firstName;
+            const isAdmin = user.role === 'admin' || user.role === 'manager';
+            if (accountText) accountText.innerText = isAdmin ? `${firstName} (Admin)` : firstName;
             if (accountBtn) {
-                accountBtn.title = `Signed in as ${user.email || user.username}`;
+                accountBtn.title = `Signed in as ${user.email || user.username} (${user.role})`;
                 accountBtn.setAttribute('data-bs-toggle', 'dropdown');
                 accountBtn.removeAttribute('data-bs-target');
                 accountBtn.classList.add('dropdown-toggle');
             }
             if (dropdownMenu) {
                 dropdownMenu.style.display = '';
+                const existingAdminLink = document.getElementById('headerDropdownAdminLink');
+                if (isAdmin) {
+                    if (!existingAdminLink) {
+                        const adminLi = document.createElement('li');
+                        adminLi.id = 'headerDropdownAdminLink';
+                        adminLi.innerHTML = '<a class="dropdown-item rounded-3 py-2 text-success fw-bold bg-success bg-opacity-10 mb-1" href="admin/index.html"><i class="bi bi-speedometer2 me-2"></i>Admin ERP Console</a>';
+                        dropdownMenu.insertBefore(adminLi, dropdownMenu.firstChild.nextSibling);
+                    }
+                } else if (existingAdminLink) {
+                    existingAdminLink.remove();
+                }
             }
             if (dropdownUserName) {
-                dropdownUserName.textContent = displayName;
+                dropdownUserName.textContent = displayName + (isAdmin ? ' (Administrator)' : '');
             }
             if (dropdownUserEmail) {
                 dropdownUserEmail.textContent = user.email || user.username || '';
@@ -1051,7 +1063,7 @@
             if (memberEmailEl) memberEmailEl.textContent = user.email || user.username || '';
         }
 
-        // 1. Initial render from localStorage cache with 30-day expiry check
+        // 1. Initial render from localStorage cache with 30-day expiry check for customers
         const authDataStr = localStorage.getItem('jg_auth_user');
         if (authDataStr) {
             try {
@@ -1064,6 +1076,8 @@
                         applyUnauthenticatedState();
                         return;
                     }
+                    applyAuthenticatedState(cachedUser);
+                } else if (cachedUser && (cachedUser.role === 'admin' || cachedUser.role === 'manager')) {
                     applyAuthenticatedState(cachedUser);
                 } else {
                     applyUnauthenticatedState();
@@ -1081,7 +1095,7 @@
             const res = await fetchFn('/api/auth/me');
             if (res.ok) {
                 const data = await res.json();
-                if (data && data.authenticated && data.user && data.user.role === 'customer') {
+                if (data && data.authenticated && data.user) {
                     const u = data.user;
                     const now = Date.now();
                     const sessionUser = {
@@ -1090,7 +1104,7 @@
                         username: u.username,
                         email: u.email,
                         phone: u.phone,
-                        role: 'customer',
+                        role: u.role || 'customer',
                         login_time: u.login_time || now,
                         expires_at: data.expires_at ? (data.expires_at * 1000) : (now + 30 * 24 * 60 * 60 * 1000)
                     };
