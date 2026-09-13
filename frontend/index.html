@@ -25,9 +25,9 @@
     <link rel="apple-touch-icon" href="static/images/logo-icon.png">
 
     <!-- Dedicated Separate Stylesheets (External CSS Architecture) -->
-    <link rel="stylesheet" href="static/css/core/variables.css">
-    <link rel="stylesheet" href="static/css/homepage.css">
-    <link rel="stylesheet" href="static/css/customer.css">
+    <link rel="stylesheet" href="static/css/core/variables.css?v=2.1">
+    <link rel="stylesheet" href="static/css/customer.css?v=2.1">
+    <link rel="stylesheet" href="static/css/homepage.css?v=2.1">
 </head>
 
 <body>
@@ -35,14 +35,14 @@
     <header class="announcement-bar">
         <div class="container">
             <div class="d-flex align-items-center gap-2">
-                <span class="badge bg-success bg-opacity-25 text-success me-2 px-2 py-0.5 rounded-pill"><i class="bi bi-truck me-1"></i>Express</span>
-                <span><strong>Free Express Delivery on Orders Above ₹499</strong> &bull; 100% Quality Guarantee</span>
+                <span class="announcement-badge-live"><span class="pulse-dot"></span>15-Min Express</span>
+                <span><strong>Free Express Delivery on Orders Above ₹499</strong> &bull; 100% Quality &amp; Freshness Guarantee</span>
             </div>
             <div class="d-none d-sm-flex align-items-center gap-3">
                 <button class="location-dropdown-btn" data-bs-toggle="modal" data-bs-target="#locationModal">
                     <i class="bi bi-geo-alt-fill text-success"></i>
-                    <span>Delivering to <strong id="ribbonLocation">Your Location</strong></span>
-                    <i class="bi bi-chevron-down small"></i>
+                    <span>Delivering to <strong id="ribbonLocation">Pali &amp; Mehsana (384260)</strong></span>
+                    <i class="bi bi-chevron-down small opacity-75"></i>
                 </button>
             </div>
         </div>
@@ -63,7 +63,8 @@
             <!-- Central Product Search Bar -->
             <div class="search-form-wrapper d-none d-md-block">
                 <div class="search-input-group">
-                    <input type="text" class="search-field" id="globalSearchInput" placeholder="Search groceries, fruits, dairy, snacks..." oninput="handleLiveSearch(this.value)" autocomplete="off">
+                    <input type="text" class="search-field" id="globalSearchInput" placeholder="Search fresh vegetables, dairy, snacks, staples..." oninput="handleLiveSearch(this.value)" autocomplete="off">
+                    <span class="search-kbd-hint">Ctrl + K</span>
                     <button class="search-submit-btn" type="button" onclick="triggerSearch()" title="Search">
                         <i class="bi bi-search"></i>
                     </button>
@@ -109,7 +110,7 @@
                 <button class="header-action-btn" data-bs-toggle="offcanvas" data-bs-target="#cartOffcanvas" aria-controls="cartOffcanvas" title="Shopping Bag">
                     <i class="bi bi-cart3"></i>
                     <span>Cart</span>
-                    <span class="action-badge-pill" id="cartCountBadge">2</span>
+                    <span class="action-badge-pill" id="cartCountBadge">0</span>
                 </button>
             </div>
         </div>
@@ -127,13 +128,13 @@
     <div class="sub-nav-bar">
         <div class="container">
             <ul class="sub-nav-menu">
-                <li><a href="/" class="sub-nav-link active">Home</a></li>
-                <li><a href="customer/shop.html" class="sub-nav-link">Shop</a></li>
-                <li><a href="#categories" class="sub-nav-link">Categories</a></li>
-                <li><a href="#deals" class="sub-nav-link text-success fw-bold">Offers</a></li>
-                <li><a href="#bestsellers" class="sub-nav-link">Best Sellers</a></li>
-                <li><a href="customer/shop.html?sort=latest" class="sub-nav-link">New Arrivals</a></li>
-                <li><a href="auth/login.html" class="sub-nav-link fw-bold" id="subnavAuthLink"><i class="bi bi-box-arrow-in-right me-1"></i>Sign In</a></li>
+                <li><a href="/" class="sub-nav-link active"><i class="bi bi-house-door me-1"></i>Home</a></li>
+                <li><a href="customer/shop.html" class="sub-nav-link"><i class="bi bi-grid me-1"></i>All Products</a></li>
+                <li><a href="#categories" class="sub-nav-link"><i class="bi bi-collection me-1"></i>Categories</a></li>
+                <li><a href="#deals" class="sub-nav-link text-success fw-bold"><i class="bi bi-fire me-1"></i>Offers &amp; Deals</a></li>
+                <li><a href="#bestsellers" class="sub-nav-link"><i class="bi bi-star-fill text-warning me-1"></i>Best Sellers</a></li>
+                <li><a href="customer/shop.html?sort=latest" class="sub-nav-link"><i class="bi bi-sparkles me-1"></i>New Arrivals</a></li>
+                <li><a href="customer/faq.html" class="sub-nav-link"><i class="bi bi-headset me-1"></i>Help &amp; Support</a></li>
             </ul>
         </div>
     </div>
@@ -144,53 +145,80 @@
             <div class="row align-items-center g-4 g-lg-5">
                 <div class="col-lg-6">
                     <div class="hero-tag-pill">
-                        <i class="bi bi-shield-check text-success"></i>
-                        <span>Fresh &amp; Healthy</span>
+                        <i class="bi bi-lightning-charge-fill text-success"></i>
+                        <span>15-Minute Express Delivery &bull; Mehsana &amp; Pali</span>
                     </div>
                     <h1 class="hero-heading">
-                        Fresh Essentials,<br>
-                        Delivered to Your Door
+                        Fresh Groceries,<br>
+                        <span class="hero-gradient-text">Delivered Fast</span>
                     </h1>
                     <p class="hero-subtitle">
-                        Shop everyday groceries and household essentials at great prices.
+                        Farm-fresh fruits, crisp vegetables, dairy, pantry staples, and household essentials at everyday wholesale prices.
                     </p>
                     <div class="hero-cta-group">
-                        <a href="customer/shop.html" class="btn-brand-primary">
-                            <span>Shop Now</span>
+                        <a href="customer/shop.html" class="btn-hero-primary">
+                            <span>Shop Fresh Now</span>
                             <i class="bi bi-arrow-right"></i>
                         </a>
-                        <a href="#categories" class="btn-brand-outline">
-                            <span>Explore Categories</span>
+                        <a href="#categories" class="btn-hero-outline">
+                            <i class="bi bi-grid-fill text-success"></i>
+                            <span>Explore 8+ Categories</span>
                         </a>
                     </div>
                     <div class="hero-trust-strip">
                         <div class="hero-trust-item">
-                            <i class="bi bi-check-circle-fill text-success"></i>
-                            <span>Fresh Products</span>
+                            <i class="bi bi-patch-check-fill"></i>
+                            <span>100% Quality Checked</span>
                         </div>
                         <div class="hero-trust-item">
-                            <i class="bi bi-shield-lock-fill text-success"></i>
-                            <span>Secure Payment</span>
+                            <i class="bi bi-shield-lock-fill"></i>
+                            <span>100% Secure Checkout</span>
                         </div>
                         <div class="hero-trust-item">
-                            <i class="bi bi-truck text-success"></i>
-                            <span>Fast Delivery</span>
+                            <i class="bi bi-stopwatch-fill"></i>
+                            <span>15-Min Express Dispatch</span>
                         </div>
                     </div>
                 </div>
 
                 <div class="col-lg-6">
                     <div class="hero-visual-box">
-                        <img src="https://images.unsplash.com/photo-1542838132-92c53300491e?auto=format&fit=crop&w=900&q=80" alt="Fresh Grocery Basket" class="hero-main-img img-fluid">
-                        <div class="hero-controls">
-                            <button class="hero-nav-arrow" aria-label="Previous slide"><i class="bi bi-chevron-left"></i></button>
-                            <div class="hero-dots">
-                                <span class="hero-dot active"></span>
-                                <span class="hero-dot"></span>
-                                <span class="hero-dot"></span>
-                                <span class="hero-dot"></span>
+                        <div class="hero-image-wrapper">
+                            <img src="https://images.unsplash.com/photo-1542838132-92c53300491e?auto=format&fit=crop&w=900&q=80" alt="Fresh Farm Groceries Basket" class="hero-main-img img-fluid" loading="eager">
+                        </div>
+
+                        <!-- Floating Micro-Cards -->
+                        <div class="hero-float-card badge-1">
+                            <div class="hero-float-icon bg-success bg-opacity-10 text-success">
+                                <i class="bi bi-lightning-charge-fill"></i>
                             </div>
-                            <button class="hero-nav-arrow" aria-label="Next slide"><i class="bi bi-chevron-right"></i></button>
+                            <div>
+                                <div class="hero-float-title d-flex align-items-center gap-2">
+                                    <span class="pulse-dot"></span>
+                                    <span>15-Min Delivery</span>
+                                </div>
+                                <div class="hero-float-sub">Live in Mehsana Hub</div>
+                            </div>
+                        </div>
+
+                        <div class="hero-float-card badge-2">
+                            <div class="hero-float-icon bg-warning bg-opacity-10 text-warning">
+                                <i class="bi bi-star-fill"></i>
+                            </div>
+                            <div>
+                                <div class="hero-float-title">4.9 / 5 Rating</div>
+                                <div class="hero-float-sub">12,000+ Happy Orders</div>
+                            </div>
+                        </div>
+
+                        <div class="hero-float-card badge-3">
+                            <div class="hero-float-icon bg-danger bg-opacity-10 text-danger">
+                                <i class="bi bi-tag-fill"></i>
+                            </div>
+                            <div>
+                                <div class="hero-float-title">Flat ₹100 Off</div>
+                                <div class="hero-float-sub">Coupon: <strong class="text-success">FRESH15</strong></div>
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -289,11 +317,11 @@
                 <div class="d-flex align-items-center gap-3">
                     <h3 class="section-title mb-0"><i class="bi bi-fire text-danger me-2"></i>Today's Best Deals</h3>
                     <div class="countdown-badge">
-                        <i class="bi bi-clock"></i>
-                        <span>Sale ends in <strong id="saleCountdown">02:14:36</strong></span>
+                        <i class="bi bi-clock-history text-warning"></i>
+                        <span>Sale ends in <strong class="countdown-digits" id="saleCountdown">02h : 14m : 36s</strong></span>
                     </div>
                 </div>
-                <a href="customer/shop.html?sort=price_low" class="section-link-more">See All <i class="bi bi-arrow-right"></i></a>
+                <a href="customer/shop.html?sort=price_low" class="section-link-more">See All Deals <i class="bi bi-arrow-right"></i></a>
             </div>
 
             <!-- Dynamic Deals Grid populated via static/js/homepage.js -->
@@ -306,13 +334,10 @@
         <div class="container">
             <div class="section-header">
                 <div class="d-flex align-items-center gap-3">
-                    <h3 class="section-title mb-0">⭐ Best Sellers</h3>
-                    <div class="d-none d-md-flex gap-2 ms-3">
-                        <button class="hero-nav-arrow" onclick="scrollBestsellers(-1)" aria-label="Scroll left"><i class="bi bi-chevron-left"></i></button>
-                        <button class="hero-nav-arrow" onclick="scrollBestsellers(1)" aria-label="Scroll right"><i class="bi bi-chevron-right"></i></button>
-                    </div>
+                    <h3 class="section-title mb-0"><i class="bi bi-star-fill text-warning me-2"></i>Best Sellers</h3>
+                    <span class="badge bg-success bg-opacity-10 text-success rounded-pill px-3 py-1 font-monospace fw-bold small">Top 10 Most Ordered</span>
                 </div>
-                <a href="customer/shop.html?sort=latest" class="section-link-more">See All <i class="bi bi-arrow-right"></i></a>
+                <a href="customer/shop.html?sort=latest" class="section-link-more">View All Best Sellers <i class="bi bi-arrow-right"></i></a>
             </div>
 
             <!-- Dynamic Best Sellers Grid populated via static/js/homepage.js -->
@@ -323,30 +348,36 @@
     <!-- 8. Dual Promotional Banners -->
     <section class="container">
         <div class="promo-banners-grid">
-            <!-- Banner 1: Weekly Grocery Sale -->
+            <!-- Banner 1: Weekly Super Saver Sale -->
             <div class="promo-banner-card promo-card-amber">
                 <div class="promo-content">
-                    <h4 class="promo-title">Weekly Grocery Sale</h4>
-                    <p class="promo-subtitle">Save up to 30%</p>
-                    <a href="customer/shop.html" class="promo-btn">
-                        <span>Shop Offers</span>
+                    <span class="promo-tag">WEEKLY SUPER SAVER</span>
+                    <h4 class="promo-title">Kitchen &amp; Pantry Staples</h4>
+                    <p class="promo-subtitle">Stock up on Atta, Dal, Pure Ghee &amp; Edible Oils. Up to 40% OFF wholesale rates.</p>
+                    <a href="customer/shop.html?category=Staples%20%26%20Grains" class="promo-btn">
+                        <span>Shop Staples</span>
                         <i class="bi bi-arrow-right"></i>
                     </a>
                 </div>
-                <img src="https://images.unsplash.com/photo-1542838132-92c53300491e?auto=format&fit=crop&w=400&q=80" alt="Grocery Sale" class="promo-img">
+                <div class="promo-img-wrap">
+                    <img src="https://images.unsplash.com/photo-1542838132-92c53300491e?auto=format&fit=crop&w=600&q=80" alt="Super Saver Grocery Sale" class="promo-img">
+                </div>
             </div>
 
-            <!-- Banner 2: Fresh Every Day -->
+            <!-- Banner 2: Fresh Farm Produce -->
             <div class="promo-banner-card promo-card-mint">
                 <div class="promo-content">
-                    <h4 class="promo-title">Fresh Every Day</h4>
-                    <p class="promo-subtitle">Quality groceries delivered fresh to your home.</p>
-                    <a href="customer/shop.html" class="promo-btn">
-                        <span>Shop Fresh</span>
+                    <span class="promo-tag">FARM FRESH DAILY</span>
+                    <h4 class="promo-title">100% Organic Farm Harvest</h4>
+                    <p class="promo-subtitle">Crisp green vegetables, juicy seasonal fruits harvested this morning from local farms.</p>
+                    <a href="customer/shop.html?category=Fruits%20%26%20Vegetables" class="promo-btn">
+                        <span>Shop Farm Fresh</span>
                         <i class="bi bi-arrow-right"></i>
                     </a>
                 </div>
-                <img src="https://images.unsplash.com/photo-1610832958506-aa56368176cf?auto=format&fit=crop&w=400&q=80" alt="Fresh Every Day" class="promo-img">
+                <div class="promo-img-wrap">
+                    <img src="https://images.unsplash.com/photo-1610832958506-aa56368176cf?auto=format&fit=crop&w=600&q=80" alt="Fresh Organic Vegetables" class="promo-img">
+                </div>
             </div>
         </div>
     </section>
@@ -355,55 +386,55 @@
     <section class="py-4">
         <div class="container">
             <div class="section-header mb-3">
-                <h3 class="section-title">Why Shop With Us?</h3>
+                <h3 class="section-title"><i class="bi bi-patch-check-fill text-success me-2"></i>Why Shop With Us?</h3>
             </div>
 
             <div class="why-us-grid">
                 <div class="why-us-card">
-                    <div class="why-us-icon-box"><i class="bi bi-truck"></i></div>
+                    <div class="why-us-icon-box"><i class="bi bi-lightning-charge-fill"></i></div>
                     <div>
-                        <div class="why-us-title">Fast Delivery</div>
-                        <div class="why-us-desc">Get your essentials quickly</div>
+                        <div class="why-us-title">15-Min Express</div>
+                        <div class="why-us-desc">Hyperlocal doorstep dispatch from nearby hubs</div>
                     </div>
                 </div>
 
                 <div class="why-us-card">
-                    <div class="why-us-icon-box"><i class="bi bi-patch-check"></i></div>
+                    <div class="why-us-icon-box"><i class="bi bi-shield-check"></i></div>
                     <div>
-                        <div class="why-us-title">Quality Products</div>
-                        <div class="why-us-desc">Carefully selected products</div>
+                        <div class="why-us-title">Quality Assured</div>
+                        <div class="why-us-desc">Hand-picked fresh produce &amp; authentic FMCG</div>
                     </div>
                 </div>
 
                 <div class="why-us-card">
-                    <div class="why-us-icon-box"><i class="bi bi-tag"></i></div>
+                    <div class="why-us-icon-box"><i class="bi bi-tags-fill"></i></div>
                     <div>
-                        <div class="why-us-title">Great Prices</div>
-                        <div class="why-us-desc">Competitive everyday pricing</div>
+                        <div class="why-us-title">Best Wholesale Rates</div>
+                        <div class="why-us-desc">Direct farm pricing with zero middleman markup</div>
                     </div>
                 </div>
 
                 <div class="why-us-card">
-                    <div class="why-us-icon-box"><i class="bi bi-shield-lock"></i></div>
+                    <div class="why-us-icon-box"><i class="bi bi-lock-fill"></i></div>
                     <div>
-                        <div class="why-us-title">Secure Payments</div>
-                        <div class="why-us-desc">Safe and secure checkout</div>
+                        <div class="why-us-title">100% Safe Payments</div>
+                        <div class="why-us-desc">Instant UPI, NetBanking, Cards &amp; COD</div>
                     </div>
                 </div>
 
                 <div class="why-us-card">
                     <div class="why-us-icon-box"><i class="bi bi-arrow-counterclockwise"></i></div>
                     <div>
-                        <div class="why-us-title">Easy Returns</div>
-                        <div class="why-us-desc">Simple return process</div>
+                        <div class="why-us-title">Hassle-Free Returns</div>
+                        <div class="why-us-desc">Instant refund at delivery if unsatisfied</div>
                     </div>
                 </div>
 
                 <div class="why-us-card">
                     <div class="why-us-icon-box"><i class="bi bi-headset"></i></div>
                     <div>
-                        <div class="why-us-title">24/7 Support</div>
-                        <div class="why-us-desc">We're here to help</div>
+                        <div class="why-us-title">24/7 Live Support</div>
+                        <div class="why-us-desc">Dedicated WhatsApp &amp; in-app order help</div>
                     </div>
                 </div>
             </div>
@@ -414,19 +445,43 @@
     <section class="py-4">
         <div class="container">
             <div class="section-header">
-                <h3 class="section-title">Popular Brands</h3>
-                <a href="customer/shop.html" class="section-link-more">See All <i class="bi bi-arrow-right"></i></a>
+                <h3 class="section-title"><i class="bi bi-award-fill text-warning me-2"></i>Trusted Top Brands</h3>
+                <a href="customer/shop.html" class="section-link-more">Browse All Brands <i class="bi bi-arrow-right"></i></a>
             </div>
 
             <div class="brands-strip-grid">
-                <a href="customer/shop.html?search=Amul" class="brand-card-box text-decoration-none"><span class="brand-card-logo-text text-danger">Amul</span></a>
-                <a href="customer/shop.html?search=Tata" class="brand-card-box text-decoration-none"><span class="brand-card-logo-text text-primary">TATA</span></a>
-                <a href="customer/shop.html?search=Aashirvaad" class="brand-card-box text-decoration-none"><span class="brand-card-logo-text text-warning">AASHIRVAAD</span></a>
-                <a href="customer/shop.html?search=Fortune" class="brand-card-box text-decoration-none"><span class="brand-card-logo-text text-success">Fortune</span></a>
-                <a href="customer/shop.html?search=Surf" class="brand-card-box text-decoration-none"><span class="brand-card-logo-text text-primary">Surf Excel</span></a>
-                <a href="customer/shop.html?search=Britannia" class="brand-card-box text-decoration-none"><span class="brand-card-logo-text text-danger">BRITANNIA</span></a>
-                <a href="customer/shop.html?search=Maggi" class="brand-card-box text-decoration-none"><span class="brand-card-logo-text text-warning">Maggi</span></a>
-                <a href="customer/shop.html?search=Dabur" class="brand-card-box text-decoration-none"><span class="brand-card-logo-text text-success">Dabur</span></a>
+                <a href="customer/shop.html?search=Amul" class="brand-card-box text-decoration-none">
+                    <span class="brand-card-logo-text text-danger">Amul</span>
+                    <span class="brand-card-category">Dairy &amp; Butter</span>
+                </a>
+                <a href="customer/shop.html?search=Tata" class="brand-card-box text-decoration-none">
+                    <span class="brand-card-logo-text text-primary">TATA</span>
+                    <span class="brand-card-category">Salt, Tea &amp; Dal</span>
+                </a>
+                <a href="customer/shop.html?search=Aashirvaad" class="brand-card-box text-decoration-none">
+                    <span class="brand-card-logo-text text-warning">AASHIRVAAD</span>
+                    <span class="brand-card-category">Atta &amp; Grains</span>
+                </a>
+                <a href="customer/shop.html?search=Fortune" class="brand-card-box text-decoration-none">
+                    <span class="brand-card-logo-text text-success">Fortune</span>
+                    <span class="brand-card-category">Cooking Oils</span>
+                </a>
+                <a href="customer/shop.html?search=Surf" class="brand-card-box text-decoration-none">
+                    <span class="brand-card-logo-text text-primary">Surf Excel</span>
+                    <span class="brand-card-category">Laundry Care</span>
+                </a>
+                <a href="customer/shop.html?search=Britannia" class="brand-card-box text-decoration-none">
+                    <span class="brand-card-logo-text text-danger">BRITANNIA</span>
+                    <span class="brand-card-category">Cookies &amp; Breads</span>
+                </a>
+                <a href="customer/shop.html?search=Maggi" class="brand-card-box text-decoration-none">
+                    <span class="brand-card-logo-text text-warning">Maggi</span>
+                    <span class="brand-card-category">Noodles &amp; Sauces</span>
+                </a>
+                <a href="customer/shop.html?search=Dabur" class="brand-card-box text-decoration-none">
+                    <span class="brand-card-logo-text text-success">Dabur</span>
+                    <span class="brand-card-category">Ayurveda &amp; Care</span>
+                </a>
             </div>
         </div>
     </section>
@@ -1046,6 +1101,6 @@
     <script src="static/js/services/auth.service.js"></script>
     <script src="static/js/services/cart.service.js"></script>
     <script src="static/js/services/order.service.js"></script>
-    <script src="static/js/homepage.js"></script>
+    <script src="static/js/homepage.js?v=2.1"></script>
 </body>
 </html>

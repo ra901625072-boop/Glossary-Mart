@@ -275,7 +275,7 @@
                     </button>
                     <img src="${escapeHTML(p.image)}" alt="${escapeHTML(p.name)}" class="product-thumb-img" 
                          onclick="openQuickView('${escapeHTML(String(p.id))}')" style="cursor: pointer;" loading="lazy"
-                         onerror="this.onerror=null; this.src='static/images/logo-icon.png';">
+                         onerror="this.onerror=null; this.src='https://images.unsplash.com/photo-1542838132-92c53300491e?auto=format&fit=crop&w=400&q=80';">
                 </div>
 
                 <div class="delivery-eta-tag">
@@ -542,7 +542,7 @@
                 const h = String(Math.floor(totalSeconds / 3600)).padStart(2, '0');
                 const m = String(Math.floor((totalSeconds % 3600) / 60)).padStart(2, '0');
                 const s = String(totalSeconds % 60).padStart(2, '0');
-                countdownEl.innerText = `${h}:${m}:${s}`;
+                countdownEl.innerText = `${h}h : ${m}m : ${s}s`;
             }
         }, 1000);
     }
@@ -939,8 +939,8 @@
                         };
                     });
 
-                    DEALS_PRODUCTS = realList.slice(0, 6);
-                    BESTSELLER_PRODUCTS = realList.length > 6 ? realList.slice(6, 12) : realList.slice(0, 6);
+                    DEALS_PRODUCTS = realList.slice(0, 8);
+                    BESTSELLER_PRODUCTS = realList.length > 8 ? realList.slice(8, 16) : realList.slice(0, 8);
                     ALL_PRODUCTS = realList;
                     renderProductGrids();
                 }

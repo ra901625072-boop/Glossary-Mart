@@ -164,7 +164,7 @@ def seed_products(cat_map):
                 'stock_quantity': 45,
                 'minimum_stock_alert': 8,
                 'supplier_name': 'Dabur India',
-                'image_path': 'https://images.unsplash.com/photo-1559650656-5d1d42e99e69?auto=format&fit=crop&w=400&q=80'
+                'image_path': 'https://images.unsplash.com/photo-1559599101-f09722fb4948?auto=format&fit=crop&w=400&q=80'
             }
         ]
         for pdata in real_products:
