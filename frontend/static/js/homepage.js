@@ -1051,12 +1051,19 @@
             if (memberEmailEl) memberEmailEl.textContent = user.email || user.username || '';
         }
 
-        // 1. Initial render from localStorage cache
+        // 1. Initial render from localStorage cache with 30-day expiry check
         const authDataStr = localStorage.getItem('jg_auth_user');
         if (authDataStr) {
             try {
                 const cachedUser = JSON.parse(authDataStr);
                 if (cachedUser && cachedUser.role === 'customer') {
+                    const now = Date.now();
+                    if (cachedUser.expires_at && now > Number(cachedUser.expires_at)) {
+                        console.warn('[Auth] Customer 30-day session expired. Automatically logging out.');
+                        localStorage.removeItem('jg_auth_user');
+                        applyUnauthenticatedState();
+                        return;
+                    }
                     applyAuthenticatedState(cachedUser);
                 } else {
                     applyUnauthenticatedState();
@@ -1076,13 +1083,16 @@
                 const data = await res.json();
                 if (data && data.authenticated && data.user && data.user.role === 'customer') {
                     const u = data.user;
+                    const now = Date.now();
                     const sessionUser = {
                         id: u.id,
                         name: u.full_name || u.name || u.username,
                         username: u.username,
                         email: u.email,
                         phone: u.phone,
-                        role: 'customer'
+                        role: 'customer',
+                        login_time: u.login_time || now,
+                        expires_at: data.expires_at ? (data.expires_at * 1000) : (now + 30 * 24 * 60 * 60 * 1000)
                     };
                     localStorage.setItem('jg_auth_user', JSON.stringify(sessionUser));
                     applyAuthenticatedState(sessionUser);
@@ -1229,11 +1239,14 @@
                 }
 
                 const user = data.user || {};
+                const now = Date.now();
                 const sessionUser = {
                     id: user.id || 1,
                     name: user.full_name || user.name || user.username || credential.split('@')[0],
                     email: user.email || credential,
-                    role: user.role || 'customer'
+                    role: user.role || 'customer',
+                    login_time: now,
+                    expires_at: data.expires_at ? (data.expires_at * 1000) : (now + 30 * 24 * 60 * 60 * 1000)
                 };
                 localStorage.setItem('jg_auth_user', JSON.stringify(sessionUser));
 

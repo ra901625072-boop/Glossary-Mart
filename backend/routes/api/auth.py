@@ -19,12 +19,40 @@ EMAIL_REGEX = re.compile(r'^[a-zA-Z0-9_.+-]+@[a-zA-Z0-9-]+\.[a-zA-Z0-9-.]+$')
 
 @api_bp.route('/auth/me', methods=['GET'])
 def get_current_user():
-    """Get profile of currently logged-in user"""
+    """Get profile of currently logged-in user with 30-day validity tracking"""
     if current_user.is_authenticated:
-        return jsonify({
-            'authenticated': True,
-            'user': current_user.to_dict()
-        }), 200
+        now = time.time()
+        if getattr(current_user, 'role', None) == 'customer':
+            login_time = session.get('login_time')
+            if not login_time:
+                login_time = now
+                session['login_time'] = login_time
+
+            max_seconds = int(current_app.config.get('CUSTOMER_SESSION_DAYS', 30)) * 86400
+            elapsed = now - float(login_time)
+            if elapsed > max_seconds:
+                logout_user()
+                session.clear()
+                return jsonify({
+                    'authenticated': False,
+                    'user': None,
+                    'message': 'Customer session expired after 30 days. Please log in again.'
+                }), 200
+
+            expires_in = max(0, int(max_seconds - elapsed))
+            expires_at = int(float(login_time) + max_seconds)
+            return jsonify({
+                'authenticated': True,
+                'user': current_user.to_dict(),
+                'session_expires_in': expires_in,
+                'expires_at': expires_at
+            }), 200
+        else:
+            return jsonify({
+                'authenticated': True,
+                'user': current_user.to_dict()
+            }), 200
+
     return jsonify({
         'authenticated': False,
         'user': None
@@ -73,12 +101,24 @@ def api_login():
     if old_cart:
         session['cart'] = old_cart
 
-    login_user(user, remember=remember)
+    login_now = time.time()
+    session.permanent = True
+    session['login_time'] = login_now
+    session['role'] = user.role
+
+    # For customers, remember is active for 30 days
+    is_customer = (user.role == 'customer')
+    should_remember = True if is_customer else remember
+    login_user(user, remember=should_remember)
+
+    max_seconds = int(current_app.config.get('CUSTOMER_SESSION_DAYS', 30)) * 86400
+    expires_at = int(login_now + max_seconds) if is_customer else None
 
     return jsonify({
         'success': True,
         'message': 'Logged in successfully',
-        'user': user.to_dict()
+        'user': user.to_dict(),
+        'expires_at': expires_at
     }), 200
 
 
@@ -117,12 +157,22 @@ def api_verify_2fa():
     if old_cart:
         session['cart'] = old_cart
 
+    login_now = time.time()
+    session.permanent = True
+    session['login_time'] = login_now
+    session['role'] = user.role
+
+    is_customer = (user.role == 'customer')
     login_user(user, remember=True)
+
+    max_seconds = int(current_app.config.get('CUSTOMER_SESSION_DAYS', 30)) * 86400
+    expires_at = int(login_now + max_seconds) if is_customer else None
 
     return jsonify({
         'success': True,
         'message': 'Two-factor authentication verified successfully!',
-        'user': user.to_dict()
+        'user': user.to_dict(),
+        'expires_at': expires_at
     }), 200
 
 
@@ -186,12 +236,21 @@ def api_register():
     if old_cart:
         session['cart'] = old_cart
 
+    login_now = time.time()
+    session.permanent = True
+    session['login_time'] = login_now
+    session['role'] = 'customer'
+
     login_user(new_user, remember=True)
+
+    max_seconds = int(current_app.config.get('CUSTOMER_SESSION_DAYS', 30)) * 86400
+    expires_at = int(login_now + max_seconds)
 
     return jsonify({
         'success': True,
         'message': 'Registration successful',
-        'user': new_user.to_dict()
+        'user': new_user.to_dict(),
+        'expires_at': expires_at
     }), 201
 
 

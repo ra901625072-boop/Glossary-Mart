@@ -161,7 +161,10 @@ def customer_register():
                 new_user.is_verified = True
                 new_user.verification_token = None
                 db.session.commit()
-                login_user(new_user)
+                session.permanent = True
+                session['login_time'] = time.time()
+                session['role'] = 'customer'
+                login_user(new_user, remember=True)
                 return jsonify({
                     'success': True,
                     'message': 'Registration successful! Welcome to eGrossary.',
@@ -172,7 +175,10 @@ def customer_register():
                 message = "Account created, but verification email could not be delivered."
                 return jsonify({'success': True, 'message': message, 'redirect': url_for('auth.customer_login')})
         else:
-            login_user(new_user)
+            session.permanent = True
+            session['login_time'] = time.time()
+            session['role'] = 'customer'
+            login_user(new_user, remember=True)
             return jsonify({'success': True, 'message': 'Registration successful! Welcome to e Grossary Store.', 'redirect': url_for('customer.customer_portal')})
         
     except Exception:
@@ -241,7 +247,11 @@ def customer_login():
         session.clear()
         if old_cart:
             session['cart'] = old_cart
-        login_user(user)
+        
+        session.permanent = True
+        session['login_time'] = time.time()
+        session['role'] = user.role
+        login_user(user, remember=(user.role == 'customer'))
         
         if user.role == 'admin':
             if request.is_json:

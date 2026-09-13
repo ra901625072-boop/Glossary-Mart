@@ -48,8 +48,15 @@ class Config:
     # ------------------------------------------------------------------ #
     # Session & Cookie Security
     # ------------------------------------------------------------------ #
-    # Expire session after 30 minutes of inactivity
-    PERMANENT_SESSION_LIFETIME = timedelta(minutes=int(os.getenv('SESSION_TIMEOUT_MINUTES', 30)))
+    # Customer sessions persist for 30 days unless logged out or 30 days elapsed
+    CUSTOMER_SESSION_DAYS = int(os.getenv('CUSTOMER_SESSION_DAYS', 30))
+    ADMIN_SESSION_TIMEOUT_MINUTES = int(os.getenv('ADMIN_SESSION_TIMEOUT_MINUTES', 60))
+    PERMANENT_SESSION_LIFETIME = timedelta(days=CUSTOMER_SESSION_DAYS)
+    REMEMBER_COOKIE_DURATION = timedelta(days=CUSTOMER_SESSION_DAYS)
+    REMEMBER_COOKIE_HTTPONLY = True
+    REMEMBER_COOKIE_REFRESH_EACH_REQUEST = True
+    REMEMBER_COOKIE_SAMESITE = os.getenv('SESSION_COOKIE_SAMESITE', 'Lax')
+    REMEMBER_COOKIE_SECURE = os.getenv('SESSION_COOKIE_SECURE', 'false').lower() == 'true'
     SESSION_COOKIE_HTTPONLY = True
     SESSION_COOKIE_SAMESITE = os.getenv('SESSION_COOKIE_SAMESITE', 'Lax')
     # Set to True in production (requires HTTPS). Set env var: SESSION_COOKIE_SECURE=true

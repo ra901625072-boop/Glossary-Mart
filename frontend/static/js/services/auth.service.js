@@ -9,6 +9,8 @@
 
     const USER_KEY = 'jg_auth_user';
 
+    const CUSTOMER_SESSION_MS = 30 * 24 * 60 * 60 * 1000; // 30 days in milliseconds
+
     class AuthService {
         constructor() {
             this.user = this.loadLocalUser();
@@ -17,7 +19,21 @@
         loadLocalUser() {
             try {
                 const raw = localStorage.getItem(USER_KEY);
-                return raw ? JSON.parse(raw) : null;
+                if (!raw) return null;
+                const user = JSON.parse(raw);
+                if (user && user.role === 'customer') {
+                    const now = Date.now();
+                    if (user.expires_at && now > Number(user.expires_at)) {
+                        console.warn('[AuthService] Customer 30-day session expired. Automatically logging out.');
+                        localStorage.removeItem(USER_KEY);
+                        return null;
+                    }
+                    if (!user.expires_at) {
+                        user.expires_at = (user.login_time || now) + CUSTOMER_SESSION_MS;
+                        localStorage.setItem(USER_KEY, JSON.stringify(user));
+                    }
+                }
+                return user;
             } catch (e) {
                 return null;
             }
@@ -28,7 +44,12 @@
         }
 
         isAuthenticated() {
-            return Boolean(this.user && this.user.id);
+            if (!this.user || !this.user.id) return false;
+            if (this.user.role === 'customer' && this.user.expires_at && Date.now() > Number(this.user.expires_at)) {
+                this.setUser(null);
+                return false;
+            }
+            return true;
         }
 
         isAdmin() {
@@ -36,6 +57,11 @@
         }
 
         setUser(user) {
+            if (user && user.role === 'customer') {
+                const now = Date.now();
+                if (!user.login_time) user.login_time = now;
+                if (!user.expires_at) user.expires_at = now + CUSTOMER_SESSION_MS;
+            }
             this.user = user;
             try {
                 if (user) {
@@ -54,8 +80,12 @@
                 if (res.ok) {
                     const data = await res.json();
                     if (data && data.authenticated && data.user) {
-                        this.setUser(data.user);
-                        return { authenticated: true, user: data.user };
+                        const user = data.user;
+                        if (data.expires_at) {
+                            user.expires_at = data.expires_at * 1000;
+                        }
+                        this.setUser(user);
+                        return { authenticated: true, user: user };
                     } else {
                         this.setUser(null);
                         return { authenticated: false, user: null };
@@ -67,7 +97,7 @@
             } catch (e) {
                 console.debug('[AuthService] Server verify session deferred:', e);
             }
-            return { authenticated: Boolean(this.user && this.user.id), user: this.user };
+            return { authenticated: this.isAuthenticated(), user: this.user };
         }
 
         async login(emailOrUsername, password) {
@@ -79,16 +109,20 @@
                     email_or_username: emailOrUsername,
                     username: emailOrUsername,
                     email: emailOrUsername,
-                    password: password
+                    password: password,
+                    remember: true
                 })
             });
             const data = await res.json().catch(() => ({}));
             if (res.ok && data.success) {
+                const now = Date.now();
                 const sessionUser = {
                     id: data.user?.id || 1,
                     name: data.user?.full_name || data.user?.name || data.user?.username || emailOrUsername.split('@')[0],
                     email: data.user?.email || emailOrUsername,
-                    role: data.user?.role || 'customer'
+                    role: data.user?.role || 'customer',
+                    login_time: now,
+                    expires_at: data.expires_at ? (data.expires_at * 1000) : (now + CUSTOMER_SESSION_MS)
                 };
                 this.setUser(sessionUser);
                 return { success: true, user: sessionUser };
@@ -105,12 +139,15 @@
             });
             const data = await res.json().catch(() => ({}));
             if (res.ok && data.success) {
+                const now = Date.now();
                 const newUser = {
                     id: data.user?.id || Date.now(),
                     name: userData.full_name || userData.name || userData.username,
                     email: userData.email,
                     phone: userData.phone,
-                    role: 'customer'
+                    role: 'customer',
+                    login_time: now,
+                    expires_at: data.expires_at ? (data.expires_at * 1000) : (now + CUSTOMER_SESSION_MS)
                 };
                 this.setUser(newUser);
                 return { success: true, user: newUser };

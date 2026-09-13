@@ -1314,6 +1314,15 @@
 
                 if (res.ok && data.success) {
                     const serverOrder = data.order;
+                    const cartItemsSnapshot = state.cart.map(c => ({
+                        name: c.name,
+                        unit: c.unit || c.weight || '1 pack',
+                        mrp: Number(c.mrp) || (Number(c.price) * 1.15),
+                        price: Number(c.price),
+                        qty: Number(c.qty),
+                        category: c.category || 'Grocery'
+                    }));
+
                     const confirmedOrder = {
                         id: serverOrder.id,
                         date: serverOrder.created_at ? new Date(serverOrder.created_at).toLocaleString('en-IN') : 'Recent',
@@ -1321,7 +1330,8 @@
                         step: 1,
                         paymentMethod: serverOrder.payment_method,
                         total: serverOrder.total_amount,
-                        address: address
+                        address: address,
+                        items: cartItemsSnapshot
                     };
 
                     // Clear cart
@@ -1587,10 +1597,29 @@
         }
     }
 
-    // ── Check Current Authenticated Customer Session ──
+    // ── Check Current Authenticated Customer Session with 30-Day Persistence ──
     async function checkAuthSession() {
         const pathFile = window.location.pathname.split('/').pop().replace('.html', '').toLowerCase();
         const isProtectedCustomerRoute = ['profile', 'checkout', 'payment', 'order-confirmation', 'orders', 'wishlist'].includes(pathFile);
+        const CUSTOMER_SESSION_MS = 30 * 24 * 60 * 60 * 1000;
+
+        // Check local cache expiration first
+        let currentLocal = null;
+        try {
+            currentLocal = JSON.parse(localStorage.getItem('jg_auth_user') || 'null');
+            if (currentLocal && currentLocal.role === 'customer') {
+                const now = Date.now();
+                if (currentLocal.expires_at && now > Number(currentLocal.expires_at)) {
+                    console.warn('[Customer] 30-day customer session expired. Automatically signing out.');
+                    localStorage.removeItem('jg_auth_user');
+                    state.user = null;
+                    if (typeof window.handleLogout === 'function') {
+                        window.handleLogout();
+                        return;
+                    }
+                }
+            }
+        } catch (e) {}
 
         try {
             const fetchFn = window.apiFetch || fetch;
@@ -1598,7 +1627,14 @@
             if (res.ok) {
                 const data = await res.json();
                 if (data && data.authenticated && data.user && data.user.role === 'customer') {
-                    state.user = data.user;
+                    const u = data.user;
+                    if (data.expires_at) {
+                        u.expires_at = data.expires_at * 1000;
+                    } else if (!u.expires_at) {
+                        u.expires_at = Date.now() + CUSTOMER_SESSION_MS;
+                    }
+                    state.user = u;
+                    localStorage.setItem('jg_auth_user', JSON.stringify(u));
                     persistState();
                     renderProfileView();
                     document.documentElement.style.display = '';
@@ -1620,12 +1656,15 @@
             console.debug('Session check deferred:', e);
         }
 
-        const currentLocal = JSON.parse(localStorage.getItem('jg_auth_user') || 'null');
+        // Offline / cached session fallback (valid for 30 days)
         if (currentLocal && currentLocal.role === 'customer') {
-            state.user = currentLocal;
-            renderProfileView();
-            document.documentElement.style.display = '';
-            return;
+            const now = Date.now();
+            if (!currentLocal.expires_at || now <= Number(currentLocal.expires_at)) {
+                state.user = currentLocal;
+                renderProfileView();
+                document.documentElement.style.display = '';
+                return;
+            }
         }
 
         // Unauthenticated or not customer on server: clear customer state & redirect if on protected page
