@@ -103,6 +103,16 @@ class OrderService:
             if not getattr(user, 'is_verified', True) or (current_credit + float(total_amount)) > 5000:
                 return None, 'Store credit (Udhar) limit exceeded or account not verified.'
 
+        # Pre-validate inventory before creating order
+        for item in cart_items:
+            product = db.session.get(Product, item.product_id)
+            if not product or not product.is_active:
+                return None, 'A product in your cart is currently unavailable.'
+            if product.stock_quantity <= 0:
+                return None, f'"{product.name}" is currently Out Of Stock. Please remove it from your cart.'
+            if product.stock_quantity < item.quantity:
+                return None, f'Only {product.stock_quantity} unit(s) available for "{product.name}".'
+
         order = Order(
             user_id=user_id,
             total_amount=total_amount,

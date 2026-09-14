@@ -41,6 +41,9 @@ class CartService:
         if not product:
             return False, 'Product not found.'
             
+        if product.stock_quantity <= 0:
+            return False, f'"{product.name}" is currently Out Of Stock.'
+
         if product.stock_quantity < quantity:
             return False, f'Only {product.stock_quantity} units available.'
         

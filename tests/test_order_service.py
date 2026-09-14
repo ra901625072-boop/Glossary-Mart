@@ -249,3 +249,28 @@ def test_api_checkout_payload_cart_sync(client, customer_user, products, session
     session.refresh(p1)
     assert p1.stock_quantity == initial_stock - 4
 
+
+def test_api_checkout_out_of_stock_rejected(client, customer_user, products, session):
+    """Test customer checkout via /api/orders/checkout rejects out of stock products without wiping cart"""
+    p1, p2 = products
+    p1.stock_quantity = 0
+    session.commit()
+
+    client.post('/auth/login', data={'email': 'cust@test.com', 'password': 'cust123'})
+
+    checkout_payload = {
+        'shipping_address': 'Flat 101, Galaxy Tower, SG Highway, Ahmedabad',
+        'payment_method': 'COD',
+        'items': [
+            {'product_id': p1.id, 'quantity': 1}
+        ]
+    }
+
+    resp = client.post('/api/orders/checkout', json=checkout_payload)
+    assert resp.status_code == 400
+    data = resp.get_json()
+    assert data['success'] is False
+    assert 'Out Of Stock' in data['message']
+    assert data.get('error_code') == 'OUT_OF_STOCK'
+
+

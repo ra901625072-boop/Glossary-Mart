@@ -252,7 +252,13 @@
         const mrpVal = p.mrp || Math.round(p.price * 1.15);
         const discountPercent = mrpVal > p.price ? Math.round(((mrpVal - p.price) / mrpVal) * 100) : 0;
 
-        const actionButtonHtml = qty === 0 ? `
+        const isOutOfStock = p.inStock === false || (p.stock_quantity !== undefined && p.stock_quantity <= 0);
+
+        const actionButtonHtml = isOutOfStock ? `
+            <button class="btn-out-of-stock" disabled aria-disabled="true">
+                <i class="bi bi-slash-circle me-1"></i>Out Of Stock
+            </button>
+        ` : (qty === 0 ? `
             <button class="btn-add-cart-init" onclick="event.stopPropagation(); addToCart('${escapeHTML(String(p.id))}')">
                 <i class="bi bi-plus-lg me-1"></i>ADD
             </button>
@@ -262,12 +268,12 @@
                 <span class="stepper-val" id="stepper-val-${escapeHTML(String(p.id))}">${qty}</span>
                 <button class="stepper-btn" onclick="event.stopPropagation(); updateItemQuantity('${escapeHTML(String(p.id))}', 1)">+</button>
             </div>
-        `;
+        `);
 
         return `
-            <div class="product-card product-card-customer" id="card-${escapeHTML(String(p.id))}">
+            <div class="product-card product-card-customer ${isOutOfStock ? 'product-card-out-of-stock' : ''}" id="card-${escapeHTML(String(p.id))}">
                 <div class="product-thumb-wrapper">
-                    ${discountPercent > 0 ? `<span class="discount-badge-pill">${discountPercent}% OFF</span>` : (p.discount ? `<span class="discount-badge-pill">${escapeHTML(p.discount)}</span>` : '')}
+                    ${isOutOfStock ? `<span class="badge-out-of-stock"><i class="bi bi-x-circle-fill me-1"></i>Out Of Stock</span>` : (discountPercent > 0 ? `<span class="discount-badge-pill">${discountPercent}% OFF</span>` : (p.discount ? `<span class="discount-badge-pill">${escapeHTML(p.discount)}</span>` : ''))}
                     <button class="wishlist-toggle-btn ${inWishlist ? 'active' : ''}" 
                             title="${inWishlist ? 'Remove from Wishlist' : 'Add to Wishlist'}"
                             onclick="event.stopPropagation(); toggleWishlist(${Number(p.id)}); this.classList.toggle('active');">
@@ -322,10 +328,15 @@
         }
     }
 
-    // ── 4. Cart State & Calculation ──
     function addToCart(productId, explicitQty = null) {
         const product = ALL_PRODUCTS.find(p => String(p.id) === String(productId));
-        if (!product) return;
+        if (!product) return false;
+
+        const isOutOfStock = product.inStock === false || (product.stock_quantity !== undefined && product.stock_quantity <= 0);
+        if (isOutOfStock) {
+            showToast(`Sorry, "${product.name}" is currently Out Of Stock.`, 'danger');
+            return false;
+        }
 
         const stepperEl = document.getElementById(`stepper-val-${product.id}`);
         const qtyToAdd = explicitQty !== null ? explicitQty : (stepperEl ? parseInt(stepperEl.innerText) || 1 : 1);
@@ -662,7 +673,17 @@
 
     // ── 11. Quick View Modal ──
     window.buyNowFromHome = function (productId) {
-        addToCart(productId);
+        const product = ALL_PRODUCTS.find(p => String(p.id) === String(productId));
+        if (product) {
+            const isOutOfStock = product.inStock === false || (product.stock_quantity !== undefined && product.stock_quantity <= 0);
+            if (isOutOfStock) {
+                showToast(`"${product.name}" is currently Out Of Stock.`, 'danger');
+                return;
+            }
+        }
+        const added = addToCart(productId);
+        if (added === false) return;
+
         const modalEl = document.getElementById('quickViewModal');
         if (modalEl && window.bootstrap) {
             const modal = bootstrap.Modal.getInstance(modalEl);
@@ -683,15 +704,20 @@
         const modalBody = document.getElementById('quickViewBody');
         if (!modalTitle || !modalBody) return;
 
+        const isOutOfStock = product.inStock === false || (product.stock_quantity !== undefined && product.stock_quantity <= 0);
+
         modalTitle.innerText = product.name;
         modalBody.innerHTML = `
             <div class="row g-4 align-items-center">
-                <div class="col-md-5 text-center">
-                    <img src="${product.image}" alt="${product.name}" class="img-fluid rounded-3" style="max-height: 220px; object-fit: contain;">
+                <div class="col-md-5 text-center position-relative">
+                    ${isOutOfStock ? `<span class="badge-out-of-stock" style="top: 10px; left: 10px;"><i class="bi bi-x-circle-fill me-1"></i>Out Of Stock</span>` : ''}
+                    <img src="${product.image}" alt="${product.name}" class="img-fluid rounded-3 ${isOutOfStock ? 'opacity-75' : ''}" style="max-height: 220px; object-fit: contain; ${isOutOfStock ? 'filter: grayscale(80%);' : ''}">
                 </div>
                 <div class="col-md-7">
                     <div class="d-flex align-items-center gap-2 mb-2">
-                        <span class="badge bg-success">${product.discount || 'Fresh Harvest'}</span>
+                        ${isOutOfStock 
+                            ? `<span class="badge bg-danger"><i class="bi bi-slash-circle me-1"></i>Out Of Stock</span>` 
+                            : `<span class="badge bg-success">${product.discount || 'Fresh Harvest'}</span>`}
                         <span class="text-warning small"><i class="bi bi-star-fill"></i> ${product.rating} (${product.reviews} reviews)</span>
                     </div>
                     <h5 class="fw-bold mb-1">${product.name}</h5>
@@ -702,12 +728,18 @@
                         <span class="small text-muted ms-2">Unit: ${product.unit}</span>
                     </div>
                     <div class="d-flex flex-wrap gap-2">
-                        <button class="btn btn-ss-primary px-3 py-2 rounded-pill fw-bold" onclick="addToCart('${product.id}'); bootstrap.Modal.getInstance(document.getElementById('quickViewModal')).hide();">
-                            <i class="bi bi-cart-plus me-1"></i> Add to Bag
-                        </button>
-                        <button class="btn btn-success px-3 py-2 rounded-pill fw-bold" onclick="buyNowFromHome('${product.id}')">
-                            <i class="bi bi-lightning-charge-fill me-1"></i> Buy Now
-                        </button>
+                        ${isOutOfStock ? `
+                            <button class="btn btn-secondary px-4 py-2 rounded-pill fw-bold" disabled style="opacity: 0.7; cursor: not-allowed;">
+                                <i class="bi bi-slash-circle me-1"></i> Out Of Stock
+                            </button>
+                        ` : `
+                            <button class="btn btn-ss-primary px-3 py-2 rounded-pill fw-bold" onclick="addToCart('${product.id}'); bootstrap.Modal.getInstance(document.getElementById('quickViewModal')).hide();">
+                                <i class="bi bi-cart-plus me-1"></i> Add to Bag
+                            </button>
+                            <button class="btn btn-success px-3 py-2 rounded-pill fw-bold" onclick="buyNowFromHome('${product.id}')">
+                                <i class="bi bi-lightning-charge-fill me-1"></i> Buy Now
+                            </button>
+                        `}
                         <a href="customer/product.html?id=${product.id}" class="btn btn-outline-success px-3 py-2 rounded-pill fw-bold">
                             <i class="bi bi-box-arrow-up-right me-1"></i> Details
                         </a>
@@ -921,7 +953,8 @@
                             rating: p.average_rating ? Number(p.average_rating.toFixed(1)) : 4.6,
                             reviews: p.reviews_count ? `${p.reviews_count * 100}+` : '1.2k',
                             image: p.image_path || 'https://images.unsplash.com/photo-1542838132-92c53300491e?auto=format&fit=crop&w=400&q=80',
-                            inStock: p.stock_quantity > 0
+                            stock_quantity: Number(p.stock_quantity !== undefined ? p.stock_quantity : (p.stock !== undefined ? p.stock : 0)),
+                            inStock: Number(p.stock_quantity !== undefined ? p.stock_quantity : (p.stock !== undefined ? p.stock : 0)) > 0
                         };
                     });
 

@@ -92,22 +92,63 @@ def api_checkout():
     if not shipping_address or len(shipping_address) < 10 or len(shipping_address) > 500:
         return jsonify({'success': False, 'message': 'Shipping address must be between 10 and 500 characters'}), 400
 
-    # If items were explicitly provided in checkout payload, sync them into the DB cart
+    # If items were explicitly provided in checkout payload, validate each item first before syncing into DB cart
     from database.models.order import Cart
+    from database.models.product import Product
     from backend.services.cart_service import CartService
     payload_items = data.get('items')
     if payload_items and isinstance(payload_items, list) and len(payload_items) > 0:
-        db.session.query(Cart).filter_by(user_id=current_user.id).delete()
+        parsed_items = []
         for item in payload_items:
             pid = item.get('product_id') or item.get('productId') or item.get('id')
             qty = item.get('quantity') or item.get('qty', 1)
             try:
                 pid = int(pid)
                 qty = int(qty)
-                if pid > 0 and qty > 0:
-                    CartService.add_item(pid, qty)
             except (ValueError, TypeError):
-                pass
+                return jsonify({'success': False, 'message': 'Invalid product item format in checkout request.'}), 400
+
+            if pid <= 0 or qty <= 0:
+                continue
+
+            product = db.session.get(Product, pid)
+            if not product or not product.is_active:
+                return jsonify({
+                    'success': False,
+                    'message': 'One or more items in your cart are unavailable or discontinued.',
+                    'product_id': pid,
+                    'out_of_stock': True
+                }), 400
+
+            if product.stock_quantity <= 0:
+                return jsonify({
+                    'success': False,
+                    'message': f'"{product.name}" is currently Out Of Stock. Please remove it from your cart to proceed.',
+                    'error_code': 'OUT_OF_STOCK',
+                    'product_id': product.id,
+                    'product_name': product.name,
+                    'out_of_stock': True
+                }), 400
+
+            if product.stock_quantity < qty:
+                return jsonify({
+                    'success': False,
+                    'message': f'Only {product.stock_quantity} unit(s) available for "{product.name}". Please adjust quantity to proceed.',
+                    'error_code': 'INSUFFICIENT_STOCK',
+                    'product_id': product.id,
+                    'product_name': product.name,
+                    'available_stock': product.stock_quantity
+                }), 400
+
+            parsed_items.append((pid, qty))
+
+        if not parsed_items:
+            return jsonify({'success': False, 'message': 'Your shopping cart contains no valid items.'}), 400
+
+        # All items verified in stock — safe to sync into DB cart
+        db.session.query(Cart).filter_by(user_id=current_user.id).delete()
+        for pid, qty in parsed_items:
+            CartService.add_item(pid, qty)
 
     order, message = OrderService.create_order_from_cart(
         user_id=current_user.id,

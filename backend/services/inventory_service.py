@@ -42,6 +42,8 @@ class InventoryService:
                 return False, f"Product #{product_id} not found."
 
             if product.stock_quantity < quantity:
+                if product.stock_quantity <= 0:
+                    return False, f"'{product.name}' is currently Out Of Stock."
                 return False, (
                     f"Insufficient stock for '{product.name}'. "
                     f"Available: {product.stock_quantity}, Requested: {quantity}."

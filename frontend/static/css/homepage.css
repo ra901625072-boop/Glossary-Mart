@@ -1818,3 +1818,47 @@ h1, h2, h3, h4, h5, h6 {
     transform: translateY(-1px);
     box-shadow: 0 6px 16px rgba(16, 185, 129, 0.35);
 }
+
+/* ── Out of Stock Design System (Homepage) ── */
+.badge-out-of-stock {
+    background: #ef4444;
+    color: #ffffff;
+    font-size: 0.68rem;
+    font-weight: 800;
+    letter-spacing: 0.05em;
+    text-transform: uppercase;
+    padding: 4px 9px;
+    border-radius: 9999px;
+    box-shadow: 0 2px 8px rgba(239, 68, 68, 0.4);
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    position: absolute;
+    top: 8px;
+    left: 8px;
+    z-index: 3;
+}
+
+.product-card-out-of-stock .product-thumb-img {
+    filter: grayscale(40%);
+    opacity: 0.82;
+    transition: filter 0.25s ease, opacity 0.25s ease;
+}
+
+.btn-out-of-stock {
+    background: #f8fafc !important;
+    color: #94a3b8 !important;
+    border: 1px solid #e2e8f0 !important;
+    font-weight: 700 !important;
+    font-size: 0.72rem !important;
+    letter-spacing: 0.02em;
+    padding: 0.32rem 0.8rem !important;
+    border-radius: 9999px !important;
+    cursor: not-allowed !important;
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    user-select: none;
+    pointer-events: none;
+}
+
