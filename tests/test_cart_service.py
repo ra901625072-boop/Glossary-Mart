@@ -1,6 +1,6 @@
 import pytest
-from database.models.order import Cart
-from database.models.product import Product, Category
+from backend.models.order import Cart
+from backend.models.product import Product, Category
 from backend.services.cart_service import CartService
 
 @pytest.fixture

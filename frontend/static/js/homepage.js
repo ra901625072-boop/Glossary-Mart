@@ -207,6 +207,7 @@
             const savedCart = localStorage.getItem('egm_cart');
             if (savedCart) {
                 cart = JSON.parse(savedCart);
+                if (!Array.isArray(cart)) cart = [];
             } else {
                 cart = [];
             }
@@ -214,6 +215,9 @@
             const savedWishlist = localStorage.getItem('egm_wishlist');
             if (savedWishlist) {
                 wishlist = JSON.parse(savedWishlist);
+                if (!Array.isArray(wishlist)) wishlist = [];
+            } else {
+                wishlist = [];
             }
 
             const savedLoc = localStorage.getItem('egm_location');
@@ -222,6 +226,8 @@
             }
         } catch (e) {
             console.warn("Could not load state from localStorage", e);
+            cart = [];
+            wishlist = [];
         }
     }
 
@@ -410,10 +416,15 @@
 
         // Header and mobile badge counters
         const headerBadge = document.getElementById('cartCountBadge');
-        if (headerBadge) headerBadge.innerText = totalItemsCount;
+        if (headerBadge) {
+            headerBadge.innerText = totalItemsCount;
+            headerBadge.style.display = totalItemsCount > 0 ? 'inline-flex' : 'none';
+        }
 
-        const mobileBadge = document.getElementById('mobileCartBadge');
-        if (mobileBadge) mobileBadge.innerText = totalItemsCount;
+        document.querySelectorAll('#mobileCartBadge, .cart-counter-badge').forEach(el => {
+            el.innerText = totalItemsCount;
+            el.style.display = totalItemsCount > 0 ? 'inline-flex' : 'none';
+        });
 
         // Offcanvas Cart Items Container
         const cartContainer = document.getElementById('cartItemsContainer');
@@ -643,11 +654,17 @@
     }
 
     function updateWishlistUI() {
+        const count = wishlist.length;
         const badge = document.getElementById('wishlistCountBadge');
-        if (badge) badge.innerText = wishlist.length;
+        if (badge) {
+            badge.innerText = count;
+            badge.style.display = count > 0 ? 'inline-flex' : 'none';
+        }
 
-        const mobileBadge = document.getElementById('mobileWishlistBadge');
-        if (mobileBadge) mobileBadge.innerText = wishlist.length;
+        document.querySelectorAll('#mobileWishlistBadge, .wishlist-counter-badge').forEach(el => {
+            el.innerText = count;
+            el.style.display = count > 0 ? 'inline-flex' : 'none';
+        });
     }
 
     // ── 10. Location Selector Modal ──
@@ -1038,8 +1055,14 @@
             if (accountBtn) {
                 accountBtn.title = `Signed in as ${user.email || user.username} (${user.role})`;
                 accountBtn.setAttribute('data-bs-toggle', 'dropdown');
+                accountBtn.setAttribute('data-bs-display', 'static');
                 accountBtn.removeAttribute('data-bs-target');
                 accountBtn.classList.add('dropdown-toggle');
+                if (window.bootstrap && window.bootstrap.Dropdown) {
+                    try {
+                        bootstrap.Dropdown.getOrCreateInstance(accountBtn, { display: 'static', autoClose: true });
+                    } catch (e) {}
+                }
             }
             if (dropdownMenu) {
                 dropdownMenu.style.display = '';
@@ -1455,7 +1478,7 @@
     }
 
     // ── 19. Initialization ──
-    document.addEventListener('DOMContentLoaded', () => {
+    function initHomepage() {
         loadState();
         renderProductGrids();
         updateCartUI();
@@ -1467,13 +1490,19 @@
 
         // Check URL hash for direct auth navigation
         if (window.location.hash === '#login' || window.location.hash === '#signin') {
-            const authModal = new bootstrap.Modal(document.getElementById('authModal'));
-            switchAuthTab('login');
-            authModal.show();
+            const authModalEl = document.getElementById('authModal');
+            if (authModalEl && window.bootstrap) {
+                const authModal = new bootstrap.Modal(authModalEl);
+                switchAuthTab('login');
+                authModal.show();
+            }
         } else if (window.location.hash === '#register' || window.location.hash === '#signup') {
-            const authModal = new bootstrap.Modal(document.getElementById('authModal'));
-            switchAuthTab('register');
-            authModal.show();
+            const authModalEl = document.getElementById('authModal');
+            if (authModalEl && window.bootstrap) {
+                const authModal = new bootstrap.Modal(authModalEl);
+                switchAuthTab('register');
+                authModal.show();
+            }
         }
 
         // Close search dropdown on click outside
@@ -1490,7 +1519,15 @@
         if (locLabel) locLabel.innerText = currentDeliveryLocation;
         const ribbonLoc = document.getElementById('ribbonLocation');
         if (ribbonLoc) ribbonLoc.innerText = currentDeliveryLocation;
-    });
+
+        initAccountDropdownToggle();
+    }
+
+    if (document.readyState === 'loading') {
+        document.addEventListener('DOMContentLoaded', initHomepage);
+    } else {
+        initHomepage();
+    }
 
     // Expose necessary functions to window for HTML event handlers
     window.PRODUCTS = ALL_PRODUCTS;
@@ -1519,6 +1556,7 @@
     window.showToast = showToast;
     window.loadCatalogFromBackend = loadCatalogFromBackend;
     window.syncCartFromBackend = syncCartFromBackend;
+    window.renderProductGrids = renderProductGrids;
 
     // Expose Auth Suite methods
     window.switchAuthTab = switchAuthTab;
@@ -1529,5 +1567,80 @@
     window.handleForgotPassword = handleForgotPassword;
     window.handleLogout = handleLogout;
     window.checkAuthState = checkAuthState;
+
+    // Listen for dynamically loaded mobile-bottom-nav to sync counters
+    window.addEventListener('component:loaded', function (e) {
+        if (e.detail && e.detail.name === 'mobile-bottom-nav') {
+            updateCartUI();
+            updateWishlistUI();
+            const homeLink = document.querySelector('.mobile-bottom-nav [data-route-link="home"]');
+            if (homeLink) {
+                homeLink.classList.add('active');
+                const ic = homeLink.querySelector('i');
+                if (ic) ic.className = 'bi bi-house-door-fill';
+            }
+        }
+    });
+
+    function initAccountDropdownToggle() {
+        const btn = document.getElementById('headerAccountBtn');
+        const menu = document.getElementById('headerAccountDropdownMenu');
+        if (!btn || !menu) return;
+        if (btn.dataset.dropdownInitialized) return;
+        btn.dataset.dropdownInitialized = 'true';
+
+        let bsDropdown = null;
+        if (window.bootstrap && window.bootstrap.Dropdown) {
+            try {
+                bsDropdown = bootstrap.Dropdown.getOrCreateInstance(btn, { display: 'static', autoClose: true });
+            } catch (e) {}
+        }
+
+        // Resilient toggle handler
+        btn.addEventListener('click', function (e) {
+            if (btn.getAttribute('data-bs-toggle') !== 'dropdown') return;
+
+            // If Bootstrap is loaded, let Bootstrap handle it natively
+            if (bsDropdown || (window.bootstrap && window.bootstrap.Dropdown)) {
+                return;
+            }
+
+            // Fallback toggle for non-Bootstrap environments
+            e.preventDefault();
+            e.stopPropagation();
+            const isOpen = menu.classList.contains('show');
+            if (isOpen) {
+                menu.classList.remove('show');
+                btn.classList.remove('show');
+                btn.setAttribute('aria-expanded', 'false');
+            } else {
+                menu.classList.add('show');
+                btn.classList.add('show');
+                btn.setAttribute('aria-expanded', 'true');
+            }
+        });
+
+        // Close when clicking outside (safety fallback)
+        document.addEventListener('click', function (e) {
+            if (!btn.contains(e.target) && !menu.contains(e.target)) {
+                if (menu.classList.contains('show')) {
+                    menu.classList.remove('show');
+                    btn.classList.remove('show');
+                    btn.setAttribute('aria-expanded', 'false');
+                }
+            }
+        });
+
+        // Close on Escape key
+        document.addEventListener('keydown', function (e) {
+            if (e.key === 'Escape') {
+                if (menu.classList.contains('show')) {
+                    menu.classList.remove('show');
+                    btn.classList.remove('show');
+                    btn.setAttribute('aria-expanded', 'false');
+                }
+            }
+        });
+    }
 })();
 

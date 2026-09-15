@@ -1,8 +1,8 @@
 from flask import jsonify, request, session
 from flask_login import current_user
 from backend.services.cart_service import CartService
-from database.models import db
-from database.models.order import Cart
+from backend.models import db
+from backend.models.order import Cart
 from . import api_bp
 
 

@@ -1,8 +1,8 @@
 """Admin audit activity log viewer."""
 from flask import jsonify, request
 
-from database.models import db
-from database.models.user import ActivityLog
+from backend.models import db
+from backend.models.user import ActivityLog
 from backend.routes.decorators import admin_required
 from . import admin_bp
 

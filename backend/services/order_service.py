@@ -2,10 +2,10 @@ from decimal import Decimal
 
 from flask_login import current_user
 
-from database.models import db
-from database.models.order import Cart, Order, OrderItem
-from database.models.promotion import Notification
-from database.models.product import Product
+from backend.models import db
+from backend.models.order import Cart, Order, OrderItem
+from backend.models.promotion import Notification
+from backend.models.product import Product
 from backend.services.inventory_service import InventoryService
 
 
@@ -89,7 +89,7 @@ class OrderService:
         if clean_method not in valid_methods:
             return None, 'Invalid payment method.'
 
-        from database.models.user import User
+        from backend.models.user import User
         user = db.session.get(User, user_id)
         if not user:
             return None, 'User not found.'

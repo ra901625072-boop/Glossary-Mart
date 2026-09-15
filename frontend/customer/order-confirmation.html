@@ -41,7 +41,12 @@
     </script>
     <style>
         body {
-            background-color: #f8fafc;
+            background-color: var(--color-background);
+            background-image: var(--bg-canvas-full);
+            background-size: var(--bg-canvas-pattern-size), auto;
+            background-attachment: fixed;
+            background-repeat: repeat, no-repeat;
+            color: var(--color-text-primary);
             min-height: 100vh;
             display: flex;
             flex-direction: column;

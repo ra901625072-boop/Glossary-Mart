@@ -6,7 +6,7 @@ from flask_login import current_user, login_user, logout_user
 from werkzeug.security import generate_password_hash
 
 from backend.extensions import limiter
-from database.models import db, User
+from backend.models import db, User
 from . import api_bp
 
 COMMON_WEAK_PASSWORDS = {

@@ -1,8 +1,8 @@
 """Tests for POS Udhar (Store Credit / Khata) billing and Supplier CRUD."""
 import pytest
-from database.models import db, User, Product, Category, Supplier, Purchase
-from database.models.product import PosBill, Sale
-from database.models.user import ActivityLog
+from backend.models import db, User, Product, Category, Supplier, Purchase
+from backend.models.product import PosBill, Sale
+from backend.models.user import ActivityLog
 
 
 def test_pos_udhar_checkout_existing_customer(client, admin_user, session):

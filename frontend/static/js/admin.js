@@ -1377,6 +1377,9 @@
                         <button class="btn btn-sm btn-outline-success rounded-pill px-2" onclick="window.Adm.viewOrderDetail('${escapeHTML(o.id)}')">
                             <i class="bi bi-file-text me-1"></i>Detail
                         </button>
+                        <button class="btn btn-sm btn-outline-dark rounded-pill px-2" title="Thermal Receipt Slip" onclick="window.Adm.viewOrderReceipt('${escapeHTML(o.id)}')">
+                            <i class="bi bi-receipt"></i> Slip
+                        </button>
                         <a href="/api/orders/${Number(o.id)}/invoice" target="_blank" class="btn btn-sm btn-outline-secondary rounded-pill px-2" title="Download PDF Invoice">
                             <i class="bi bi-printer"></i>
                         </a>
@@ -2039,7 +2042,18 @@
                         </tr>
                     `).join('');
 
-                    const modal = new bootstrap.Modal(document.getElementById('orderDetailModal'));
+                    const slipBtn = document.getElementById('orderDetailPrintSlipBtn');
+                    if (slipBtn) {
+                        slipBtn.onclick = () => {
+                            const detailModalEl = document.getElementById('orderDetailModal');
+                            const detailModal = bootstrap.Modal.getInstance(detailModalEl);
+                            if (detailModal) detailModal.hide();
+                            window.Adm.viewOrderReceipt(orderId);
+                        };
+                    }
+
+                    const modalEl = document.getElementById('orderDetailModal');
+                    const modal = bootstrap.Modal.getInstance(modalEl) || new bootstrap.Modal(modalEl);
                     modal.show();
                 }
             } catch (e) {
@@ -2443,74 +2457,191 @@
             }
         },
 
+        populateThermalModal: function (data) {
+            if (!data) return;
+
+            // 1. Bill Number
+            const billNumEl = document.getElementById('billModalNumber');
+            if (billNumEl) {
+                billNumEl.textContent = data.bill_number || (data.bill_id ? `#SAL-${String(data.bill_id).padStart(4, '0')}` : '#BILL-0000');
+            }
+
+            // 2. Date
+            const billDateEl = document.getElementById('billModalDate');
+            if (billDateEl) {
+                let formattedDate = 'Recent';
+                if (data.sale_date) {
+                    try {
+                        const d = new Date(data.sale_date);
+                        formattedDate = isNaN(d.getTime()) ? String(data.sale_date) : d.toLocaleString('en-IN', {
+                            dateStyle: 'short',
+                            timeStyle: 'medium'
+                        });
+                    } catch (e) {
+                        formattedDate = String(data.sale_date);
+                    }
+                }
+                billDateEl.textContent = formattedDate;
+            }
+
+            // 3. Customer
+            const billCustEl = document.getElementById('billModalCustomer');
+            if (billCustEl) {
+                const cName = data.customer_name && data.customer_name !== 'undefined' ? data.customer_name : 'Walk-in Counter';
+                const cPhone = data.customer_phone && data.customer_phone !== 'undefined' ? ` (${data.customer_phone})` : '';
+                billCustEl.textContent = `${cName}${cPhone}`;
+            }
+
+            // 4. Payment Mode
+            const billPayEl = document.getElementById('billModalPayment');
+            if (billPayEl) {
+                billPayEl.textContent = data.payment_method || data.payment_mode || 'Cash';
+            }
+
+            // 5. Pricing & Taxes
+            const totalVal = Number(data.total_price !== undefined ? data.total_price : (data.total || 0));
+            const subtotalVal = Number(data.subtotal !== undefined ? data.subtotal : totalVal);
+            const discVal = Number(data.discount || 0);
+            const taxableVal = Number(data.taxable_amount !== undefined ? data.taxable_amount : (subtotalVal - discVal));
+            const cgstVal = Number(data.cgst !== undefined ? data.cgst : ((data.tax || 0) / 2));
+            const sgstVal = Number(data.sgst !== undefined ? data.sgst : ((data.tax || 0) / 2));
+
+            const subtotalEl = document.getElementById('billModalSubtotal');
+            if (subtotalEl) subtotalEl.textContent = `₹${subtotalVal.toFixed(2)}`;
+
+            const discRow = document.getElementById('billModalDiscountRow');
+            const discEl = document.getElementById('billModalDiscount');
+            if (discRow && discEl) {
+                if (discVal > 0) {
+                    discRow.style.display = 'flex';
+                    discEl.textContent = `-₹${discVal.toFixed(2)}`;
+                } else {
+                    discRow.style.display = 'none';
+                }
+            }
+
+            const taxableEl = document.getElementById('billModalTaxable');
+            if (taxableEl) taxableEl.textContent = `₹${taxableVal.toFixed(2)}`;
+
+            const cgstEl = document.getElementById('billModalCGST');
+            if (cgstEl) cgstEl.textContent = `₹${cgstVal.toFixed(2)}`;
+
+            const sgstEl = document.getElementById('billModalSGST');
+            if (sgstEl) sgstEl.textContent = `₹${sgstVal.toFixed(2)}`;
+
+            const totalEl = document.getElementById('billModalTotal');
+            if (totalEl) totalEl.textContent = `₹${totalVal.toFixed(2)}`;
+
+            // Udhar Breakdown (if applicable)
+            const udharRow = document.getElementById('billModalUdharRow');
+            const udharBalEl = document.getElementById('billModalUdharBalance');
+            if (udharRow) {
+                if (data.is_udhar || (data.payment_method && data.payment_method.toUpperCase().includes('UDHAR'))) {
+                    udharRow.style.display = 'block';
+                    if (udharBalEl) {
+                        udharBalEl.textContent = `₹${Number(data.customer_credit || totalVal).toLocaleString('en-IN', {minimumFractionDigits: 2})}`;
+                    }
+                } else {
+                    udharRow.style.display = 'none';
+                }
+            }
+
+            // 6. Items Table
+            const tbody = document.getElementById('billModalItemsTbody');
+            if (tbody) {
+                let itemsList = data.items;
+                if (!itemsList || itemsList.length === 0) {
+                    if (data.product_name) {
+                        itemsList = [{
+                            product_name: data.product_name,
+                            quantity: data.quantity || 1,
+                            unit_price: data.unit_price || (totalVal / (data.quantity || 1)),
+                            total_price: totalVal
+                        }];
+                    } else {
+                        itemsList = [];
+                    }
+                }
+                tbody.innerHTML = itemsList.map((item, idx) => `
+                    <tr>
+                        <td class="text-start py-1">${idx + 1}. ${escapeHTML(item.product_name || 'Item')}</td>
+                        <td class="text-center py-1">${Number(item.quantity || 1)}</td>
+                        <td class="text-end py-1">₹${Number(item.unit_price || (item.total_price / (item.quantity || 1))).toFixed(2)}</td>
+                        <td class="text-end py-1 fw-bold">₹${Number(item.total_price).toFixed(2)}</td>
+                    </tr>
+                `).join('');
+            }
+
+            const modalEl = document.getElementById('billModal');
+            if (modalEl && typeof bootstrap !== 'undefined') {
+                const modal = bootstrap.Modal.getInstance(modalEl) || new bootstrap.Modal(modalEl);
+                modal.show();
+            }
+        },
+
         viewReceipt: async function (saleId) {
             const fetchFn = window.apiFetch || fetch;
+            let data = null;
             try {
                 const res = await fetchFn(`/api/admin/sales/bill/${saleId}`);
+                if (res.ok) {
+                    data = await res.json();
+                }
+            } catch (err) {
+                console.warn('Could not fetch receipt from API, trying local state fallback:', err);
+            }
+
+            // Fallback from local state if API request failed
+            if (!data && state.sales) {
+                const localSale = state.sales.find(s => String(s.id) === String(saleId));
+                if (localSale) {
+                    const tot = Number(localSale.total_price || 0);
+                    const qty = Number(localSale.quantity || 1);
+                    data = {
+                        bill_number: localSale.bill_number || `#SAL-${String(localSale.id).padStart(4, '0')}`,
+                        customer_name: localSale.customer_name || 'Walk-in Counter',
+                        customer_phone: localSale.customer_phone || '',
+                        payment_method: localSale.payment_method || 'Cash',
+                        sale_date: localSale.sale_date,
+                        total_price: tot,
+                        subtotal: tot,
+                        discount: 0,
+                        taxable_amount: (tot / 1.05),
+                        cgst: ((tot - (tot / 1.05)) / 2),
+                        sgst: ((tot - (tot / 1.05)) / 2),
+                        items: [
+                            {
+                                product_name: localSale.product_name || 'Grocery Item',
+                                quantity: qty,
+                                unit_price: tot / qty,
+                                total_price: tot
+                            }
+                        ]
+                    };
+                }
+            }
+
+            if (!data) {
+                showToast('Could not load receipt data for this transaction.', 'danger');
+                return;
+            }
+
+            window.Adm.populateThermalModal(data);
+        },
+
+        viewOrderReceipt: async function (orderId) {
+            const fetchFn = window.apiFetch || fetch;
+            try {
+                const res = await fetchFn(`/api/orders/${orderId}/slip`);
                 if (!res.ok) {
-                    showToast('Could not fetch receipt details.', 'danger');
+                    showToast('Could not load order receipt slip.', 'danger');
                     return;
                 }
                 const data = await res.json();
-
-                const billNumEl = document.getElementById('billModalNumber');
-                if (billNumEl) billNumEl.textContent = data.bill_number || `SAL-${data.bill_id}`;
-
-                const billDateEl = document.getElementById('billModalDate');
-                if (billDateEl) billDateEl.textContent = data.sale_date || 'Recent';
-
-                const billCustEl = document.getElementById('billModalCustomer');
-                if (billCustEl) billCustEl.textContent = data.customer_name + (data.customer_phone ? ` (${data.customer_phone})` : '');
-
-                const billPayEl = document.getElementById('billModalPayment');
-                if (billPayEl) billPayEl.textContent = data.payment_method || 'Cash';
-
-                const subtotalEl = document.getElementById('billModalSubtotal');
-                if (subtotalEl) subtotalEl.textContent = `₹${Number(data.subtotal || data.total_price).toFixed(2)}`;
-
-                const discRow = document.getElementById('billModalDiscountRow');
-                const discEl = document.getElementById('billModalDiscount');
-                if (discRow && discEl) {
-                    if (data.discount && data.discount > 0) {
-                        discRow.style.display = 'flex';
-                        discEl.textContent = `-₹${Number(data.discount).toFixed(2)}`;
-                    } else {
-                        discRow.style.display = 'none';
-                    }
-                }
-
-                const cgstEl = document.getElementById('billModalCGST');
-                if (cgstEl) cgstEl.textContent = `₹${Number(data.cgst || (data.tax / 2) || 0).toFixed(2)}`;
-
-                const sgstEl = document.getElementById('billModalSGST');
-                if (sgstEl) sgstEl.textContent = `₹${Number(data.sgst || (data.tax / 2) || 0).toFixed(2)}`;
-
-                const taxEl = document.getElementById('billModalTax');
-                if (taxEl) taxEl.textContent = `₹${Number(data.tax || 0).toFixed(2)}`;
-
-                const totalEl = document.getElementById('billModalTotal');
-                if (totalEl) totalEl.textContent = `₹${Number(data.total_price).toFixed(2)}`;
-
-                const tbody = document.getElementById('billModalItemsTbody');
-                if (tbody && data.items) {
-                    tbody.innerHTML = data.items.map((item, idx) => `
-                        <tr>
-                            <td>${idx + 1}. ${escapeHTML(item.product_name)}</td>
-                            <td class="text-center">${Number(item.quantity)}</td>
-                            <td class="text-end">₹${Number(item.unit_price || (item.total_price / item.quantity)).toFixed(2)}</td>
-                            <td class="text-end fw-bold">₹${Number(item.total_price).toFixed(2)}</td>
-                        </tr>
-                    `).join('');
-                }
-
-                const modalEl = document.getElementById('billModal');
-                if (modalEl && typeof bootstrap !== 'undefined') {
-                    const modal = new bootstrap.Modal(modalEl);
-                    modal.show();
-                }
-            } catch (e) {
-                console.error('View receipt error:', e);
-                showToast('Error loading receipt data.', 'danger');
+                window.Adm.populateThermalModal(data);
+            } catch (err) {
+                console.error('View order receipt error:', err);
+                showToast('Network error loading order slip.', 'danger');
             }
         },
 

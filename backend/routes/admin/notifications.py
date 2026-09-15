@@ -1,8 +1,8 @@
 """Admin notification API endpoints (bell dropdown + mark-read)."""
 from flask import jsonify
 
-from database.models import db
-from database.models.promotion import Notification
+from backend.models import db
+from backend.models.promotion import Notification
 from backend.constants import MAX_NOTIFICATIONS
 from backend.routes.decorators import admin_required
 from . import admin_bp

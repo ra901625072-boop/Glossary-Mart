@@ -4,9 +4,9 @@ from sqlalchemy import func
 
 from flask import jsonify, redirect, url_for
 
-from database.models import db, User, Product, Sale
-from database.models.expense import Expense
-from database.models.order import Order, OrderItem
+from backend.models import db, User, Product, Sale
+from backend.models.expense import Expense
+from backend.models.order import Order, OrderItem
 from backend.services.stats_service import (
     get_chart_data, get_monthly_comparison, get_sales_stats,
     get_stock_stats, get_yearly_comparison,

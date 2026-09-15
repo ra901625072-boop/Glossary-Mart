@@ -184,7 +184,7 @@ def test_registration_with_resend_sandbox_auto_verifies(client, session):
 
 
 def test_forgot_password_dispatches_email_service(client, session):
-    from database.models import User
+    from backend.models import User
     from werkzeug.security import generate_password_hash
 
     user = User(

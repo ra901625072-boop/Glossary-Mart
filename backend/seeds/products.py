@@ -1,6 +1,6 @@
 from decimal import Decimal
-from database.models import db
-from database.models.product import Product
+from backend.models import db
+from backend.models.product import Product
 
 def seed_products(cat_map):
     """Seed Real FMCG Products if none exist"""

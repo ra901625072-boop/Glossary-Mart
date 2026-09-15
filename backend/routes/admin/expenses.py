@@ -3,8 +3,8 @@ from datetime import datetime, timezone
 from flask import current_app, jsonify, request
 from sqlalchemy import func
 
-from database.models import db
-from database.models.expense import Expense
+from backend.models import db
+from backend.models.expense import Expense
 from backend.routes.decorators import admin_required
 from .helpers import _log_action
 from . import admin_bp

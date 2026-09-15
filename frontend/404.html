@@ -25,10 +25,10 @@
     <link rel="stylesheet" href="static/css/customer.css">
     <style>
         .error-hero-card {
-            background: #ffffff;
+            background: var(--color-surface);
             border-radius: var(--radius-xl, 24px);
-            border: 1px solid var(--border-subtle, rgba(226, 232, 240, 0.8));
-            box-shadow: var(--shadow-xl, 0 20px 40px -15px rgba(0, 0, 0, 0.07));
+            border: 1px solid var(--color-border-subtle);
+            box-shadow: var(--shadow-xl);
             padding: 3.5rem 2rem;
             max-width: 680px;
             margin: 3rem auto;
@@ -43,7 +43,7 @@
             left: 0;
             right: 0;
             height: 4px;
-            background: linear-gradient(90deg, var(--primary, #059669), #10b981, var(--primary, #059669));
+            background: var(--gradient-brand);
         }
         .error-code-badge {
             display: inline-flex;

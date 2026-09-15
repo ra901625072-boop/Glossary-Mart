@@ -1,7 +1,7 @@
 from datetime import datetime, timedelta, timezone
 from decimal import Decimal
 from sqlalchemy import func
-from database.models import db, Order, OrderItem, Product, Sale
+from backend.models import db, Order, OrderItem, Product, Sale
 
 def get_sales_stats(days=1):
     """Get combined sales and profit statistics (Manual Sales + Online Orders)"""

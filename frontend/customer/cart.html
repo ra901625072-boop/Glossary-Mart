@@ -44,11 +44,11 @@
             <!-- Free Shipping Progress Meter -->
             <div class="free-shipping-card">
                 <div class="d-flex justify-content-between align-items-center mb-2">
-                    <span class="small" id="freeShippingLabel">Add ₹150 more to get FREE Express 15-Minute Delivery!</span>
+                    <span class="small" id="freeShippingLabel">Add ₹499 more to get FREE Express 15-Minute Delivery!</span>
                     <span class="badge bg-success text-white">Target: ₹499</span>
                 </div>
                 <div class="progress-shipping-bar">
-                    <div class="progress-shipping-fill" id="freeShippingBarFill" style="width: 70%;"></div>
+                    <div class="progress-shipping-fill" id="freeShippingBarFill" style="width: 0%;"></div>
                 </div>
             </div>
 
@@ -143,8 +143,16 @@
     <!-- Slide-over Offcanvas Cart Drawer -->
     <div data-component="cart-drawer"></div>
 
-    <!-- Master Footer -->
-    <div data-component="customer-footer"></div>
+    <!-- Mobile Sticky Checkout Bar (Quick Commerce Standard) -->
+    <aside class="mobile-cart-checkout-bar d-md-none shadow-lg" id="mobileCartCheckoutBar" aria-label="Checkout Action">
+        <div>
+            <div class="smallest text-muted">To Pay <span class="badge bg-success-subtle text-success small ms-1" id="mobileCartSavingsBadge"></span></div>
+            <div class="h5 fw-bold text-success mb-0 cart-total-val">₹0</div>
+        </div>
+        <a href="checkout.html" class="btn btn-success rounded-pill fw-bold px-4 py-2 d-inline-flex align-items-center gap-1 shadow-sm" onclick="return handleCartCheckoutProceed(event)">
+            <span>Proceed</span> <i class="bi bi-arrow-right"></i>
+        </a>
+    </aside>
 
     <!-- Mobile Sticky Bottom Touch Bar -->
     <div data-component="mobile-bottom-nav"></div>

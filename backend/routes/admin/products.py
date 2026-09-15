@@ -2,8 +2,8 @@
 from flask import current_app, jsonify, request
 from sqlalchemy.orm import joinedload
 
-from database.models import db
-from database.models.product import Category, Product
+from backend.models import db
+from backend.models.product import Category, Product
 from backend.services.storage_service import StorageService
 from backend.utils.files import allowed_file
 from backend.routes.decorators import admin_required

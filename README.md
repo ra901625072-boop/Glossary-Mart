@@ -90,16 +90,25 @@ erDiagram
 
 ```
 mart/
-├── app/                        # Application Package
-│   ├── routes/                 # Modular Blueprints (admin, customer, auth, security)
-│   ├── models.py               # SQLAlchemy Database Models
-│   ├── services/               # Cart, Order, and Storage services
-│   ├── utils.py                # Analytics, CSV/PDF generation helpers
-│   └── templates/              # Jinja2 templates (Admin & Customer layouts)
-├── static/                     # CSS, JS, Branding images & product uploads
-├── requirements.txt            # Python dependencies
-├── config.py                   # App configurations (.env loader)
-├── app.py                      # Flask development entry point
+├── backend/                    # Core Flask REST API, Models, Migrations & Services
+│   ├── core/                   # Security hooks, middleware & rate limiting
+│   ├── routes/                 # Blueprint APIs (admin, auth, customer, security, api)
+│   ├── services/               # EmailService, CartService, OrderService, AI & Analytics
+│   ├── seeds/                  # Initial catalog, admin, and store data seeders
+│   ├── models/                 # SQLAlchemy ORM Database Models
+│   └── migrations/             # Alembic / Flask-Migrate database migrations
+├── database/                   # Local Database Storage (SQLite store.db)
+├── frontend/                   # Decoupled Storefront, Customer App & Admin ERP
+│   ├── admin/                  # Admin ERP Console pages (dashboard, pos, inventory)
+│   ├── customer/               # Customer portal pages (shop, cart, checkout, orders)
+│   ├── auth/                   # Authentication views (login, register, reset password)
+│   ├── components/             # Reusable UI components (header, footer, nav, cart)
+│   ├── static/                 # Stylesheets (CSS), Vanilla JS, brand assets
+│   └── templates/              # Transactional email Jinja2 templates (emails/)
+├── tests/                      # Automated Pytest test suites (89 passing tests)
+├── agent skill/                # AI agent prompts & design skills
+├── wsgi.py                     # Production WSGI application entry point
+├── run_dev.py                  # Dual-server local development launcher (:5000 API, :3000 UI)
 └── README.md                   # Project documentation
 ```
 

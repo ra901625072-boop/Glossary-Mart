@@ -3,9 +3,9 @@ from datetime import datetime, timezone
 from flask import current_app, jsonify, request
 from sqlalchemy import func
 
-from database.models import db
-from database.models.product import Product, Sale, PosBill
-from database.models.user import User
+from backend.models import db
+from backend.models.product import Product, Sale, PosBill
+from backend.models.user import User
 from backend.services.inventory_service import InventoryService
 from backend.routes.decorators import admin_required
 from .helpers import _log_action

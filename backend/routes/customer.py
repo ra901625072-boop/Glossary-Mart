@@ -1,12 +1,12 @@
 import stripe
-from flask import current_app, flash, jsonify, redirect, render_template, request, url_for
+from flask import current_app, flash, jsonify, redirect, request, url_for
 from flask_login import current_user
 from flask_mail import Message
 
 from backend.extensions import mail
-from database.models import db
-from database.models.product import Category, Product, Review
-from database.models.order import Order, Wishlist
+from backend.models import db
+from backend.models.product import Category, Product, Review
+from backend.models.order import Order, Wishlist
 from backend.services.cart_service import CartService
 from backend.services.order_service import OrderService
 from backend.services.email_service import EmailService

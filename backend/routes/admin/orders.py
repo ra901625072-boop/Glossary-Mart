@@ -3,8 +3,8 @@ from flask import current_app, jsonify, request
 from sqlalchemy import func
 from sqlalchemy.orm import joinedload
 
-from database.models import db
-from database.models.order import Order
+from backend.models import db
+from backend.models.order import Order
 from backend.services.inventory_service import InventoryService
 from backend.services.email_service import EmailService
 from backend.constants import OrderStatus, PaymentStatus, ORDER_STATUS_TRANSITIONS

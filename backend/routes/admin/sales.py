@@ -3,8 +3,8 @@ from datetime import datetime, timedelta
 
 from flask import Response, current_app, jsonify, make_response, request, url_for
 
-from database.models import db
-from database.models.product import Product, Sale
+from backend.models import db
+from backend.models.product import Product, Sale
 from backend.services.inventory_service import InventoryService
 from backend.services.export_service import generate_sales_csv, generate_sales_pdf
 from backend.routes.decorators import admin_required
@@ -174,46 +174,68 @@ def view_bill(sale_id):
             {
                 'product_name': si.product.name if si.product else 'Unknown',
                 'quantity': si.quantity,
-                'unit_price': float(si.product.selling_price) if si.product else 0,
+                'unit_price': float(si.product.selling_price) if si.product else (float(si.total_price) / max(1, si.quantity)),
                 'total_price': float(si.total_price),
             }
             for si in bill.sales
         ]
+        tot = float(bill.total_amount)
+        sub = float(bill.subtotal)
+        disc = float(bill.discount_amount)
+        tax = float(bill.tax_amount)
+        taxable = round(sub - disc, 2)
+        cgst = round(tax / 2.0, 2)
+        sgst = round(tax / 2.0, 2)
+
         return jsonify({
+            'success': True,
             'bill_id': bill.id,
-            'bill_number': bill.bill_number,
+            'bill_number': bill.bill_number or f"EG/26/POS-{bill.id:05d}",
             'customer_name': bill.customer_name or 'Walk-in Counter',
             'customer_phone': bill.customer_phone or '',
-            'subtotal': float(bill.subtotal),
-            'discount': float(bill.discount_amount),
-            'tax': float(bill.tax_amount),
-            'total_price': float(bill.total_amount),
-            'payment_method': bill.payment_method,
-            'sale_date': bill.created_at.strftime('%Y-%m-%d %H:%M:%S') if bill.created_at else None,
+            'subtotal': sub,
+            'discount': disc,
+            'taxable_amount': taxable,
+            'cgst': cgst,
+            'sgst': sgst,
+            'tax': tax,
+            'total_price': tot,
+            'payment_method': bill.payment_method or 'Cash',
+            'sale_date': bill.created_at.strftime('%d/%m/%Y, %I:%M:%S %p') if bill.created_at else None,
             'items': items,
         })
 
+    tot = float(sale.total_price)
+    taxable = round(tot / 1.05, 2)
+    tax = round(tot - taxable, 2)
+    cgst = round(tax / 2.0, 2)
+    sgst = round(tax / 2.0, 2)
+
     return jsonify({
+        'success': True,
         'bill_id': sale.id,
-        'bill_number': f"SAL-{sale.id:04d}",
+        'bill_number': f"#SAL-{sale.id:04d}",
         'customer_name': 'Walk-in Counter',
         'customer_phone': '',
         'product_name': sale.product.name if sale.product else 'Unknown',
         'quantity': sale.quantity,
-        'total_price': float(sale.total_price),
-        'subtotal': float(sale.total_price),
+        'total_price': tot,
+        'subtotal': tot,
         'discount': 0.0,
-        'tax': round(float(sale.total_price) * 0.05 / 1.05, 2),
+        'taxable_amount': taxable,
+        'cgst': cgst,
+        'sgst': sgst,
+        'tax': tax,
         'payment_method': 'Cash',
         'profit': float(sale.profit),
-        'sale_date': sale.sale_date.strftime('%Y-%m-%d %H:%M:%S') if sale.sale_date else None,
-        'unit_price': float(sale.product.selling_price) if sale.product else 0,
+        'sale_date': sale.sale_date.strftime('%d/%m/%Y, %I:%M:%S %p') if sale.sale_date else None,
+        'unit_price': float(sale.product.selling_price) if sale.product else (tot / max(1, sale.quantity)),
         'items': [
             {
                 'product_name': sale.product.name if sale.product else 'Unknown',
                 'quantity': sale.quantity,
-                'unit_price': float(sale.product.selling_price) if sale.product else 0,
-                'total_price': float(sale.total_price),
+                'unit_price': float(sale.product.selling_price) if sale.product else (tot / max(1, sale.quantity)),
+                'total_price': tot,
             }
         ]
     })

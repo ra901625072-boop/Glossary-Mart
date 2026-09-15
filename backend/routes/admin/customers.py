@@ -2,8 +2,8 @@
 from datetime import datetime, timezone
 from flask import current_app, jsonify, request
 
-from database.models import db
-from database.models.user import User
+from backend.models import db
+from backend.models.user import User
 from backend.routes.decorators import admin_required
 from .helpers import _log_action
 from . import admin_bp
@@ -64,7 +64,7 @@ def clear_credit(user_id):
         customer.credit = max(0.0, current_balance - amount_paid)
 
         # Record Debt Recovery in financial ledger to debit Cash/Bank and credit Receivables
-        from database.models.expense import Expense
+        from backend.models.expense import Expense
         recovery_entry = Expense(
             category='Debt Recovery (Udhar)',
             amount=amount_paid,

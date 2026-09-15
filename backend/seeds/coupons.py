@@ -3,8 +3,8 @@ Authentic promotional and discount coupons seed data for e Grossary.
 """
 from datetime import datetime, timedelta, timezone
 from decimal import Decimal
-from database.models import db
-from database.models.promotion import Coupon
+from backend.models import db
+from backend.models.promotion import Coupon
 
 
 def seed_coupons():

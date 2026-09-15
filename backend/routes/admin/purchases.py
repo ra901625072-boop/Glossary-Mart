@@ -1,9 +1,9 @@
 """Admin purchase management routes (record stock-in, list purchases)."""
 from flask import current_app, jsonify, request
 
-from database.models import db
-from database.models.product import Product
-from database.models.inventory import Supplier, Purchase
+from backend.models import db
+from backend.models.product import Product
+from backend.models.inventory import Supplier, Purchase
 from backend.services.inventory_service import InventoryService
 from backend.routes.decorators import admin_required
 from . import admin_bp

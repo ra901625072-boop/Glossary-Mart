@@ -9,10 +9,10 @@ from flask_mail import Message
 
 from backend.extensions import limiter, mail
 from backend.services import EmailService
-from database.models import db
-from database.models.user import User
-from database.models.order import Cart
-from database.models.product import Product
+from backend.models import db
+from backend.models.user import User
+from backend.models.order import Cart
+from backend.models.product import Product
 from backend.utils.security import hash_token
 from . import auth_bp
 from .pages import serve_frontend_page

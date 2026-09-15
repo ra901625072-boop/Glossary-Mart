@@ -7,9 +7,9 @@ _create_notification — broadcast an admin notification.
 from flask import request as flask_request
 from flask_login import current_user
 
-from database.models import db
-from database.models.user import ActivityLog
-from database.models.promotion import Notification
+from backend.models import db
+from backend.models.user import ActivityLog
+from backend.models.promotion import Notification
 
 
 def _log_action(action: str, entity_type: str, entity_id: int, details: str = "") -> None:

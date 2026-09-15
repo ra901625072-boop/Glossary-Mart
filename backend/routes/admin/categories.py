@@ -1,14 +1,14 @@
 """Admin category management routes (CRUD)."""
 from flask import current_app, jsonify, request
 
-from database.models import db
-from database.models.product import Category
+from backend.models import db
+from backend.models.product import Category
 from backend.routes.decorators import admin_required
 from . import admin_bp
 
 
 from sqlalchemy import func
-from database.models.product import Category, Product
+from backend.models.product import Category, Product
 
 @admin_bp.route('/categories')
 @admin_required

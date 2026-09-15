@@ -1,5 +1,5 @@
-from database.models import db
-from database.models.product import Category
+from backend.models import db
+from backend.models.product import Category
 
 def seed_categories():
     """Seed authentic grocery categories, products, and reviews"""

@@ -643,6 +643,30 @@
         const qtyEl = document.getElementById('productDetailSelectedQty');
         if (qtyEl) qtyEl.textContent = currentDetailQty;
 
+        // Mobile Sticky Purchase Bar Synchronization
+        const mobPrice = document.getElementById('mobileBarPrice');
+        if (mobPrice) mobPrice.textContent = `₹${prod.price}`;
+        const mobMrp = document.getElementById('mobileBarMrp');
+        if (mobMrp) {
+            mobMrp.textContent = mrp > prod.price ? `₹${mrp}` : '';
+            mobMrp.style.display = mrp > prod.price ? 'inline' : 'none';
+        }
+        const mobQty = document.getElementById('mobileBarQty');
+        if (mobQty) mobQty.textContent = currentDetailQty;
+        const btnMobAdd = document.getElementById('btnMobileBarAdd');
+        if (btnMobAdd) {
+            const isOOS = !prod.inStock || (prod.stock_quantity !== undefined && prod.stock_quantity <= 0);
+            if (isOOS) {
+                btnMobAdd.disabled = true;
+                btnMobAdd.innerHTML = '<i class="bi bi-slash-circle me-1"></i>OOS';
+                btnMobAdd.className = 'btn btn-secondary rounded-pill btn-sm px-3 py-2 fw-bold opacity-75';
+            } else {
+                btnMobAdd.disabled = false;
+                btnMobAdd.innerHTML = '<i class="bi bi-cart-plus fs-6"></i><span>Add</span>';
+                btnMobAdd.className = 'btn btn-success rounded-pill fw-bold px-3 py-2 d-inline-flex align-items-center gap-1 shadow-sm';
+            }
+        }
+
         // Nutrition Table
         if (prod.nutrition) {
             const nutTable = document.getElementById('nutritionTableBody');
@@ -740,6 +764,8 @@
         currentDetailQty = Math.max(1, currentDetailQty + delta);
         const qtyEl = document.getElementById('productDetailSelectedQty');
         if (qtyEl) qtyEl.textContent = currentDetailQty;
+        const mobQty = document.getElementById('mobileBarQty');
+        if (mobQty) mobQty.textContent = currentDetailQty;
     };
 
     window.handleDetailAddToCart = function () {
@@ -758,6 +784,14 @@
             setTimeout(() => {
                 btn.innerHTML = originalHtml;
                 btn.classList.replace('btn-success', 'btn-outline-success');
+            }, 1500);
+        }
+        const mobBtn = document.getElementById('btnMobileBarAdd');
+        if (mobBtn) {
+            const originalMobHtml = mobBtn.innerHTML;
+            mobBtn.innerHTML = '<i class="bi bi-check-lg fs-6"></i><span>Added!</span>';
+            setTimeout(() => {
+                mobBtn.innerHTML = originalMobHtml;
             }, 1500);
         }
     };
@@ -1537,16 +1571,40 @@
         const contentSection = document.getElementById('cartContentSection');
         if (!container) return;
 
+        const mobCartBar = document.getElementById('mobileCartCheckoutBar');
         if (state.cart.length === 0) {
+            document.body.classList.add('cart-empty');
             if (emptyState) emptyState.style.display = 'block';
             if (contentSection) contentSection.style.display = 'none';
+            if (mobCartBar) {
+                mobCartBar.classList.add('is-hidden');
+                mobCartBar.style.setProperty('display', 'none', 'important');
+            }
+            const freeShippingLabel = document.getElementById('freeShippingLabel');
+            if (freeShippingLabel) {
+                freeShippingLabel.innerHTML = 'Add <strong>₹499</strong> more to get <strong>FREE Express 15-Minute Delivery</strong>!';
+            }
+            const freeShippingFill = document.getElementById('freeShippingBarFill');
+            if (freeShippingFill) {
+                freeShippingFill.style.width = '0%';
+            }
             return;
         }
 
+        document.body.classList.remove('cart-empty');
         if (emptyState) emptyState.style.display = 'none';
         if (contentSection) contentSection.style.display = 'flex';
+        if (mobCartBar) {
+            mobCartBar.classList.remove('is-hidden');
+            mobCartBar.style.removeProperty('display');
+        }
 
         const totals = calculateCartTotals();
+        const mobSavings = document.getElementById('mobileCartSavingsBadge');
+        if (mobSavings) {
+            mobSavings.textContent = totals.totalSavings > 0 ? `Save ₹${totals.totalSavings}` : '';
+            mobSavings.style.display = totals.totalSavings > 0 ? 'inline-block' : 'none';
+        }
 
         // Free shipping progress bar
         const freeShippingFill = document.getElementById('freeShippingBarFill');
@@ -2044,8 +2102,11 @@
                                 </a>
                             ` : ''}
                             <a href="invoice.html?order_id=${encodeURIComponent(order.id)}" class="btn btn-sm btn-outline-success rounded-pill px-3 fw-semibold">
-                                <i class="bi bi-receipt-cutoff me-1"></i> View Bill
+                                <i class="bi bi-receipt-cutoff me-1"></i> Tax Invoice
                             </a>
+                            <button class="btn btn-sm btn-outline-primary rounded-pill px-3 fw-semibold" onclick="window.JG.viewReceiptSlip('${escapeHTML(order.id)}')">
+                                <i class="bi bi-receipt me-1"></i> Slip
+                            </button>
                             <a href="${invoiceUrl}" target="_blank" class="btn btn-sm btn-outline-secondary rounded-pill px-3">
                                 <i class="bi bi-download me-1"></i> PDF
                             </a>
@@ -3015,14 +3076,30 @@
             }
         },
 
-        simulatePaymentSuccess: function () {
+        simulatePaymentSuccess: async function () {
             let order = window._pendingOrder;
             if (!order) {
                 try {
                     order = JSON.parse(sessionStorage.getItem('egm_pending_order') || 'null');
                 } catch (e) {}
             }
-            if (order) {
+            if (order && order.id) {
+                // Sync online payment to backend so order is marked Paid and Stage 2 payment receipt email triggers
+                try {
+                    const fetchFn = window.apiFetch || fetch;
+                    await fetchFn(`/api/orders/${order.id}/pay`, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({
+                            payment_method: order.paymentMethod || 'UPI',
+                            transaction_id: `TXN-EGM-${order.id}-${Date.now()}`
+                        })
+                    });
+                } catch (err) {
+                    console.warn('[Checkout] Could not sync online payment to backend:', err);
+                }
+                showOrderConfirmation(order);
+            } else if (order) {
                 showOrderConfirmation(order);
             } else {
                 if (document.getElementById('view-orders')) {
@@ -3031,6 +3108,133 @@
                     const inCustomer = window.location.pathname.includes('/customer/');
                     window.location.href = inCustomer ? 'orders.html' : 'customer/orders.html';
                 }
+            }
+        },
+
+        viewReceiptSlip: async function (orderId) {
+            const fetchFn = window.apiFetch || fetch;
+            let data = null;
+            try {
+                const res = await fetchFn(`/api/orders/${orderId}/slip`);
+                if (res.ok) {
+                    data = await res.json();
+                }
+            } catch (e) {
+                console.warn('Could not fetch order slip from backend:', e);
+            }
+
+            // Fallback from local state if API request failed
+            if (!data && state.orders) {
+                const localOrder = state.orders.find(o => String(o.id) === String(orderId));
+                if (localOrder) {
+                    const tot = Number(localOrder.total || 0);
+                    data = {
+                        bill_number: `#EGM-${String(localOrder.id).padStart(6, '0')}`,
+                        customer_name: (state.user && (state.user.full_name || state.user.username)) || 'Valued Shopper',
+                        payment_method: localOrder.paymentMethod || 'COD',
+                        sale_date: localOrder.date,
+                        total_price: tot,
+                        subtotal: tot,
+                        discount: 0,
+                        taxable_amount: (tot / 1.05),
+                        cgst: ((tot - (tot / 1.05)) / 2),
+                        sgst: ((tot - (tot / 1.05)) / 2),
+                        items: (localOrder.items || []).map(it => ({
+                            product_name: it.name || 'Grocery Item',
+                            quantity: it.qty || it.quantity || 1,
+                            unit_price: it.price || (tot / Math.max(1, it.qty || 1)),
+                            total_price: (it.price || (tot / Math.max(1, it.qty || 1))) * (it.qty || it.quantity || 1)
+                        }))
+                    };
+                }
+            }
+
+            if (!data) {
+                showCustomerToast('Could not load receipt slip for this order.', 'danger');
+                return;
+            }
+
+            // Populate #invoiceModal elements
+            const billNumEl = document.getElementById('invoiceOrderId');
+            if (billNumEl) billNumEl.textContent = data.bill_number || `#EGM-${String(orderId).padStart(6, '0')}`;
+
+            const dateEl = document.getElementById('invoiceDate');
+            if (dateEl) {
+                let dStr = 'Recent';
+                if (data.sale_date) {
+                    try {
+                        const d = new Date(data.sale_date);
+                        dStr = isNaN(d.getTime()) ? String(data.sale_date) : d.toLocaleString('en-IN', {
+                            dateStyle: 'short',
+                            timeStyle: 'medium'
+                        });
+                    } catch (e) {
+                        dStr = String(data.sale_date);
+                    }
+                }
+                dateEl.textContent = dStr;
+            }
+
+            const custEl = document.getElementById('invoiceCustomer');
+            if (custEl) {
+                const cName = data.customer_name && data.customer_name !== 'undefined' ? data.customer_name : 'Customer';
+                const cPhone = data.customer_phone && data.customer_phone !== 'undefined' ? ` (${data.customer_phone})` : '';
+                custEl.textContent = `${cName}${cPhone}`;
+            }
+
+            const payEl = document.getElementById('invoicePayMethod');
+            if (payEl) payEl.textContent = data.payment_method || 'Cash';
+
+            const totalVal = Number(data.total_price !== undefined ? data.total_price : (data.total || 0));
+            const subtotalVal = Number(data.subtotal !== undefined ? data.subtotal : totalVal);
+            const discVal = Number(data.discount || 0);
+            const taxableVal = Number(data.taxable_amount !== undefined ? data.taxable_amount : (subtotalVal - discVal));
+            const cgstVal = Number(data.cgst !== undefined ? data.cgst : ((data.tax || 0) / 2));
+            const sgstVal = Number(data.sgst !== undefined ? data.sgst : ((data.tax || 0) / 2));
+
+            const subtotalEl = document.getElementById('invoiceSubtotal');
+            if (subtotalEl) subtotalEl.textContent = `₹${subtotalVal.toFixed(2)}`;
+
+            const discRow = document.getElementById('invoiceDiscountRow');
+            const discEl = document.getElementById('invoiceDiscount');
+            if (discRow && discEl) {
+                if (discVal > 0) {
+                    discRow.style.display = 'flex';
+                    discEl.textContent = `-₹${discVal.toFixed(2)}`;
+                } else {
+                    discRow.style.display = 'none';
+                }
+            }
+
+            const taxableEl = document.getElementById('invoiceTaxable');
+            if (taxableEl) taxableEl.textContent = `₹${taxableVal.toFixed(2)}`;
+
+            const cgstEl = document.getElementById('invoiceCGST');
+            if (cgstEl) cgstEl.textContent = `₹${cgstVal.toFixed(2)}`;
+
+            const sgstEl = document.getElementById('invoiceSGST');
+            if (sgstEl) sgstEl.textContent = `₹${sgstVal.toFixed(2)}`;
+
+            const totalEl = document.getElementById('invoiceTotal');
+            if (totalEl) totalEl.textContent = `₹${totalVal.toFixed(2)}`;
+
+            const tbody = document.getElementById('invoiceItemsTbody');
+            if (tbody) {
+                const itemsList = data.items || [];
+                tbody.innerHTML = itemsList.map((it, idx) => `
+                    <tr>
+                        <td class="text-start py-1">${idx + 1}. ${escapeHTML(it.product_name || 'Item')}</td>
+                        <td class="text-center py-1">${Number(it.quantity || 1)}</td>
+                        <td class="text-end py-1">₹${Number(it.unit_price || 0).toFixed(2)}</td>
+                        <td class="text-end py-1 fw-bold">₹${Number(it.total_price || 0).toFixed(2)}</td>
+                    </tr>
+                `).join('');
+            }
+
+            const modalEl = document.getElementById('invoiceModal');
+            if (modalEl && typeof bootstrap !== 'undefined') {
+                const modal = bootstrap.Modal.getInstance(modalEl) || new bootstrap.Modal(modalEl);
+                modal.show();
             }
         },
 
@@ -3477,12 +3681,15 @@
             if (e.detail && e.detail.name === 'customer-header') {
                 updateNavCounters();
                 updateHeaderAuthUI();
+                initAccountDropdownToggle();
                 const searchInput = document.getElementById('masterSearchInput');
                 if (searchInput && state.searchQuery) {
                     searchInput.value = state.searchQuery;
                 }
             }
         });
+
+        initAccountDropdownToggle();
 
         // Listen for reactive updates from EG.cart
         window.addEventListener('cart:updated', (e) => {
@@ -3494,6 +3701,67 @@
             }
         });
     });
+
+    function initAccountDropdownToggle() {
+        const btn = document.getElementById('headerAccountBtn');
+        const menu = document.getElementById('headerAccountDropdownMenu');
+        if (!btn || !menu) return;
+        if (btn.dataset.dropdownInitialized) return;
+        btn.dataset.dropdownInitialized = 'true';
+
+        let bsDropdown = null;
+        if (window.bootstrap && window.bootstrap.Dropdown) {
+            try {
+                bsDropdown = bootstrap.Dropdown.getOrCreateInstance(btn, { display: 'static', autoClose: true });
+            } catch (e) {}
+        }
+
+        // Resilient toggle handler
+        btn.addEventListener('click', function (e) {
+            if (btn.getAttribute('data-bs-toggle') !== 'dropdown') return;
+
+            // If Bootstrap is loaded, let Bootstrap handle it natively
+            if (bsDropdown || (window.bootstrap && window.bootstrap.Dropdown)) {
+                return;
+            }
+
+            // Fallback toggle for non-Bootstrap environments
+            e.preventDefault();
+            e.stopPropagation();
+            const isOpen = menu.classList.contains('show');
+            if (isOpen) {
+                menu.classList.remove('show');
+                btn.classList.remove('show');
+                btn.setAttribute('aria-expanded', 'false');
+            } else {
+                menu.classList.add('show');
+                btn.classList.add('show');
+                btn.setAttribute('aria-expanded', 'true');
+            }
+        });
+
+        // Close when clicking outside (safety fallback)
+        document.addEventListener('click', function (e) {
+            if (!btn.contains(e.target) && !menu.contains(e.target)) {
+                if (menu.classList.contains('show')) {
+                    menu.classList.remove('show');
+                    btn.classList.remove('show');
+                    btn.setAttribute('aria-expanded', 'false');
+                }
+            }
+        });
+
+        // Close on Escape key
+        document.addEventListener('keydown', function (e) {
+            if (e.key === 'Escape') {
+                if (menu.classList.contains('show')) {
+                    menu.classList.remove('show');
+                    btn.classList.remove('show');
+                    btn.setAttribute('aria-expanded', 'false');
+                }
+            }
+        });
+    }
 
 })();
 

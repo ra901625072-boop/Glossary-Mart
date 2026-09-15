@@ -6,51 +6,51 @@
 
 :root {
     /* ── 1. Core Brand & Semantic Accents ── */
-    --adm-primary: #059669;
-    --adm-primary-hover: #047857;
-    --adm-primary-active: #065f46;
-    --adm-primary-subtle: rgba(5, 150, 105, 0.10);
+    --adm-primary: var(--color-primary, #059669);
+    --adm-primary-hover: var(--color-primary-hover, #047857);
+    --adm-primary-active: var(--color-primary-active, #065f46);
+    --adm-primary-subtle: var(--color-primary-soft, rgba(5, 150, 105, 0.10));
     --adm-primary-glow: rgba(5, 150, 105, 0.18);
-    --adm-primary-border: rgba(5, 150, 105, 0.25);
+    --adm-primary-border: var(--color-primary-border, rgba(5, 150, 105, 0.25));
 
     --adm-secondary: #0f172a;
     --adm-secondary-hover: #1e293b;
     --adm-secondary-subtle: #f1f5f9;
 
-    --adm-success: #10b981;
-    --adm-success-subtle: rgba(16, 185, 129, 0.10);
-    --adm-success-border: rgba(16, 185, 129, 0.22);
+    --adm-success: var(--color-success, #10b981);
+    --adm-success-subtle: var(--color-success-soft, rgba(16, 185, 129, 0.10));
+    --adm-success-border: var(--color-success-border, rgba(16, 185, 129, 0.22));
 
-    --adm-warning: #f59e0b;
-    --adm-warning-subtle: rgba(245, 158, 11, 0.12);
-    --adm-warning-border: rgba(245, 158, 11, 0.24);
+    --adm-warning: var(--color-warning, #f59e0b);
+    --adm-warning-subtle: var(--color-warning-soft, rgba(245, 158, 11, 0.12));
+    --adm-warning-border: var(--color-warning-border, rgba(245, 158, 11, 0.24));
 
-    --adm-danger: #ef4444;
-    --adm-danger-subtle: rgba(239, 68, 68, 0.10);
-    --adm-danger-border: rgba(239, 68, 68, 0.22);
+    --adm-danger: var(--color-error, #ef4444);
+    --adm-danger-subtle: var(--color-error-soft, rgba(239, 68, 68, 0.10));
+    --adm-danger-border: var(--color-error-border, rgba(239, 68, 68, 0.22));
 
-    --adm-info: #0284c7;
-    --adm-info-subtle: rgba(2, 132, 199, 0.10);
-    --adm-info-border: rgba(2, 132, 199, 0.22);
+    --adm-info: var(--color-info, #0284c7);
+    --adm-info-subtle: var(--color-info-soft, rgba(2, 132, 199, 0.10));
+    --adm-info-border: var(--color-info-border, rgba(2, 132, 199, 0.22));
 
     /* ── 2. Light Theme Foundations ── */
-    --adm-bg: #f8fafc;
-    --adm-surface: #ffffff;
-    --adm-surface-elevated: #ffffff;
-    --adm-inset: #f1f5f9;
-    --adm-topbar-bg: rgba(255, 255, 255, 0.90);
-    --adm-border: #e2e8f0;
-    --adm-border-subtle: rgba(15, 23, 42, 0.07);
-    --adm-border-hover: #cbd5e1;
+    --adm-bg: var(--color-background, #f8fafc);
+    --adm-surface: var(--color-surface, #ffffff);
+    --adm-surface-elevated: var(--color-surface-elevated, #ffffff);
+    --adm-inset: var(--color-background-secondary, #f1f5f9);
+    --adm-topbar-bg: rgba(255, 255, 255, 0.92);
+    --adm-border: var(--color-border-default, #e2e8f0);
+    --adm-border-subtle: var(--color-border-subtle, rgba(15, 23, 42, 0.07));
+    --adm-border-hover: var(--color-border-strong, #cbd5e1);
 
-    --adm-text-main: #0f172a;
-    --adm-text-secondary: #475569;
-    --adm-text-muted: #64748b;
+    --adm-text-main: var(--color-text-primary, #0f172a);
+    --adm-text-secondary: var(--color-text-secondary, #475569);
+    --adm-text-muted: var(--color-text-muted, #64748b);
     --adm-text-light: #94a3b8;
 
     /* Sidebar Dark Anchor */
-    --adm-sidebar-bg: #090f1a;
-    --adm-sidebar-surface: #0f172a;
+    --adm-sidebar-bg: #09140f;
+    --adm-sidebar-surface: #0e1e17;
     --adm-sidebar-text: #94a3b8;
     --adm-sidebar-text-bright: #f8fafc;
     --adm-sidebar-hover: rgba(255, 255, 255, 0.05);
@@ -59,20 +59,20 @@
     --adm-sidebar-border: rgba(255, 255, 255, 0.07);
 
     /* Cinematic Depth & Highlights */
-    --adm-specular: inset 0 1px 0 rgba(255, 255, 255, 0.9);
-    --adm-glow-ambient: radial-gradient(ellipse at 20% 0%, rgba(16, 185, 129, 0.04) 0%, transparent 60%);
-    --adm-shadow-xs: 0 1px 2px rgba(15, 23, 42, 0.04);
-    --adm-shadow-sm: 0 2px 5px -1px rgba(15, 23, 42, 0.05), 0 1px 2px rgba(15, 23, 42, 0.03);
-    --adm-shadow-md: 0 6px 16px -2px rgba(15, 23, 42, 0.06), 0 2px 4px -1px rgba(15, 23, 42, 0.03);
-    --adm-shadow-lg: 0 12px 28px -4px rgba(15, 23, 42, 0.08), 0 4px 8px -2px rgba(15, 23, 42, 0.03);
-    --adm-shadow-xl: 0 20px 40px -8px rgba(15, 23, 42, 0.12), 0 8px 16px -4px rgba(15, 23, 42, 0.04);
+    --adm-specular: var(--specular-highlight, inset 0 1px 0 rgba(255, 255, 255, 0.9));
+    --adm-glow-ambient: var(--glow-ambient, radial-gradient(ellipse at 20% 0%, rgba(16, 185, 129, 0.04) 0%, transparent 60%));
+    --adm-shadow-xs: var(--shadow-xs, 0 1px 2px rgba(15, 23, 42, 0.04));
+    --adm-shadow-sm: var(--shadow-sm, 0 2px 5px -1px rgba(15, 23, 42, 0.05));
+    --adm-shadow-md: var(--shadow-md, 0 6px 16px -2px rgba(15, 23, 42, 0.06));
+    --adm-shadow-lg: var(--shadow-lg, 0 12px 28px -4px rgba(15, 23, 42, 0.08));
+    --adm-shadow-xl: var(--shadow-xl, 0 20px 40px -8px rgba(15, 23, 42, 0.12));
 
     /* Geometry Scale */
-    --adm-radius-xs: 4px;
-    --adm-radius-sm: 8px;
-    --adm-radius-md: 12px;
-    --adm-radius-lg: 16px;
-    --adm-radius-pill: 9999px;
+    --adm-radius-xs: var(--radius-xs, 4px);
+    --adm-radius-sm: var(--radius-sm, 8px);
+    --adm-radius-md: var(--radius-md, 12px);
+    --adm-radius-lg: var(--radius-lg, 16px);
+    --adm-radius-pill: var(--radius-full, 9999px);
 
     /* Layout Dimensions */
     --adm-sidebar-width: 250px;
@@ -80,41 +80,41 @@
     --adm-content-max: 1400px;
 
     /* Motion Physics */
-    --adm-spring: cubic-bezier(0.16, 1, 0.3, 1);
+    --adm-spring: var(--ease-out, cubic-bezier(0.16, 1, 0.3, 1));
     --adm-spring-fast: 0.18s cubic-bezier(0.16, 1, 0.3, 1);
     --adm-spring-normal: 0.28s cubic-bezier(0.16, 1, 0.3, 1);
 }
 
 /* ── 3. Dark Theme Foundations ── */
 [data-theme="dark"] {
-    --adm-primary: #10b981;
-    --adm-primary-hover: #059669;
-    --adm-primary-active: #047857;
-    --adm-primary-subtle: rgba(16, 185, 129, 0.14);
+    --adm-primary: var(--color-primary, #10b981);
+    --adm-primary-hover: var(--color-primary-hover, #059669);
+    --adm-primary-active: var(--color-primary-active, #047857);
+    --adm-primary-subtle: var(--color-primary-soft, rgba(16, 185, 129, 0.14));
     --adm-primary-glow: rgba(16, 185, 129, 0.25);
-    --adm-primary-border: rgba(16, 185, 129, 0.3);
+    --adm-primary-border: var(--color-primary-border, rgba(16, 185, 129, 0.3));
 
     --adm-secondary: #f8fafc;
     --adm-secondary-hover: #e2e8f0;
-    --adm-secondary-subtle: #1e293b;
+    --adm-secondary-subtle: #182e23;
 
-    --adm-bg: #090d16;
-    --adm-surface: #0f1624;
-    --adm-surface-elevated: #141d2e;
-    --adm-inset: #0c121e;
-    --adm-topbar-bg: rgba(15, 22, 36, 0.90);
-    --adm-border: #1e293b;
-    --adm-border-subtle: rgba(255, 255, 255, 0.07);
-    --adm-border-hover: #334155;
+    --adm-bg: var(--color-background, #09120d);
+    --adm-surface: var(--color-surface, #13241b);
+    --adm-surface-elevated: var(--color-surface-elevated, #182e23);
+    --adm-inset: var(--color-background-secondary, #0e1c15);
+    --adm-topbar-bg: rgba(19, 36, 27, 0.92);
+    --adm-border: var(--color-border-default, rgba(255, 255, 255, 0.12));
+    --adm-border-subtle: var(--color-border-subtle, rgba(255, 255, 255, 0.08));
+    --adm-border-hover: var(--color-border-strong, rgba(255, 255, 255, 0.20));
 
-    --adm-text-main: #f8fafc;
-    --adm-text-secondary: #cbd5e1;
-    --adm-text-muted: #94a3b8;
+    --adm-text-main: var(--color-text-primary, #f8fafc);
+    --adm-text-secondary: var(--color-text-secondary, #cbd5e1);
+    --adm-text-muted: var(--color-text-muted, #94a3b8);
     --adm-text-light: #64748b;
 
     /* Sidebar Dark Anchor */
-    --adm-sidebar-bg: #070a12;
-    --adm-sidebar-surface: #0b1120;
+    --adm-sidebar-bg: #070d09;
+    --adm-sidebar-surface: #0a1610;
     --adm-sidebar-text: #94a3b8;
     --adm-sidebar-text-bright: #f8fafc;
     --adm-sidebar-hover: rgba(255, 255, 255, 0.06);
@@ -122,13 +122,13 @@
     --adm-sidebar-active-text: #10b981;
     --adm-sidebar-border: rgba(255, 255, 255, 0.06);
 
-    --adm-specular: inset 0 1px 0 rgba(255, 255, 255, 0.06);
-    --adm-glow-ambient: radial-gradient(ellipse at 20% 0%, rgba(16, 185, 129, 0.07) 0%, transparent 60%);
-    --adm-shadow-xs: 0 1px 2px rgba(0, 0, 0, 0.35);
-    --adm-shadow-sm: 0 2px 6px rgba(0, 0, 0, 0.45);
-    --adm-shadow-md: 0 6px 18px rgba(0, 0, 0, 0.55);
-    --adm-shadow-lg: 0 12px 28px rgba(0, 0, 0, 0.65);
-    --adm-shadow-xl: 0 20px 45px rgba(0, 0, 0, 0.75);
+    --adm-specular: var(--specular-highlight);
+    --adm-glow-ambient: var(--glow-ambient);
+    --adm-shadow-xs: var(--shadow-xs);
+    --adm-shadow-sm: var(--shadow-sm);
+    --adm-shadow-md: var(--shadow-md);
+    --adm-shadow-lg: var(--shadow-lg);
+    --adm-shadow-xl: var(--shadow-xl);
 }
 
 /* ── 4. Global Baseline & Typography ── */
@@ -138,6 +138,10 @@
 
 body.admin-body {
     background-color: var(--adm-bg);
+    background-image: var(--bg-canvas-full);
+    background-size: var(--bg-canvas-pattern-size), auto;
+    background-attachment: fixed;
+    background-repeat: repeat, no-repeat;
     color: var(--adm-text-main);
     font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
     font-feature-settings: 'cv02', 'cv03', 'cv04', 'cv11';
@@ -249,7 +253,11 @@ h1, h2, h3, h4, h5, h6,
         overflow-y: auto !important;
         scrollbar-gutter: stable !important;
         padding: 1.75rem 2rem 3rem !important;
-        background: var(--adm-glow-ambient), var(--adm-bg) !important;
+        background-color: var(--adm-bg) !important;
+        background-image: var(--bg-canvas-full) !important;
+        background-size: var(--bg-canvas-pattern-size), auto !important;
+        background-attachment: fixed !important;
+        background-repeat: repeat, no-repeat !important;
     }
 }
 
@@ -298,7 +306,11 @@ h1, h2, h3, h4, h5, h6,
         padding: 1rem !important;
         flex-grow: 1 !important;
         overflow-y: visible !important;
-        background: var(--adm-glow-ambient), var(--adm-bg) !important;
+        background-color: var(--adm-bg) !important;
+        background-image: var(--bg-canvas-full) !important;
+        background-size: var(--bg-canvas-pattern-size), auto !important;
+        background-attachment: fixed !important;
+        background-repeat: repeat, no-repeat !important;
     }
 }
 
@@ -721,15 +733,28 @@ h1, h2, h3, h4, h5, h6,
     border: 1px solid var(--adm-border);
     border-radius: var(--adm-radius-md);
     padding: 1.25rem;
-    box-shadow: var(--adm-specular), var(--adm-shadow-xs);
+    box-shadow: var(--adm-shadow-xs);
     transition: transform var(--adm-spring-fast), box-shadow var(--adm-spring-fast), border-color var(--adm-spring-fast);
     position: relative;
+    overflow: hidden;
+}
+
+.kpi-card::before,
+.adm-card::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 1px;
+    background: var(--adm-specular);
+    pointer-events: none;
 }
 
 .kpi-card:hover,
 .adm-card:hover {
     transform: translateY(-2px);
-    box-shadow: var(--adm-specular), var(--adm-shadow-md);
+    box-shadow: var(--adm-shadow-md);
     border-color: var(--adm-border-hover);
 }
 
@@ -861,8 +886,14 @@ h1, h2, h3, h4, h5, h6,
 
 .badge.bg-warning-subtle {
     background-color: var(--adm-warning-subtle) !important;
-    color: #d97706 !important;
+    color: #b45309 !important;
     border: 1px solid var(--adm-warning-border);
+}
+
+[data-theme="dark"] .badge.bg-warning-subtle {
+    color: #fbbf24 !important;
+    background-color: rgba(245, 158, 11, 0.16) !important;
+    border-color: rgba(245, 158, 11, 0.3) !important;
 }
 
 .badge.bg-danger-subtle {

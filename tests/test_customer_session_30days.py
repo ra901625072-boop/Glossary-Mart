@@ -1,5 +1,5 @@
 import time
-from database.models import User
+from backend.models import User
 
 
 def test_customer_login_30day_session(client, customer_user, session):

@@ -4,10 +4,10 @@ Populates realistic 30-day historical transactions for dashboard charts and metr
 """
 from datetime import datetime, timedelta, timezone
 from decimal import Decimal
-from database.models import db
-from database.models.order import Order, OrderItem
-from database.models.product import Product, Sale
-from database.models.user import User
+from backend.models import db
+from backend.models.order import Order, OrderItem
+from backend.models.product import Product, Sale
+from backend.models.user import User
 
 
 def seed_orders_and_sales():

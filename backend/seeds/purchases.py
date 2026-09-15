@@ -3,9 +3,9 @@ Inventory purchase orders and inward restocking batches seed data.
 """
 from datetime import datetime, timedelta, timezone
 from decimal import Decimal
-from database.models import db
-from database.models.inventory import Purchase, Supplier
-from database.models.product import Product
+from backend.models import db
+from backend.models.inventory import Purchase, Supplier
+from backend.models.product import Product
 
 
 def seed_purchases(supplier_map):

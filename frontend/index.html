@@ -36,7 +36,7 @@
         <div class="container">
             <div class="d-flex align-items-center gap-2">
                 <span class="announcement-badge-live"><span class="pulse-dot"></span>15-Min Express</span>
-                <span><strong>Free Express Delivery on Orders Above ₹499</strong> &bull; 100% Quality &amp; Freshness Guarantee</span>
+                <span><strong>Free Express Delivery on Orders Above ₹499</strong><span class="announcement-secondary-text d-none d-sm-inline"> &bull; 100% Quality &amp; Freshness Guarantee</span></span>
             </div>
             <div class="d-none d-sm-flex align-items-center gap-3">
                 <button class="location-dropdown-btn" data-bs-toggle="modal" data-bs-target="#locationModal">
@@ -60,11 +60,12 @@
                 </div>
             </a>
 
-            <!-- Central Product Search Bar -->
-            <div class="search-form-wrapper d-none d-md-block">
-                <div class="search-input-group">
-                    <input type="text" class="search-field" id="globalSearchInput" placeholder="Search fresh vegetables, dairy, snacks, staples..." oninput="handleLiveSearch(this.value)" autocomplete="off">
-                    <button class="search-submit-btn" type="button" onclick="triggerSearch()" title="Search">
+            <!-- Central Product Search Bar (Desktop & Mobile Unified Single-Row) -->
+            <div class="search-form-wrapper flex-grow-1 mx-2 mx-md-4">
+                <div class="search-input-group position-relative">
+                    <i class="bi bi-search search-icon-pos text-muted d-md-none" aria-hidden="true"></i>
+                    <input type="text" class="search-field" id="globalSearchInput" placeholder="Search groceries, fruits, snacks..." oninput="handleLiveSearch(this.value)" autocomplete="off">
+                    <button class="search-submit-btn d-none d-md-flex" type="button" onclick="triggerSearch()" title="Search">
                         <i class="bi bi-search"></i>
                     </button>
                 </div>
@@ -81,11 +82,11 @@
 
                 <!-- User Authentication / Profile Trigger & Dropdown -->
                 <div class="dropdown d-inline-block" id="headerAccountDropdownWrap">
-                    <button class="header-action-btn" data-bs-toggle="modal" data-bs-target="#authModal" title="Login" id="headerAccountBtn" type="button">
+                    <button class="header-action-btn" data-bs-toggle="modal" data-bs-target="#authModal" data-bs-display="static" title="Login" id="headerAccountBtn" type="button">
                         <i class="bi bi-person"></i>
                         <span id="accountBtnText">Login</span>
                     </button>
-                    <ul class="dropdown-menu dropdown-menu-end shadow-lg border-0 rounded-4 p-2 mt-2" id="headerAccountDropdownMenu" style="min-width: 220px; display: none;">
+                    <ul class="dropdown-menu dropdown-menu-end shadow-lg border-0 rounded-4 p-2 mt-2" id="headerAccountDropdownMenu" style="min-width: 210px; max-width: calc(100vw - 20px);">
                         <li class="px-3 py-2 border-bottom">
                             <div class="fw-bold text-dark" id="headerDropdownUserName">Customer</div>
                             <div class="smallest text-muted" id="headerDropdownUserEmail">customer@example.com</div>
@@ -93,32 +94,25 @@
                         <li><a class="dropdown-item rounded-3 py-2 mt-1" href="customer/profile.html"><i class="bi bi-person me-2 text-primary"></i>My Profile &amp; Settings</a></li>
                         <li><a class="dropdown-item rounded-3 py-2" href="customer/orders.html"><i class="bi bi-box-seam me-2 text-success"></i>My Orders &amp; Tracking</a></li>
                         <li><a class="dropdown-item rounded-3 py-2" href="customer/wishlist.html"><i class="bi bi-heart me-2 text-danger"></i>My Saved Wishlist</a></li>
+                        <li><a class="dropdown-item rounded-3 py-2" href="javascript:void(0)" data-bs-toggle="modal" data-bs-target="#locationModal"><i class="bi bi-geo-alt me-2 text-warning"></i>Change Delivery Location</a></li>
                         <li><hr class="dropdown-divider"></li>
                         <li><a class="dropdown-item rounded-3 py-2 text-danger" href="javascript:void(0)" onclick="handleLogout(); return false;"><i class="bi bi-box-arrow-right me-2"></i>Sign Out</a></li>
                     </ul>
                 </div>
 
-                <!-- Wishlist Trigger -->
-                <button class="header-action-btn" onclick="return handleWishlistNavigation(event)" title="View Wishlist">
+                <!-- Wishlist Trigger (Desktop Only; Mobile access via Profile Menu & Bottom Nav) -->
+                <button class="header-action-btn d-none d-md-flex" onclick="return handleWishlistNavigation(event)" title="View Wishlist">
                     <i class="bi bi-heart"></i>
                     <span>Wishlist</span>
                     <span class="action-badge-pill" id="wishlistCountBadge">0</span>
                 </button>
 
-                <!-- Slide-over Cart Drawer Trigger -->
-                <button class="header-action-btn" data-bs-toggle="offcanvas" data-bs-target="#cartOffcanvas" aria-controls="cartOffcanvas" title="Shopping Bag">
-                    <i class="bi bi-cart3"></i>
+                <!-- Slide-over Cart Drawer Trigger (Active on Mobile as Tactile Bag Button & on Desktop) -->
+                <button class="header-action-btn cart-action-btn cart-trigger-btn position-relative" data-bs-toggle="offcanvas" data-bs-target="#cartOffcanvas" aria-controls="cartOffcanvas" title="Shopping Bag">
+                    <i class="bi bi-bag-check-fill text-success"></i>
                     <span>Cart</span>
                     <span class="action-badge-pill" id="cartCountBadge">0</span>
                 </button>
-            </div>
-        </div>
-
-        <!-- Mobile Search Row -->
-        <div class="container d-md-none mt-2">
-            <div class="search-input-group w-100">
-                <input type="text" class="search-field" placeholder="Search groceries, fruits, snacks..." oninput="handleLiveSearch(this.value)">
-                <button class="search-submit-btn" type="button"><i class="bi bi-search"></i></button>
             </div>
         </div>
     </nav>
@@ -236,7 +230,7 @@
             <div class="categories-grid">
                 <!-- 1. Fruits & Vegetables -->
                 <a href="customer/shop.html?category=Fruits%20%26%20Vegetables" class="category-card text-decoration-none">
-                    <div class="category-img-wrap" style="background: rgba(16, 185, 129, 0.12); color: #059669;">
+                    <div class="category-img-wrap cat-emerald">
                         <i class="bi bi-apple fs-2"></i>
                     </div>
                     <div class="category-title">Fruits &amp; Vegetables</div>
@@ -245,7 +239,7 @@
 
                 <!-- 2. Dairy & Breakfast -->
                 <a href="customer/shop.html?category=Dairy%20%26%20Breakfast" class="category-card text-decoration-none">
-                    <div class="category-img-wrap" style="background: rgba(245, 158, 11, 0.12); color: #d97706;">
+                    <div class="category-img-wrap cat-amber">
                         <i class="bi bi-cup-hot fs-2"></i>
                     </div>
                     <div class="category-title">Dairy &amp; Breakfast</div>
@@ -254,7 +248,7 @@
 
                 <!-- 3. Staples & Grains -->
                 <a href="customer/shop.html?category=Staples%20%26%20Grains" class="category-card text-decoration-none">
-                    <div class="category-img-wrap" style="background: rgba(59, 130, 246, 0.12); color: #2563eb;">
+                    <div class="category-img-wrap cat-blue">
                         <i class="bi bi-box-seam fs-2"></i>
                     </div>
                     <div class="category-title">Staples &amp; Grains</div>
@@ -263,7 +257,7 @@
 
                 <!-- 4. Snacks & Biscuits -->
                 <a href="customer/shop.html?category=Snacks%20%26%20Biscuits" class="category-card text-decoration-none">
-                    <div class="category-img-wrap" style="background: rgba(239, 68, 68, 0.12); color: #dc2626;">
+                    <div class="category-img-wrap cat-rose">
                         <i class="bi bi-cake2 fs-2"></i>
                     </div>
                     <div class="category-title">Snacks &amp; Biscuits</div>
@@ -272,7 +266,7 @@
 
                 <!-- 5. Beverages -->
                 <a href="customer/shop.html?category=Beverages" class="category-card text-decoration-none">
-                    <div class="category-img-wrap" style="background: rgba(6, 182, 212, 0.12); color: #0891b2;">
+                    <div class="category-img-wrap cat-cyan">
                         <i class="bi bi-cup-straw fs-2"></i>
                     </div>
                     <div class="category-title">Beverages</div>
@@ -281,7 +275,7 @@
 
                 <!-- 6. Personal Care -->
                 <a href="customer/shop.html?category=Personal%20Care" class="category-card text-decoration-none">
-                    <div class="category-img-wrap" style="background: rgba(168, 85, 247, 0.12); color: #9333ea;">
+                    <div class="category-img-wrap cat-purple">
                         <i class="bi bi-droplet-half fs-2"></i>
                     </div>
                     <div class="category-title">Personal Care</div>
@@ -290,7 +284,7 @@
 
                 <!-- 7. Household -->
                 <a href="customer/shop.html?category=Household" class="category-card text-decoration-none">
-                    <div class="category-img-wrap" style="background: rgba(20, 184, 166, 0.12); color: #0d9488;">
+                    <div class="category-img-wrap cat-teal">
                         <i class="bi bi-house-check fs-2"></i>
                     </div>
                     <div class="category-title">Household</div>
@@ -299,7 +293,7 @@
 
                 <!-- 8. Masala & Spices -->
                 <a href="customer/shop.html?category=Masala%20%26%20Spices" class="category-card text-decoration-none">
-                    <div class="category-img-wrap" style="background: rgba(249, 115, 22, 0.12); color: #ea580c;">
+                    <div class="category-img-wrap cat-orange">
                         <i class="bi bi-fire fs-2"></i>
                     </div>
                     <div class="category-title">Masala &amp; Spices</div>
@@ -654,7 +648,8 @@
     <!-- 12. Master Footer -->
     <footer class="master-footer">
         <div class="container">
-            <div class="row g-4">
+            <!-- Desktop Rich Directory Columns (>= 768px) -->
+            <div class="row g-4 d-none d-md-flex">
                 <div class="col-xl-3 col-lg-4 col-md-6 col-12">
                     <div class="d-flex align-items-center gap-2 mb-2">
                         <img src="static/images/logo-icon.png" alt="e Grossary logo" style="width: 36px; height: 36px; object-fit: contain;">
@@ -669,10 +664,10 @@
                         Your trusted neighborhood partner delivering fresh vegetables, daily dairy, spices, and grains directly to your home.
                     </p>
                     <div class="footer-social-row">
-                        <a href="#" class="footer-social-icon" aria-label="Instagram"><i class="bi bi-instagram"></i></a>
-                        <a href="#" class="footer-social-icon" aria-label="Facebook"><i class="bi bi-facebook"></i></a>
-                        <a href="#" class="footer-social-icon" aria-label="WhatsApp"><i class="bi bi-whatsapp"></i></a>
-                        <a href="#" class="footer-social-icon" aria-label="YouTube"><i class="bi bi-youtube"></i></a>
+                        <a href="https://instagram.com" target="_blank" rel="noopener" class="footer-social-icon" aria-label="Instagram"><i class="bi bi-instagram"></i></a>
+                        <a href="https://facebook.com" target="_blank" rel="noopener" class="footer-social-icon" aria-label="Facebook"><i class="bi bi-facebook"></i></a>
+                        <a href="https://wa.me/919313840278" target="_blank" rel="noopener" class="footer-social-icon" aria-label="WhatsApp"><i class="bi bi-whatsapp"></i></a>
+                        <a href="https://youtube.com" target="_blank" rel="noopener" class="footer-social-icon" aria-label="YouTube"><i class="bi bi-youtube"></i></a>
                     </div>
                 </div>
 
@@ -722,9 +717,58 @@
                 </div>
             </div>
 
+            <!-- Minimal, Symmetrical Mobile Quick-Commerce Footer (<= 767.98px) -->
+            <div class="footer-mobile-clean d-md-none text-center">
+                <div class="d-inline-flex align-items-center gap-2 mb-1">
+                    <img src="static/images/logo-icon.png" alt="e Grossary logo" style="width: 30px; height: 30px; object-fit: contain;">
+                    <div class="footer-brand-title mb-0 fs-4">
+                        e<span>Grossary</span>
+                    </div>
+                </div>
+                <div class="footer-tagline mb-1 text-success fw-bold" style="font-size: 0.74rem; letter-spacing: 0.04em;">
+                    FRESH GROCERIES SUPERSTORE
+                </div>
+                <p class="small mb-2 mx-auto" style="max-width: 290px; font-size: 0.74rem; line-height: 1.35; color: #94a3b8;">
+                    Hyperlocal 15-Minute Doorstep Delivery
+                </p>
+
+                <div class="footer-social-row justify-content-center mb-2">
+                    <a href="https://wa.me/919313840278" target="_blank" rel="noopener" class="footer-social-icon" aria-label="WhatsApp"><i class="bi bi-whatsapp"></i></a>
+                    <a href="https://instagram.com" target="_blank" rel="noopener" class="footer-social-icon" aria-label="Instagram"><i class="bi bi-instagram"></i></a>
+                    <a href="https://facebook.com" target="_blank" rel="noopener" class="footer-social-icon" aria-label="Facebook"><i class="bi bi-facebook"></i></a>
+                    <a href="https://youtube.com" target="_blank" rel="noopener" class="footer-social-icon" aria-label="YouTube"><i class="bi bi-youtube"></i></a>
+                </div>
+
+                <div class="footer-mobile-links-grid mb-2">
+                    <div class="footer-mobile-col">
+                        <div class="footer-mobile-col-heading">Customer Care</div>
+                        <a href="customer/about.html" class="footer-mobile-link">About Us</a>
+                        <a href="customer/faq.html" class="footer-mobile-link">FAQ &amp; Help</a>
+                        <a href="customer/contact.html" class="footer-mobile-link">Contact Support</a>
+                    </div>
+                    <div class="footer-mobile-col">
+                        <div class="footer-mobile-col-heading">Policies &amp; Trust</div>
+                        <a href="customer/terms.html#privacy" class="footer-mobile-link">Privacy Policy</a>
+                        <a href="customer/terms.html" class="footer-mobile-link">Terms of Service</a>
+                        <a href="customer/terms.html#refund" class="footer-mobile-link">Doorstep Returns</a>
+                    </div>
+                </div>
+
+                <div class="footer-mobile-payments mb-2">
+                    <span class="payment-pill"><i class="bi bi-shield-check text-success"></i>UPI</span>
+                    <span class="payment-pill"><i class="bi bi-credit-card text-info"></i>Cards</span>
+                    <span class="payment-pill"><i class="bi bi-bank text-warning"></i>NetBanking</span>
+                    <span class="payment-pill"><i class="bi bi-cash text-success"></i>COD</span>
+                </div>
+
+                <div class="footer-mobile-hub-badge mb-1">
+                    <i class="bi bi-geo-alt-fill text-success me-1"></i>Serving Pali Central &amp; Unjha APMC Hubs
+                </div>
+            </div>
+
             <div class="footer-bottom-row">
-                <div style="color: #94a3b8;">&copy; 2026 e<span class="text-success">Grossary</span>. All rights reserved. Express 15-Minute Delivery.</div>
-                <div class="footer-bottom-links">
+                <div style="color: #64748b; font-size: 0.72rem;">&copy; 2026 e<span class="text-success">Grossary</span>. All rights reserved. Express 15-Minute Delivery.</div>
+                <div class="footer-bottom-links d-none d-md-flex">
                     <a href="customer/terms.html#privacy">Privacy</a>
                     <a href="customer/terms.html">Terms</a>
                     <a href="customer/faq.html">Help</a>
@@ -733,32 +777,6 @@
             </div>
         </div>
     </footer>
-
-    <!-- 13. Mobile Sticky Bottom Navigation -->
-    <nav class="mobile-sticky-bottom-bar">
-        <a href="/" class="mobile-bottom-item active">
-            <i class="bi bi-house-door"></i>
-            <span>Home</span>
-        </a>
-        <a href="customer/shop.html" class="mobile-bottom-item">
-            <i class="bi bi-grid"></i>
-            <span>Shop</span>
-        </a>
-        <a href="customer/wishlist.html" class="mobile-bottom-item" onclick="return handleWishlistNavigation(event)">
-            <i class="bi bi-heart"></i>
-            <span>Wishlist</span>
-            <span class="action-badge-pill" id="mobileWishlistBadge" style="top: -2px; right: 8px;">0</span>
-        </a>
-        <a href="javascript:void(0)" class="mobile-bottom-item" data-bs-toggle="offcanvas" data-bs-target="#cartOffcanvas">
-            <i class="bi bi-cart3"></i>
-            <span>Cart</span>
-            <span class="action-badge-pill" id="mobileCartBadge" style="top: -2px; right: 8px;">2</span>
-        </a>
-        <a href="customer/profile.html" class="mobile-bottom-item" onclick="return handleProfileNavigation(event)">
-            <i class="bi bi-person"></i>
-            <span>Profile</span>
-        </a>
-    </nav>
 
     <!-- 14. Modals & Offcanvas Drawers -->
 
@@ -773,7 +791,7 @@
             <!-- Free Shipping Progress -->
             <div class="p-3 border-bottom">
                 <div class="cart-free-shipping-card">
-                    <div class="small fw-bold text-dark" id="freeShippingMsg">Add more for FREE delivery!</div>
+                    <div class="small fw-bold" id="freeShippingMsg">Add more for FREE delivery!</div>
                     <div class="free-shipping-progress-bar">
                         <div class="free-shipping-fill" id="freeShippingFill" style="width: 70%;"></div>
                     </div>
@@ -1094,10 +1112,37 @@
     <!-- 15. Toast Feedback Container -->
     <aside class="toast-container position-fixed bottom-0 end-0 p-3" id="toastContainer" style="z-index: 1090;"></aside>
 
+    <!-- Mobile Application Bottom Navigation Bar (Zero-latency Inlined) -->
+    <nav class="mobile-bottom-nav d-md-none" id="mobileBottomNav" aria-label="Mobile Application Navigation">
+        <a href="index.html" class="mobile-nav-item active" data-route-link="home" aria-label="Home Storefront">
+            <i class="bi bi-house-door-fill"></i>
+            <span>Home</span>
+        </a>
+        <a href="customer/shop.html" class="mobile-nav-item" data-route-link="shop" aria-label="Browse Products Catalog">
+            <i class="bi bi-grid"></i>
+            <span>Shop</span>
+        </a>
+        <a href="customer/cart.html" class="mobile-nav-item position-relative" data-route-link="cart" aria-label="Shopping Bag">
+            <i class="bi bi-bag-check"></i>
+            <span>Bag</span>
+            <span class="action-badge-pill cart-counter-badge" id="mobileCartBadge" style="display: none;">0</span>
+        </a>
+        <a href="customer/wishlist.html" class="mobile-nav-item position-relative" data-route-link="wishlist" aria-label="Saved Wishlist">
+            <i class="bi bi-heart"></i>
+            <span>Wishlist</span>
+            <span class="action-badge-pill wishlist-counter-badge" id="mobileWishlistBadge" style="display: none;">0</span>
+        </a>
+        <a href="customer/profile.html" class="mobile-nav-item" data-route-link="profile" aria-label="Customer Profile and Orders">
+            <i class="bi bi-person"></i>
+            <span>Profile</span>
+        </a>
+    </nav>
+
     <!-- 16. External Scripts (Zero Inline Application Logic) -->
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
     <script src="static/js/api-config.js"></script>
     <script src="static/js/core/utils.js"></script>
+    <script src="static/js/core/component-loader.js"></script>
     <script src="static/js/services/auth.service.js"></script>
     <script src="static/js/services/cart.service.js"></script>
     <script src="static/js/services/order.service.js"></script>

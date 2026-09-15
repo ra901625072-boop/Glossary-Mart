@@ -2,8 +2,8 @@ import pytest
 from datetime import datetime, timedelta, timezone
 from decimal import Decimal
 
-from database.models import db, User, Product, Category, Sale, Order, OrderItem, Supplier, Purchase
-from database.models.expense import Expense
+from backend.models import db, User, Product, Category, Sale, Order, OrderItem, Supplier, Purchase
+from backend.models.expense import Expense
 from backend.services.intelligence_service import IntelligenceService
 
 

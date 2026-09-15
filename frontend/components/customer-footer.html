@@ -1,7 +1,8 @@
 <!-- e Grossary — Unified Master Footer Component -->
 <footer class="master-footer">
     <div class="container">
-        <div class="row g-4 pb-4 border-bottom border-white border-opacity-10">
+        <!-- Desktop Rich Directory Columns (>= 768px) -->
+        <div class="row g-4 pb-4 border-bottom border-white border-opacity-10 d-none d-md-flex">
             <!-- Brand Column -->
             <div class="col-xl-3 col-lg-4 col-md-6 col-12">
                 <div class="d-flex align-items-center gap-2 mb-2">
@@ -80,9 +81,58 @@
             </div>
         </div>
 
+        <!-- Minimal, Symmetrical Mobile Quick-Commerce Footer (<= 767.98px) -->
+        <div class="footer-mobile-clean d-md-none text-center">
+            <div class="d-inline-flex align-items-center gap-2 mb-1">
+                <img src="../static/images/logo-icon.png" alt="e Grossary logo" style="width: 30px; height: 30px; object-fit: contain;">
+                <div class="footer-brand-title mb-0 fs-4">
+                    e<span>Grossary</span>
+                </div>
+            </div>
+            <div class="footer-tagline mb-1 text-success fw-bold" style="font-size: 0.74rem; letter-spacing: 0.04em;">
+                FRESH GROCERIES SUPERSTORE
+            </div>
+            <p class="small mb-2 mx-auto" style="max-width: 290px; font-size: 0.74rem; line-height: 1.35; color: #94a3b8;">
+                Hyperlocal 15-Minute Doorstep Delivery
+            </p>
+
+            <div class="footer-social-row justify-content-center mb-2">
+                <a href="https://wa.me/919313840278" target="_blank" rel="noopener" class="footer-social-icon" aria-label="WhatsApp"><i class="bi bi-whatsapp"></i></a>
+                <a href="https://instagram.com" target="_blank" rel="noopener" class="footer-social-icon" aria-label="Instagram"><i class="bi bi-instagram"></i></a>
+                <a href="https://facebook.com" target="_blank" rel="noopener" class="footer-social-icon" aria-label="Facebook"><i class="bi bi-facebook"></i></a>
+                <a href="https://youtube.com" target="_blank" rel="noopener" class="footer-social-icon" aria-label="YouTube"><i class="bi bi-youtube"></i></a>
+            </div>
+
+            <div class="footer-mobile-links-grid mb-2">
+                <div class="footer-mobile-col">
+                    <div class="footer-mobile-col-heading">Customer Care</div>
+                    <a href="about.html" class="footer-mobile-link">About Us</a>
+                    <a href="faq.html" class="footer-mobile-link">FAQ &amp; Help</a>
+                    <a href="contact.html" class="footer-mobile-link">Contact Support</a>
+                </div>
+                <div class="footer-mobile-col">
+                    <div class="footer-mobile-col-heading">Policies &amp; Trust</div>
+                    <a href="terms.html#privacy" class="footer-mobile-link">Privacy Policy</a>
+                    <a href="terms.html" class="footer-mobile-link">Terms of Service</a>
+                    <a href="terms.html#refund" class="footer-mobile-link">Doorstep Returns</a>
+                </div>
+            </div>
+
+            <div class="footer-mobile-payments mb-2">
+                <span class="payment-pill"><i class="bi bi-shield-check text-success"></i>UPI</span>
+                <span class="payment-pill"><i class="bi bi-credit-card text-info"></i>Cards</span>
+                <span class="payment-pill"><i class="bi bi-bank text-warning"></i>NetBanking</span>
+                <span class="payment-pill"><i class="bi bi-cash text-success"></i>COD</span>
+            </div>
+
+            <div class="footer-mobile-hub-badge mb-1">
+                <i class="bi bi-geo-alt-fill text-success me-1"></i>Serving Pali Central &amp; Unjha APMC Hubs
+            </div>
+        </div>
+
         <div class="footer-bottom-row">
-            <div style="color: #94a3b8;">&copy; 2026 e Grossary. All rights reserved. Express 15-Minute Grocery Delivery.</div>
-            <div class="footer-bottom-links">
+            <div style="color: #64748b; font-size: 0.72rem;">&copy; 2026 e Grossary. All rights reserved. Express 15-Minute Grocery Delivery.</div>
+            <div class="footer-bottom-links d-none d-md-flex">
                 <a href="about.html">About Us</a>
                 <a href="faq.html">FAQ</a>
                 <a href="terms.html#privacy">Privacy</a>

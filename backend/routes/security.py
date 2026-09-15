@@ -19,8 +19,8 @@ from flask_mail import Message
 
 from backend.extensions import limiter, mail
 from backend.services import EmailService
-from database.models import db
-from database.models.user import User
+from backend.models import db
+from backend.models.user import User
 from backend.utils.security import hash_token
 from backend.routes.pages import serve_frontend_page
 

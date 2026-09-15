@@ -11,8 +11,8 @@ from math import sqrt
 from sqlalchemy import func
 from sqlalchemy.orm import joinedload, selectinload
 
-from database.models import db, Order, OrderItem, Product, Category, Sale, Purchase, User, Supplier
-from database.models.expense import Expense
+from backend.models import db, Order, OrderItem, Product, Category, Sale, Purchase, User, Supplier
+from backend.models.expense import Expense
 
 
 class IntelligenceService:

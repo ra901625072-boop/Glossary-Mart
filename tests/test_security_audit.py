@@ -1,9 +1,9 @@
 import io
 import pyotp
 import pytest
-from database.models import db, User
-from database.models.product import Category, Product, Sale
-from database.models.order import Order, OrderItem
+from backend.models import db, User
+from backend.models.product import Category, Product, Sale
+from backend.models.order import Order, OrderItem
 from backend.utils.files import validate_image_file, allowed_file
 from backend.services.export_service import sanitize_csv_cell, generate_sales_csv
 from backend.services.storage_service import StorageService
@@ -101,7 +101,7 @@ def test_payment_tampering_rejection(client, session):
 def test_udhar_credit_restriction(client, session):
     """VULN-09: Udhar payment method restricted to verified customers with limits."""
     from werkzeug.security import generate_password_hash
-    from database.models.order import Cart
+    from backend.models.order import Cart
     u_credit_maxed = User(
         username='ucred',
         email='ucred@test.com',
@@ -289,7 +289,7 @@ def test_api_auth_decorator_content_negotiation(client, session):
 def test_cumulative_store_credit_boundary_enforcement(client, session):
     """RE-AUDIT-02: Ensure cumulative order amount cannot push credit balance above ₹5,000."""
     from werkzeug.security import generate_password_hash
-    from database.models.order import Cart
+    from backend.models.order import Cart
 
     user = User(
         username='udhar_boundary_user',
@@ -364,8 +364,8 @@ def test_admin_cannot_checkout_online_orders(client, session):
 def test_admin_purchase_atomic_inventory_and_audit_log(client, session):
     """RE-AUDIT-04: Ensure admin purchase restock is atomic and creates an ActivityLog."""
     from werkzeug.security import generate_password_hash
-    from database.models.inventory import Supplier
-    from database.models.user import ActivityLog
+    from backend.models.inventory import Supplier
+    from backend.models.user import ActivityLog
 
     admin = User(
         username='purchase_audit_admin',
@@ -424,7 +424,7 @@ def test_admin_purchase_atomic_inventory_and_audit_log(client, session):
 def test_admin_clear_credit_audit_log(client, session):
     """RE-AUDIT-05: Ensure credit settlement records an audit trail in ActivityLog."""
     from werkzeug.security import generate_password_hash
-    from database.models.user import ActivityLog
+    from backend.models.user import ActivityLog
 
     admin = User(
         username='credit_audit_admin',

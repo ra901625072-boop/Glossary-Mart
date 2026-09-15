@@ -9,7 +9,7 @@ pip install --upgrade pip
 pip install -r requirements.txt
 
 # Run database migrations if migrations directory exists
-if [ -d "database/migrations" ] || [ -d "migrations" ]; then
+if [ -d "backend/migrations" ] || [ -d "migrations" ]; then
     export FLASK_APP=wsgi.py
     flask db upgrade || true
 fi

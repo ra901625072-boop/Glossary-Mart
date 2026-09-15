@@ -2,9 +2,9 @@
 from datetime import datetime, timezone
 from flask import current_app, jsonify, request
 
-from database.models import db
-from database.models.inventory import Supplier
-from database.models.expense import Expense
+from backend.models import db
+from backend.models.inventory import Supplier
+from backend.models.expense import Expense
 from backend.routes.decorators import admin_required
 from .helpers import _log_action
 from . import admin_bp

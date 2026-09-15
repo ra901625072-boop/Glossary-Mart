@@ -78,6 +78,46 @@
             }
             parent.removeChild(el);
 
+            // Auto-highlight active route & update badges on mobile bottom nav
+            if (componentName === 'mobile-bottom-nav') {
+                const currentPath = window.location.pathname.toLowerCase();
+                const pageAttr = document.body ? document.body.getAttribute('data-page') : '';
+                let currentRoute = 'shop';
+                if (currentPath === '/' || currentPath.endsWith('index.html') || (!currentPath.includes('/customer/') && !currentPath.includes('404'))) {
+                    currentRoute = 'home';
+                } else if (pageAttr) {
+                    currentRoute = pageAttr;
+                } else if (currentPath.includes('shop')) {
+                    currentRoute = 'shop';
+                } else if (currentPath.includes('cart')) {
+                    currentRoute = 'cart';
+                } else if (currentPath.includes('wishlist')) {
+                    currentRoute = 'wishlist';
+                } else if (currentPath.includes('profile') || currentPath.includes('orders') || currentPath.includes('invoice')) {
+                    currentRoute = 'profile';
+                }
+
+                document.querySelectorAll('.mobile-bottom-nav [data-route-link]').forEach(function(link) {
+                    const linkRoute = link.getAttribute('data-route-link');
+                    const isActive = linkRoute === currentRoute;
+                    link.classList.toggle('active', isActive);
+                    const icon = link.querySelector('i');
+                    if (icon) {
+                        if (isActive) {
+                            if (linkRoute === 'home') icon.className = 'bi bi-house-door-fill';
+                            else if (linkRoute === 'shop') icon.className = 'bi bi-grid-fill';
+                            else if (linkRoute === 'cart') icon.className = 'bi bi-bag-check-fill';
+                            else if (linkRoute === 'wishlist') icon.className = 'bi bi-heart-fill';
+                            else if (linkRoute === 'profile') icon.className = 'bi bi-person-fill';
+                        }
+                    }
+                });
+
+                if (window.EG && window.EG.cart && typeof window.EG.cart.updateBadgeElements === 'function') {
+                    window.EG.cart.updateBadgeElements();
+                }
+            }
+
             // Dispatch lifecycle event
             window.dispatchEvent(new CustomEvent('component:loaded', {
                 detail: { name: componentName, elements: insertedNodes }

@@ -1,6 +1,6 @@
 import pytest
-from database.models import db
-from database.models.product import Category, Product
+from backend.models import db
+from backend.models.product import Category, Product
 
 
 def test_api_health(client):
@@ -175,7 +175,7 @@ def test_api_profile_update(client, customer_user, session):
 
 def test_api_product_review(client, customer_user, session):
     """Verify submitting product review via POST /api/products/<id>/reviews"""
-    from database.models.product import Category, Product
+    from backend.models.product import Category, Product
     cat = Category(name='Organic Fruits')
     session.add(cat)
     session.commit()
@@ -310,7 +310,7 @@ def test_api_admin_pos_checkout(client, admin_user, session):
 
 def test_api_coupon_validation(client, session):
     """Test coupon validation against live database promotions"""
-    from database.models.promotion import Coupon
+    from backend.models.promotion import Coupon
     # Percentage coupon with minimum spend
     c1 = Coupon(
         code='FESTIVE15',
@@ -370,7 +370,7 @@ def test_api_coupon_validation(client, session):
 
 def test_api_review_full_lifecycle(client, customer_user, admin_user, session):
     """Verify complete review lifecycle: create, breakdown analytics, update, permission checks, delete, and my-reviews."""
-    from database.models.product import Category, Product
+    from backend.models.product import Category, Product
     cat = Category(name='Dairy & Farm')
     session.add(cat)
     session.flush()
@@ -417,7 +417,7 @@ def test_api_review_full_lifecycle(client, customer_user, admin_user, session):
     assert 'Updated review' in put_res.get_json()['review']['comment']
 
     # 5. Permission guard: login as another user and attempt to edit/delete
-    from database.models.user import User
+    from backend.models.user import User
     other_user = User(username='intruder', email='intruder@example.com', role='customer', is_verified=True)
     other_user.set_password('intruder123')
     session.add(other_user)

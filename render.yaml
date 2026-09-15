@@ -9,7 +9,6 @@ services:
     buildFilter:
       paths:
         - backend/**
-        - database/**
         - frontend/**
         - requirements.txt
         - .python-version

@@ -110,7 +110,7 @@
                     </div>
 
                     <!-- Quantity Stepper & Dual Buy Action CTAs -->
-                    <div class="d-flex flex-wrap gap-3 align-items-center mb-4">
+                    <div class="d-flex flex-wrap gap-3 align-items-center mb-4 product-incard-actions">
                         <!-- Stepper -->
                         <div class="d-flex align-items-center border rounded-pill p-1 bg-light">
                             <button class="btn btn-sm btn-white rounded-circle shadow-sm px-3 fw-bold" onclick="adjustProductQty(-1)">&minus;</button>
@@ -306,8 +306,27 @@
     <!-- Slide-over Offcanvas Cart Drawer -->
     <div data-component="cart-drawer"></div>
 
-    <!-- Master Footer -->
-    <div data-component="customer-footer"></div>
+    <!-- Mobile Sticky Bottom Purchase Bar (Quick Commerce Standard) -->
+    <aside class="product-mobile-bottom-bar d-md-none" id="productMobileBottomBar" aria-label="Quick Purchase Actions">
+        <div class="product-mobile-bar-info">
+            <div class="product-mobile-price-wrap">
+                <span class="product-mobile-price" id="mobileBarPrice">₹0</span>
+                <span class="product-mobile-mrp" id="mobileBarMrp">₹0</span>
+            </div>
+            <div class="smallest text-success fw-bold" id="mobileBarEta"><i class="bi bi-lightning-charge-fill"></i> 15 MINS</div>
+        </div>
+        <div class="d-flex align-items-center gap-2">
+            <div class="product-qty-stepper mobile-bar-stepper">
+                <button type="button" class="stepper-btn" onclick="adjustProductQty(-1)" aria-label="Decrease quantity">&minus;</button>
+                <span class="stepper-val" id="mobileBarQty">1</span>
+                <button type="button" class="stepper-btn" onclick="adjustProductQty(1)" aria-label="Increase quantity">&plus;</button>
+            </div>
+            <button type="button" class="btn btn-success rounded-pill fw-bold px-3 py-2 d-inline-flex align-items-center gap-1 shadow-sm" id="btnMobileBarAdd" onclick="handleDetailAddToCart()">
+                <i class="bi bi-cart-plus fs-6"></i>
+                <span>Add</span>
+            </button>
+        </div>
+    </aside>
 
     <!-- Mobile Sticky Bottom Touch Bar -->
     <div data-component="mobile-bottom-nav"></div>

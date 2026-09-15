@@ -14,7 +14,7 @@ os.environ['ADMIN_USERNAME'] = 'testadmin'
 
 from flask import current_app
 from backend import create_app
-from database.models import db, User
+from backend.models import db, User
 
 @pytest.fixture(scope='session')
 def app():

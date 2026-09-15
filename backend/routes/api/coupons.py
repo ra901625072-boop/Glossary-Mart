@@ -2,8 +2,8 @@
 from datetime import datetime, timezone
 from flask import jsonify, request
 
-from database.models import db
-from database.models.promotion import Coupon
+from backend.models import db
+from backend.models.promotion import Coupon
 from . import api_bp
 
 

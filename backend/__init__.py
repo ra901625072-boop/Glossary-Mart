@@ -9,24 +9,33 @@ from .config import Config
 from .extensions import cors, csrf, limiter, login_manager, mail, migrate
 from .core.middleware import init_middleware
 from .core.hooks import init_hooks
-from database.models import db, User
+from .models import db, User
 
 
 def create_app(config_class=Config):
     """Application factory — single entry point for all environments."""
     project_root = os.path.abspath(os.path.join(os.path.dirname(__file__), '..'))
-    backend_template_dir = os.path.join(os.path.dirname(__file__), 'templates')
+    frontend_template_dir = os.path.join(project_root, 'frontend', 'templates')
     static_dir = os.path.join(project_root, 'frontend', 'static')
 
     app = Flask(
         __name__,
-        template_folder=backend_template_dir,
+        template_folder=frontend_template_dir,
         static_folder=None
     )
 
     import jinja2
-    # Jinja2 is only needed for email templates now (backend/templates/emails/)
-    app.jinja_loader = jinja2.FileSystemLoader([backend_template_dir])
+    # Jinja2 loads templates from frontend/templates (emails and transactional layouts)
+    template_search_paths = [
+        frontend_template_dir,
+        os.path.join(project_root, 'frontend')
+    ]
+    # Safety fallback if legacy directory exists in any alternative environment
+    backend_fallback = os.path.join(os.path.dirname(__file__), 'templates')
+    if os.path.exists(backend_fallback):
+        template_search_paths.append(backend_fallback)
+
+    app.jinja_loader = jinja2.FileSystemLoader(template_search_paths)
 
     app.config.from_object(config_class)
 
@@ -55,7 +64,7 @@ def create_app(config_class=Config):
     )
     csrf.init_app(app)
     mail.init_app(app)
-    migrate.init_app(app, db, directory=os.path.join(project_root, "database", "migrations"))
+    migrate.init_app(app, db, directory=os.path.join(project_root, "backend", "migrations"))
     limiter.init_app(app)
 
     login_manager.init_app(app)

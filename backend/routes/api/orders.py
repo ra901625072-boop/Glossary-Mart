@@ -1,11 +1,13 @@
+from datetime import datetime
+
 from flask import current_app, jsonify, request
 from flask_login import current_user
 
 from backend.extensions import limiter
 from backend.services.email_service import EmailService
 from backend.services.order_service import OrderService
-from database.models import db
-from database.models.order import Order
+from backend.models import db
+from backend.models.order import Order
 from . import api_bp
 
 
@@ -93,8 +95,8 @@ def api_checkout():
         return jsonify({'success': False, 'message': 'Shipping address must be between 10 and 500 characters'}), 400
 
     # If items were explicitly provided in checkout payload, validate each item first before syncing into DB cart
-    from database.models.order import Cart
-    from database.models.product import Product
+    from backend.models.order import Cart
+    from backend.models.product import Product
     from backend.services.cart_service import CartService
     payload_items = data.get('items')
     if payload_items and isinstance(payload_items, list) and len(payload_items) > 0:
@@ -160,18 +162,122 @@ def api_checkout():
         return jsonify({'success': False, 'message': message}), 400
 
     # Dispatch customer order confirmation email sequence
+    email_status = {'sent': False}
     try:
-        EmailService.send_order_confirmation_email(order, current_user)
+        email_res = EmailService.send_order_confirmation_email(order, current_user)
+        email_status = {
+            'sent': bool(email_res and email_res.get('success')),
+            'provider': email_res.get('provider') if email_res else None,
+            'is_sandbox_restriction': bool(email_res and email_res.get('is_sandbox_restriction')),
+            'sandbox_recipient': email_res.get('sandbox_recipient') if email_res else None,
+            'message': email_res.get('message') if email_res else 'Email dispatched'
+        }
         if order.payment_status == 'Paid':
             EmailService.send_payment_confirmation_email(order, current_user)
     except Exception as email_err:
         current_app.logger.warning("Order confirmation email skipped: %s", email_err)
+        email_status['error'] = str(email_err)
 
     return jsonify({
         'success': True,
         'message': message,
-        'order': order.to_dict()
+        'order': order.to_dict(),
+        'email_status': email_status
     }), 201
+
+
+@api_bp.route('/orders/<int:order_id>/pay', methods=['POST'])
+def confirm_order_payment(order_id):
+    """Mark order as Paid and dispatch Stage 2 payment receipt email"""
+    if not current_user.is_authenticated:
+        return jsonify({'success': False, 'message': 'Authentication required'}), 401
+
+    if current_user.role == 'admin':
+        order = db.session.get(Order, order_id)
+    else:
+        order = db.session.query(Order).filter_by(id=order_id, user_id=current_user.id).first()
+
+    if not order:
+        return jsonify({'success': False, 'message': 'Order not found'}), 404
+
+    data = request.get_json(silent=True) or {}
+    payment_method = data.get('payment_method') or order.payment_method or 'UPI'
+    txn_id = data.get('transaction_id') or f"TXN-{order.id}-{int(datetime.utcnow().timestamp())}"
+
+    order.payment_status = 'Paid'
+    if payment_method:
+        order.payment_method = payment_method
+
+    db.session.commit()
+
+    # Dispatch payment receipt email
+    try:
+        EmailService.send_payment_confirmation_email(order, current_user, transaction_id=txn_id)
+    except Exception as err:
+        current_app.logger.warning("Payment confirmation email skipped: %s", err)
+
+    return jsonify({
+        'success': True,
+        'message': 'Payment confirmed successfully.',
+        'order': order.to_dict(),
+        'transaction_id': txn_id
+    })
+
+
+@api_bp.route('/orders/<int:order_id>/slip', methods=['GET'])
+def get_order_slip(order_id):
+    """Return JSON thermal receipt slip data for any order (Customer & Admin compatible)"""
+    if not current_user.is_authenticated:
+        return jsonify({'success': False, 'message': 'Authentication required'}), 401
+
+    if current_user.role == 'admin':
+        order = db.session.get(Order, order_id)
+    else:
+        order = db.session.query(Order).filter_by(id=order_id, user_id=current_user.id).first()
+
+    if not order:
+        return jsonify({'success': False, 'message': 'Order not found'}), 404
+
+    items = [
+        {
+            'product_name': oi.product.name if oi.product else 'Grocery Item',
+            'quantity': oi.quantity,
+            'unit_price': float(oi.price if hasattr(oi, 'price') and oi.price is not None else (oi.product.selling_price if oi.product else 0)),
+            'total_price': float((oi.price if hasattr(oi, 'price') and oi.price is not None else (oi.product.selling_price if oi.product else 0)) * oi.quantity),
+        }
+        for oi in order.order_items
+    ]
+
+    tot = float(order.total_amount)
+    subtot = sum(item['total_price'] for item in items) if items else tot
+    disc = max(0.0, subtot - tot)
+    taxable = round(tot / 1.05, 2)
+    tax = round(tot - taxable, 2)
+    cgst = round(tax / 2.0, 2)
+    sgst = round(tax / 2.0, 2)
+
+    cust_name = getattr(order.user, 'full_name', None) or getattr(order.user, 'username', None) or 'Valued Shopper'
+    cust_phone = getattr(order.user, 'phone', '') or ''
+
+    return jsonify({
+        'success': True,
+        'bill_id': order.id,
+        'bill_number': f"#EGM-{order.id:06d}",
+        'order_id': order.id,
+        'customer_name': cust_name,
+        'customer_phone': cust_phone,
+        'payment_method': order.payment_method or 'COD',
+        'payment_status': order.payment_status or 'Pending',
+        'subtotal': subtot,
+        'discount': disc,
+        'taxable_amount': taxable,
+        'cgst': cgst,
+        'sgst': sgst,
+        'tax': tax,
+        'total_price': tot,
+        'sale_date': order.created_at.strftime('%d/%m/%Y, %I:%M:%S %p') if order.created_at else None,
+        'items': items,
+    })
 
 
 @api_bp.route('/orders/<int:order_id>/invoice', methods=['GET'])

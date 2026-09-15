@@ -1,8 +1,8 @@
 from flask import session
 from flask_login import current_user
-from database.models import db
-from database.models.order import Cart
-from database.models.product import Product
+from backend.models import db
+from backend.models.order import Cart
+from backend.models.product import Product
 
 class CartService:
     @staticmethod

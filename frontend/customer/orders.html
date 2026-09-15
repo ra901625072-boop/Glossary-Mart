@@ -67,65 +67,83 @@
         </section>
     </main>
 
-    <!-- MODAL: INVOICE / RECEIPT MODAL -->
+    <!-- MODAL: INVOICE / RECEIPT SLIP MODAL -->
     <div class="modal fade" id="invoiceModal" tabindex="-1" aria-hidden="true">
-        <div class="modal-dialog modal-dialog-centered">
-            <div class="modal-content rounded-4 border-0 shadow-lg">
-                <div class="modal-body p-4" id="printableReceipt">
-                    <div class="text-center pb-3 border-bottom mb-3">
-                        <img src="../static/images/logo-icon.png" alt="e Grossary" style="height: 44px; width: auto; margin-bottom: 6px;">
-                        <div class="fw-bold fs-4 brand-font text-dark">E-GROSSARY</div>
-                        <div class="smallest text-muted">e Grossary Supermarket &bull; Sector 4, Pali Rajasthan 306401</div>
-                        <div class="smallest text-muted">GSTIN: 08AAACJ1234F1Z5 | FSSAI: 12221020000456</div>
-                    </div>
+        <div class="modal-dialog modal-dialog-centered" style="max-width: 440px;">
+            <div class="modal-content border-0 shadow-lg rounded-3 overflow-hidden">
+                <div class="modal-header bg-dark text-white border-0 py-3">
+                    <h6 class="modal-title fw-bold" id="invoiceModalLabel"><i class="bi bi-printer me-2"></i>Official Order Slip</h6>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body p-4 bg-light">
+                    <!-- Printable Receipt Area -->
+                    <div id="printableReceipt" class="thermal-bill shadow-sm bg-white p-3 rounded-2 border">
+                        <div class="text-center mb-2">
+                            <img src="../static/images/logo-icon.png" alt="e Grossary logo" style="height: 40px; width: auto; margin-bottom: 4px;" onerror="this.onerror=null; this.src='/static/images/logo-icon.png';">
+                            <h5 class="fw-bold mb-0 text-dark">E-GROSSARY</h5>
+                            <div class="smallest text-muted">e Grossary Supermarket &bull; Station Road, Pali &amp; Main Bazaar, Unjha</div>
+                            <div class="smallest text-muted">GSTIN: 24AAACJ1234F1Z8 | FSSAI: 10723001000214</div>
+                            <div class="smallest text-muted">------------------------------------------</div>
+                        </div>
+                        <div class="d-flex justify-content-between smallest mb-1">
+                            <span>Bill #: <strong id="invoiceOrderId">#EGM-000000</strong></span>
+                            <span id="invoiceDate">-</span>
+                        </div>
+                        <div class="d-flex justify-content-between smallest mb-2">
+                            <span>Cust: <strong id="invoiceCustomer">Customer</strong></span>
+                            <span>Pay: <strong id="invoicePayMethod">Cash</strong></span>
+                        </div>
+                        <div class="smallest text-muted mb-1">------------------------------------------</div>
 
-                    <div class="d-flex justify-content-between small mb-2">
-                        <span class="text-muted">Order ID:</span>
-                        <span class="fw-bold text-dark font-monospace" id="invoiceOrderId">#EG-000000</span>
-                    </div>
-                    <div class="d-flex justify-content-between small mb-2">
-                        <span class="text-muted">Date &amp; Time:</span>
-                        <span id="invoiceDate">-</span>
-                    </div>
-                    <div class="d-flex justify-content-between small mb-3 pb-2 border-bottom">
-                        <span class="text-muted">Payment Mode:</span>
-                        <span class="fw-bold text-success" id="invoicePayMethod">UPI</span>
-                    </div>
+                        <!-- Items Table -->
+                        <table class="w-100 smallest mb-2">
+                            <thead>
+                                <tr class="border-bottom text-muted">
+                                    <th class="text-start py-1">Item</th>
+                                    <th class="text-center py-1">Qty</th>
+                                    <th class="text-end py-1">Rate</th>
+                                    <th class="text-end py-1">Amt</th>
+                                </tr>
+                            </thead>
+                            <tbody id="invoiceItemsTbody"></tbody>
+                        </table>
 
-                    <!-- Items Table -->
-                    <table class="table table-sm small mb-3">
-                        <thead>
-                            <tr class="text-muted">
-                                <th>#</th>
-                                <th>Item</th>
-                                <th class="text-center">Qty</th>
-                                <th class="text-end">Rate</th>
-                                <th class="text-end">Amount</th>
-                            </tr>
-                        </thead>
-                        <tbody id="invoiceItemsTbody">
-                            <!-- Populated dynamically -->
-                        </tbody>
-                    </table>
-
-                    <div class="d-flex justify-content-between align-items-center border-top pt-2 mb-3">
-                        <span class="fw-bold fs-6">Grand Total:</span>
-                        <span class="fw-bold fs-5 text-success" id="invoiceTotal">₹0</span>
+                        <div class="smallest text-muted mb-1">------------------------------------------</div>
+                        <div class="d-flex justify-content-between smallest mb-1">
+                            <span>Subtotal:</span>
+                            <span id="invoiceSubtotal">₹0</span>
+                        </div>
+                        <div class="d-flex justify-content-between smallest mb-1 text-danger" id="invoiceDiscountRow" style="display: none;">
+                            <span>Discount Applied:</span>
+                            <span id="invoiceDiscount">-₹0</span>
+                        </div>
+                        <div class="d-flex justify-content-between smallest mb-1">
+                            <span>Taxable Value:</span>
+                            <span id="invoiceTaxable">₹0</span>
+                        </div>
+                        <div class="d-flex justify-content-between smallest mb-1">
+                            <span>CGST (2.5%):</span>
+                            <span id="invoiceCGST">₹0</span>
+                        </div>
+                        <div class="d-flex justify-content-between smallest mb-1">
+                            <span>SGST (2.5%):</span>
+                            <span id="invoiceSGST">₹0</span>
+                        </div>
+                        <div class="d-flex justify-content-between fw-bold fs-6 border-top border-bottom py-1 my-1">
+                            <span>TOTAL AMOUNT:</span>
+                            <span id="invoiceTotal" class="text-success">₹0</span>
+                        </div>
+                        <div class="text-center smallest mt-3 text-muted">
+                            <div>Thank you for shopping with e Grossary!</div>
+                            <div>Please visit again!</div>
+                        </div>
                     </div>
-
-                    <div class="smallest text-center text-muted mb-3">
-                        Thank you for shopping with e Grossary!<br>
-                        For complaints &amp; support: support@egrossary.com
-                    </div>
-
-                    <div class="d-flex gap-2">
-                        <button class="btn btn-outline-dark flex-fill rounded-pill small" onclick="window.print()">
-                            <i class="bi bi-printer me-1"></i> Print Bill
-                        </button>
-                        <button class="btn btn-secondary flex-fill rounded-pill small" data-bs-dismiss="modal">
-                            Close
-                        </button>
-                    </div>
+                </div>
+                <div class="modal-footer bg-white border-0 d-flex justify-content-between">
+                    <button type="button" class="btn btn-secondary rounded-2 px-3" data-bs-dismiss="modal">Close</button>
+                    <button type="button" class="btn btn-success rounded-2 px-4 fw-bold" onclick="window.print()">
+                        <i class="bi bi-printer-fill me-1"></i> Print Receipt
+                    </button>
                 </div>
             </div>
         </div>

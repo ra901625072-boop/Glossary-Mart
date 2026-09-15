@@ -2,9 +2,9 @@
 Authentic administrator, customer accounts, and product reviews seed data.
 """
 from werkzeug.security import generate_password_hash
-from database.models import db
-from database.models.user import User
-from database.models.product import Product, Review
+from backend.models import db
+from backend.models.user import User
+from backend.models.product import Product, Review
 
 
 def create_admin(app):

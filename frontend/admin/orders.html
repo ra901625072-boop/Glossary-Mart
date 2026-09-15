@@ -303,8 +303,93 @@
                         <span class="fs-4 fw-bold text-success tabular-nums" id="orderDetailModalTotal">₹0</span>
                     </div>
                 </div>
-                <div class="modal-footer border-top pt-3">
+                <div class="modal-footer border-top pt-3 d-flex justify-content-between">
+                    <button type="button" class="btn btn-outline-dark rounded-2 px-3 fw-bold" id="orderDetailPrintSlipBtn">
+                        <i class="bi bi-receipt me-1"></i> Audited Slip
+                    </button>
                     <button type="button" class="btn btn-secondary rounded-2 px-4" data-bs-dismiss="modal">Close</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Thermal Bill Print Modal -->
+    <div class="modal fade" id="billModal" tabindex="-1" aria-labelledby="billModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered" style="max-width: 440px;">
+            <div class="modal-content border-0 shadow-lg rounded-3 overflow-hidden">
+                <div class="modal-header bg-dark text-white border-0 py-3">
+                    <h6 class="modal-title fw-bold" id="billModalLabel"><i class="bi bi-printer me-2"></i>Audited Sales Slip</h6>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body p-4 bg-light">
+                    <!-- Printable Receipt Area -->
+                    <div id="billPrintArea" class="thermal-bill shadow-sm">
+                        <div class="text-center mb-2">
+                            <img src="../static/images/logo-icon.png" alt="e Grossary logo" onerror="this.onerror=null; this.src='/static/images/logo-icon.png';" style="height: 40px; width: auto; margin-bottom: 4px;">
+                            <h5 class="fw-bold mb-0">E-GROSSARY</h5>
+                            <div class="smallest">e Grossary Supermarket &bull; Station Road, Pali &amp; Main Bazaar, Unjha</div>
+                            <div class="smallest">GSTIN: 24AAACJ1234F1Z8 | FSSAI: 10723001000214</div>
+                            <div class="smallest text-muted">------------------------------------------</div>
+                        </div>
+                        <div class="d-flex justify-content-between smallest mb-1">
+                            <span>Bill #: <strong id="billModalNumber">BILL-000000</strong></span>
+                            <span id="billModalDate">-</span>
+                        </div>
+                        <div class="d-flex justify-content-between smallest mb-2">
+                            <span>Cust: <strong id="billModalCustomer">Walk-in</strong></span>
+                            <span>Pay: <strong id="billModalPayment">Cash</strong></span>
+                        </div>
+                        <div class="smallest text-muted mb-1">------------------------------------------</div>
+
+                        <!-- Items Table -->
+                        <table class="w-100 smallest mb-2">
+                            <thead>
+                                <tr class="border-bottom">
+                                    <th class="text-start">Item</th>
+                                    <th class="text-center">Qty</th>
+                                    <th class="text-end">Rate</th>
+                                    <th class="text-end">Amt</th>
+                                </tr>
+                            </thead>
+                            <tbody id="billModalItemsTbody"></tbody>
+                        </table>
+
+                        <div class="smallest text-muted mb-1">------------------------------------------</div>
+                        <div class="d-flex justify-content-between smallest mb-1">
+                            <span>Subtotal:</span>
+                            <span id="billModalSubtotal">₹0</span>
+                        </div>
+                        <div class="d-flex justify-content-between smallest mb-1 text-danger" id="billModalDiscountRow" style="display: none;">
+                            <span>Discount Applied:</span>
+                            <span id="billModalDiscount">-₹0</span>
+                        </div>
+                        <div class="d-flex justify-content-between smallest mb-1">
+                            <span>Taxable Value:</span>
+                            <span id="billModalTaxable">₹0</span>
+                        </div>
+                        <div class="d-flex justify-content-between smallest mb-1">
+                            <span>CGST (2.5%):</span>
+                            <span id="billModalCGST">₹0</span>
+                        </div>
+                        <div class="d-flex justify-content-between smallest mb-1">
+                            <span>SGST (2.5%):</span>
+                            <span id="billModalSGST">₹0</span>
+                        </div>
+                        <div class="d-flex justify-content-between fw-bold fs-6 border-top border-bottom py-1 my-1">
+                            <span>TOTAL AMOUNT:</span>
+                            <span id="billModalTotal">₹0</span>
+                        </div>
+                        <div class="text-center smallest mt-3">
+                            <div>Thank you for shopping with e Grossary!</div>
+                            <div>Please visit again!</div>
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer bg-white border-0 d-flex justify-content-between">
+                    <button type="button" class="btn btn-secondary rounded-2 px-3" data-bs-dismiss="modal">Close</button>
+                    <button type="button" class="btn btn-success rounded-2 px-4 fw-bold" onclick="window.print()">
+                        <i class="bi bi-printer-fill me-1"></i> Print Receipt
+                    </button>
                 </div>
             </div>
         </div>

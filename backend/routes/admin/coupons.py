@@ -1,8 +1,8 @@
 """Admin coupon management route."""
 from flask import jsonify
 
-from database.models import db
-from database.models.promotion import Coupon
+from backend.models import db
+from backend.models.promotion import Coupon
 from backend.routes.decorators import admin_required
 from . import admin_bp
 

@@ -7,7 +7,7 @@ import io
 import json
 import pytest
 
-from database.models import db, User, Product, Category, Sale, Order, OrderItem, Supplier, Purchase, Coupon, Notification
+from backend.models import db, User, Product, Category, Sale, Order, OrderItem, Supplier, Purchase, Coupon, Notification
 from backend.services.inventory_service import InventoryService
 from backend.services.storage_service import StorageService
 

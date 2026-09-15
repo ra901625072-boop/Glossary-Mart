@@ -1,8 +1,8 @@
 """
 Authentic FMCG and grocery distributors seed data for e Grossary.
 """
-from database.models import db
-from database.models.inventory import Supplier
+from backend.models import db
+from backend.models.inventory import Supplier
 
 
 def seed_suppliers():

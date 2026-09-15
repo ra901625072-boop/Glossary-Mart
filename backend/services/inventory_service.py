@@ -12,10 +12,10 @@ import json
 
 from flask_login import current_user
 
-from database.models import db
-from database.models.user import ActivityLog
-from database.models.promotion import Notification
-from database.models.product import Product
+from backend.models import db
+from backend.models.user import ActivityLog
+from backend.models.promotion import Notification
+from backend.models.product import Product
 
 
 class InventoryService:

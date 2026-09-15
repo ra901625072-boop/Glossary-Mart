@@ -268,8 +268,8 @@ def test_email_service_fault_tolerance(app):
 
 def test_admin_order_status_transitions_trigger_emails(client, session):
     """Verify updating order status through admin route triggers corresponding email method."""
-    from database.models.user import User
-    from database.models.order import Order
+    from backend.models.user import User
+    from backend.models.order import Order
     from werkzeug.security import generate_password_hash
 
     # Create admin and customer

@@ -9,11 +9,11 @@ __pycache__/
 *$py.class
 *.so
 
-# Database & Instance
-*.db
-*.sqlite
-*.sqlite3
-instance/
+# Database files (local SQLite storage in database/ directory)
+database/*.db
+database/*.sqlite
+database/*.sqlite3
+!database/.gitkeep
 logs/
 *.log
 

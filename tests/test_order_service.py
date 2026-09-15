@@ -1,6 +1,6 @@
 import pytest
-from database.models.order import Order, OrderItem
-from database.models.product import Product, Category
+from backend.models.order import Order, OrderItem
+from backend.models.product import Product, Category
 from backend.services.order_service import OrderService
 
 @pytest.fixture
